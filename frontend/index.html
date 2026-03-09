@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thrift Treasure | Vintage & Second-hand Finds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap');
+        
+        :root {
+            --vintage-green: #2a9d8f;
+            --vintage-gold: #e9c46a;
+            --vintage-coral: #e76f51;
+            --vintage-navy: #264653;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(42, 157, 143, 0.9) 0%, rgba(38, 70, 83, 0.9) 100%), 
+                        url('https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .heading-font {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .product-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .price-tag {
+            background: linear-gradient(135deg, #e9c46a 0%, #f4a261 100%);
+        }
+        
+        .sold-out {
+            position: relative;
+        }
+        
+        .sold-out::after {
+            content: "SOLD";
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background: #e76f51;
+            color: white;
+            padding: 5px 40px;
+            transform: rotate(45deg);
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .category-chip {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .category-chip.active, .category-chip:hover {
+            background-color: #2a9d8f;
+            color: white;
+        }
+        .category-chip.active {
+    background-color: #d1fae5;
+    border-color: #10b981;
+}
+
+.category-chip {
+    transition: all 0.2s ease;
+}
+
+.category-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #10b981;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+        .footer-gradient {
+            background: linear-gradient(135deg, #264653 0%, #2a9d8f 100%);
+        }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2a9d8f;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .tag-new {
+            background-color: #e76f51;
+        }
+        
+        .tag-vintage {
+            background-color: #264653;
+        }
+        
+        .tag-bestseller {
+            background-color: #e9c46a;
+            color: #000;
+        }
+
+        /* Add to your existing CSS */
+.rating-stars {
+    display: inline-flex;
+    align-items: center;
+}
+
+.rating-stars i {
+    transition: color 0.2s;
+}
+
+.seller-rating {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+    </style>
+</head>
+<body class="bg-gray-50">
+<!-- Navigation -->
+<nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+       <a href="index.html">
+    <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+</a>
+        <div class="hidden md:flex space-x-8">
+            <a href="#featured" class="text-gray-700 hover:text-green-600 font-medium">Featured</a>
+            <a href="#categories" class="text-gray-700 hover:text-green-600 font-medium">Categories</a>
+            <a href="#products" class="text-gray-700 hover:text-green-600 font-medium">All Items</a>
+            <a href="#about" class="text-gray-700 hover:text-green-600 font-medium">About</a>
+            
+        </div>
+        
+        <!-- Single auth container - will show login/signup OR user info -->
+        <div id="auth-container">
+            <!-- Will be filled by JavaScript -->
+        </div>
+    </div>
+</nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient text-white">
+        <div class="container mx-auto px-4 py-16 md:py-24">
+            <div class="max-w-2xl">
+                <h2 class="heading-font text-4xl md:text-5xl font-bold mb-4">Discover Hidden Gems in Pre-loved Fashion</h2>
+                <p class="text-xl mb-8 opacity-90">Sustainable shopping meets unique style. Find vintage treasures and give them a new life.</p>
+                <a href="#products" class="inline-flex items-center px-6 py-3 bg-white text-green-700 font-bold rounded-lg hover:bg-gray-100 transition duration-300 pulse">
+                    Shop Now
+                    <i data-feather="arrow-right" class="ml-2 w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <div class="bg-white border-b">
+        <div class="container mx-auto px-4 py-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                    <div class="text-2xl font-bold text-green-600">500+</div>
+                    <div class="text-sm text-gray-600">Unique Items</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-green-600">100%</div>
+                    <div class="text-sm text-gray-600">Authentic Vintage</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-green-600">24h</div>
+                    <div class="text-sm text-gray-600">Fast Shipping</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-green-600">4.8★</div>
+                    <div class="text-sm text-gray-600">Customer Rating</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Categories -->
+<section id="categories" class="py-12 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <h2 class="heading-font text-3xl font-bold text-center mb-8">Browse Categories</h2>
+        
+        <!-- Loading State -->
+        <div id="categories-loading" class="flex justify-center items-center py-8">
+            <div class="loader"></div>
+            <span class="ml-3 text-gray-600">Loading categories...</span>
+        </div>
+        
+        <!-- Categories Grid -->
+        <div id="categories-container" class="hidden">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="categories-grid">
+                <!-- Categories will be dynamically inserted here -->
+            </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="categories-error" class="text-center py-8 hidden">
+            <i data-feather="alert-circle" class="w-12 h-12 mx-auto text-red-300 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Unable to load categories</h3>
+            <p class="text-gray-500 mb-4" id="categories-error-text"></p>
+            <button onclick="loadCategories()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                Try Again
+            </button>
+        </div>
+    </div>
+</section>
+
+    <!-- Products Section -->
+    <section id="products" class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="heading-font text-3xl font-bold">Latest Arrivals</h2>
+                    <p class="text-gray-600">Freshly curated vintage finds</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button class="px-4 py-2 border rounded-lg hover:bg-gray-50">Filter</button>
+                    <button class="px-4 py-2 border rounded-lg hover:bg-gray-50">Sort By</button>
+                </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loading" class="flex justify-center items-center py-12">
+                <div class="loader"></div>
+                <span class="ml-3 text-gray-600">Loading treasures...</span>
+            </div>
+            
+            <!-- Products Grid -->
+            <div id="products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 hidden">
+                <!-- Products will be dynamically inserted here -->
+            </div>
+            
+            <!-- No Products Message -->
+            <div id="no-products" class="text-center py-12 hidden">
+                <i data-feather="package" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-medium text-gray-700 mb-2">No products available</h3>
+                <p class="text-gray-500">Check back soon for new arrivals!</p>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="error-message" class="text-center py-12 hidden">
+                <i data-feather="alert-circle" class="w-16 h-16 mx-auto text-red-300 mb-4"></i>
+                <h3 class="text-xl font-medium text-gray-700 mb-2">Unable to load products</h3>
+                <p class="text-gray-500 mb-4" id="error-text"></p>
+                <button onclick="loadProducts()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Try Again</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Section -->
+    <section id="featured" class="py-12 bg-gradient-to-r from-green-50 to-blue-50">
+        <div class="container mx-auto px-4">
+            <h2 class="heading-font text-3xl font-bold text-center mb-8">Weekly Spotlight</h2>
+            <div class="bg-white rounded-2xl p-8 shadow-lg max-w-4xl mx-auto">
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <span class="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium mb-4">FEATURED ITEM</span>
+                        <h3 class="text-2xl font-bold mb-4">Vintage Leather Jacket</h3>
+                        <p class="text-gray-600 mb-6">Authentic 80s leather jacket in excellent condition. This piece tells a story and adds instant character to any outfit.</p>
+                        <div class="flex items-center mb-6">
+                            <div class="text-3xl font-bold text-green-700">$89.99</div>
+                            <div class="ml-4 line-through text-gray-400">$120.00</div>
+                            <div class="ml-4 px-2 py-1 bg-red-100 text-red-700 rounded text-sm font-medium">25% OFF</div>
+                        </div>
+                        <button class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300 font-medium">
+                            View Details
+                        </button>
+                    </div>
+                    <div class="bg-gray-200 h-64 rounded-lg flex items-center justify-center">
+                        <i data-feather="image" class="w-16 h-16 text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="heading-font text-3xl font-bold mb-6">Our Mission</h2>
+                <p class="text-lg text-gray-700 mb-8">
+                    At Thrift Treasure, we believe that fashion should be sustainable, affordable, and unique. 
+                    We carefully curate each item to ensure quality and style, giving pre-loved pieces a new home 
+                    while reducing fashion waste.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+                    <div class="p-6 bg-green-50 rounded-xl">
+                        <i data-feather="leaf" class="w-10 h-10 text-green-600 mx-auto mb-4"></i>
+                        <h4 class="font-bold text-lg mb-2">Eco-Friendly</h4>
+                        <p class="text-gray-600">Reduce fashion waste by choosing second-hand</p>
+                    </div>
+                    <div class="p-6 bg-blue-50 rounded-xl">
+                        <i data-feather="dollar-sign" class="w-10 h-10 text-blue-600 mx-auto mb-4"></i>
+                        <h4 class="font-bold text-lg mb-2">Affordable</h4>
+                        <p class="text-gray-600">Quality fashion at a fraction of the price</p>
+                    </div>
+                    <div class="p-6 bg-yellow-50 rounded-xl">
+                        <i data-feather="star" class="w-10 h-10 text-yellow-600 mx-auto mb-4"></i>
+                        <h4 class="font-bold text-lg mb-2">Unique Finds</h4>
+                        <p class="text-gray-600">Discover one-of-a-kind pieces with history</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-gradient text-white">
+        <div class="container mx-auto px-4 py-12">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-8 h-8 bg-white rounded-full"></div>
+                        <h3 class="heading-font text-xl font-bold">Thrift Treasure</h3>
+                    </div>
+                    <p class="text-gray-300">Sustainable fashion for conscious shoppers.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#products" class="text-gray-300 hover:text-white">Shop All</a></li>
+                        <li><a href="#featured" class="text-gray-300 hover:text-white">Featured</a></li>
+                        <li><a href="#categories" class="text-gray-300 hover:text-white">Categories</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Account</h4>
+                    <ul class="space-y-2">
+                        <li><a href="login.html" class="text-gray-300 hover:text-white">Login</a></li>
+                        <li><a href="register.html" class="text-gray-300 hover:text-white">Register</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">My Orders</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Stay Updated</h4>
+                    <p class="text-gray-300 mb-4">Get notified about new arrivals</p>
+                    <div class="flex">
+                        <input type="email" placeholder="Your email" class="px-4 py-2 rounded-l-lg flex-grow text-gray-900">
+                        <button class="px-4 py-2 bg-green-500 rounded-r-lg hover:bg-green-600">
+                            <i data-feather="send" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Thrift Treasure. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="text-lg font-bold">Your Cart</h3>
+            <button onclick="toggleCart()" class="p-2 hover:bg-gray-100 rounded">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div id="cart-items" class="p-4 h-96 overflow-y-auto">
+            <p class="text-gray-500 text-center py-8">Your cart is empty</p>
+        </div>
+        <div class="p-4 border-t absolute bottom-0 w-full bg-white">
+            <div class="flex justify-between mb-4">
+                <span class="font-bold">Total:</span>
+                <span id="cart-total" class="font-bold">$0.00</span>
+            </div>
+            <button class="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">Checkout</button>
+        </div>
+    </div>
+    <div id="cart-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40" onclick="toggleCart()"></div>
+
+   <script>
+ // API Configuration
+const API_URL = 'http://localhost:3000/api';
+let cart = [];
+let allProducts = []; // Store all products for filtering
+let currentCategoryId = 0; // 0 means all products
+let allCategories = []; // Store all categories
+
+// Check authentication status and update UI
+function checkAuthStatus() {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    const authContainer = document.getElementById('auth-container');
+    
+    if (token && user) {
+        try {
+            const userData = JSON.parse(user);
+            let adminLink = '';
+            
+            // Add Admin link if user is ADMIN
+            if (userData.role === 'ADMIN') {
+                adminLink = `
+                    <a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">
+                        Admin
+                    </a>
+                `;
+            }
+            
+            // User is logged in - with profile and admin buttons
+            authContainer.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <span class="font-medium text-gray-700">Hi, ${userData.name || 'User'}</span>
+                    </div>
+                    ${adminLink}
+                    <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
+                        Profile
+                    </a>
+                    <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
+                        Logout
+                    </button>
+                </div>
+            `;
+            
+        } catch(e) {
+            console.error('Error parsing user data:', e);
+            showLoginButtons();
+        }
+    } else {
+        showLoginButtons();
+    }
+}
+
+// Show login buttons when not logged in
+function showLoginButtons() {
+    const authContainer = document.getElementById('auth-container');
+    const authButtons = document.getElementById('auth-buttons');
+    const userMenu = document.getElementById('user-menu');
+    
+    // Update auth-container
+    if (authContainer) {
+        authContainer.innerHTML = `
+            <div class="flex items-center space-x-4">
+                <a href="login.html" class="px-4 py-2 text-gray-700 hover:text-green-600 font-medium">Login</a>
+                <a href="register.html" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300">Sign Up</a>
+            </div>
+        `;
+    }
+    
+    // Update old method elements
+    if (authButtons) authButtons.classList.remove('hidden');
+    if (userMenu) userMenu.classList.add('hidden');
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    // Force reload to update UI
+    window.location.href = "index.html";
+}
+
+// Load categories from API
+async function loadCategories() {
+    const loadingEl = document.getElementById('categories-loading');
+    const containerEl = document.getElementById('categories-container');
+    const errorEl = document.getElementById('categories-error');
+    
+    if (loadingEl) loadingEl.classList.remove('hidden');
+    if (containerEl) containerEl.classList.add('hidden');
+    if (errorEl) errorEl.classList.add('hidden');
+    
+    try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        // Try to fetch categories
+        const response = await fetch(`${API_URL}/category/getAllCategory`, { headers });
+        
+        // If 401/403 (unauthorized), try without auth or use default categories
+        if (response.status === 401 || response.status === 403) {
+            console.log('Not authorized for categories API, using default categories');
+            renderDefaultCategories();
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const categories = await response.json();
+        console.log('Categories loaded:', categories);
+        
+        // Store categories
+        allCategories = categories;
+        
+        // Render categories
+        renderCategories(categories);
+        
+        // Show container
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (containerEl) containerEl.classList.remove('hidden');
+        
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        
+        // Fallback to default categories if API fails
+        renderDefaultCategories();
+    }
+}
+
+// Render categories from API
+function renderCategories(categories) {
+    const categoriesGrid = document.getElementById('categories-grid');
+    const loadingEl = document.getElementById('categories-loading');
+    const containerEl = document.getElementById('categories-container');
+    
+    if (!categoriesGrid) return;
+    
+    categoriesGrid.innerHTML = '';
+    
+    // Add "All Products" category first
+    const allCategoryCard = createCategoryCard({
+        id: 0,
+        name: 'All Products',
+        icon: 'grid'
+    }, true);
+    categoriesGrid.appendChild(allCategoryCard);
+    
+    // Add database categories
+    categories.forEach(category => {
+        const categoryCard = createCategoryCard(category);
+        categoriesGrid.appendChild(categoryCard);
+    });
+    
+    // Show container, hide loading
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (containerEl) containerEl.classList.remove('hidden');
+    
+    // Initialize feather icons
+    setTimeout(() => {
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    }, 100);
+}
+// Create a category card
+// Create a category card with custom icon mapping
+function createCategoryCard(category, isAllCategory = false) {
+    const div = document.createElement('div');
+    div.className = 'category-chip bg-white p-4 rounded-xl text-center border hover:border-green-500 cursor-pointer';
+    div.setAttribute('data-category-id', category.id);
+    
+    // Custom icon mapping with feather icons and fallbacks
+    const iconConfig = {
+        'jacket': { feather: 'briefcase', fallback: '🧥' },
+        'shoes': { feather: 'box', fallback: '👟' },
+        'sneakers': { feather: 'box', fallback: '👟' },
+        'tshirt': { feather: 't-shirt', fallback: '👕' },
+        'shirt': { feather: 't-shirt', fallback: '👕' },
+        'pant': { feather: 'layers', fallback: '👖' },
+        'pants': { feather: 'layers', fallback: '👖' },
+        'jeans': { feather: 'layers', fallback: '👖' },
+        'hat': { feather: 'sun', fallback: '🧢' },
+        'cap': { feather: 'sun', fallback: '🧢' },
+        'bag': { feather: 'briefcase', fallback: '👜' },
+        'watch': { feather: 'watch', fallback: '⌚' },
+        'jewelry': { feather: 'feather', fallback: '💍' },
+            'hoodie': { feather: 'gift', fallback: '👕' },
+        'accessory': { feather: 'feather', fallback: '🔑' },
+        'electronics': { feather: 'cpu', fallback: '💻' },
+        'book': { feather: 'book', fallback: '📚' },
+        'furniture': { feather: 'grid', fallback: '🪑' },
+        'default': { feather: 'package', fallback: '📦' }
+    };
+    
+    // Get icon config based on category name
+    let config = iconConfig.default;
+    if (isAllCategory) {
+        config = { feather: 'grid', fallback: '🔍' };
+    } else if (category.name) {
+        const lowerName = category.name.toLowerCase();
+        
+        // Find matching config
+        for (const [key, value] of Object.entries(iconConfig)) {
+            if (lowerName.includes(key) || lowerName === key) {
+                config = value;
+                break;
+            }
+        }
+    }
+    
+    // Try feather icon first, if it fails to load, show fallback emoji
+    div.innerHTML = `
+        <div class="icon-container w-8 h-8 mx-auto mb-2 text-green-600">
+            <i data-feather="${config.feather}" class="w-8 h-8"></i>
+            <span class="fallback-icon hidden text-3xl">${config.fallback}</span>
+        </div>
+        <div class="font-medium">${category.name || (isAllCategory ? 'All Products' : 'Category')}</div>
+    `;
+    
+    // Check if feather icon loaded properly
+    setTimeout(() => {
+        const icon = div.querySelector('[data-feather]');
+        if (icon && icon.parentElement && !icon.querySelector('svg')) {
+            // Feather icon failed to load, show fallback
+            icon.classList.add('hidden');
+            div.querySelector('.fallback-icon').classList.remove('hidden');
+        }
+    }, 100);
+    
+    // Add click event
+    div.addEventListener('click', function() {
+        filterByCategory(category.id);
+    });
+    
+    return div;
+}
+
+// Fallback: Render default categories if API fails
+function renderDefaultCategories() {
+    const categoriesGrid = document.getElementById('categories-grid');
+    const loadingEl = document.getElementById('categories-loading');
+    const containerEl = document.getElementById('categories-container');
+    const errorEl = document.getElementById('categories-error');
+    
+    if (!categoriesGrid) return;
+    
+    console.log('Using default categories');
+    
+    const defaultCategories = [
+        { id: 1, name: 'Jacket', icon: 'tshirt' },
+        { id: 2, name: 'Tshirt', icon: 'shirt' },
+        { id: 3, name: 'Pant', icon: 'layers' },
+        { id: 4, name: 'Shoes', icon: 'shoe' }
+    ];
+    
+    categoriesGrid.innerHTML = '';
+    
+    // Add "All Products" category
+    const allCategoryCard = createCategoryCard({
+        id: 0,
+        name: 'All Products',
+        icon: 'grid'
+    }, true);
+    categoriesGrid.appendChild(allCategoryCard);
+    
+    // Add default categories
+    defaultCategories.forEach(category => {
+        const categoryCard = createCategoryCard(category);
+        categoriesGrid.appendChild(categoryCard);
+    });
+    
+    // Show container, hide loading and error
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (containerEl) containerEl.classList.remove('hidden');
+    if (errorEl) errorEl.classList.add('hidden');
+    
+    // Initialize feather icons
+    setTimeout(() => {
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    }, 100);
+}
+
+// Function to filter by category
+async function filterByCategory(categoryId) {
+    console.log(`Filtering by category: ${categoryId}`);
+    
+    // Update current category
+    currentCategoryId = categoryId;
+    
+    // Update active category UI
+    updateActiveCategory(categoryId);
+    
+    // Show loading
+    const loadingEl = document.getElementById('loading');
+    const productsContainer = document.getElementById('products-container');
+    if (loadingEl) loadingEl.classList.remove('hidden');
+    if (productsContainer) productsContainer.classList.add('hidden');
+    
+    // If categoryId is 0, show all products from cache
+    if (categoryId === 0) {
+        setTimeout(() => {
+            renderProducts(allProducts);
+            if (loadingEl) loadingEl.classList.add('hidden');
+        }, 300);
+        return;
+    }
+    
+    // Otherwise, fetch products by category
+    await loadProductsByCategory(categoryId);
+}
+
+// Function to load products by category
+async function loadProductsByCategory(categoryId) {
+    const loadingEl = document.getElementById('loading');
+    const productsContainer = document.getElementById('products-container');
+    const noProductsEl = document.getElementById('no-products');
+    const errorEl = document.getElementById('error-message');
+    
+    try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        console.log(`Fetching products for category ${categoryId}`);
+        const response = await fetch(`${API_URL}/products/getByCategory/${categoryId}`, { headers });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log(`Category ${categoryId} products:`, result);
+        
+        const products = result.data || result;
+        
+        if (loadingEl) loadingEl.classList.add('hidden');
+        
+        if (!products || products.length === 0) {
+            if (noProductsEl) noProductsEl.classList.remove('hidden');
+            if (productsContainer) productsContainer.classList.add('hidden');
+            return;
+        }
+        
+        // Render the filtered products
+        renderProducts(products);
+        
+    } catch (error) {
+        console.error('Error loading products by category:', error);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (errorEl) {
+            errorEl.classList.remove('hidden');
+            document.getElementById('error-text').textContent = error.message;
+        }
+    }
+}
+
+// Function to update active category UI
+function updateActiveCategory(categoryId) {
+    // Remove active class from all categories
+    document.querySelectorAll('.category-chip').forEach(chip => {
+        chip.classList.remove('active', 'bg-green-100', 'border-green-500');
+        chip.classList.add('bg-white');
+    });
+    
+    // Add active class to selected category
+    const selectedChip = document.querySelector(`[data-category-id="${categoryId}"]`);
+    if (selectedChip) {
+        selectedChip.classList.add('active', 'bg-green-100', 'border-green-500');
+        selectedChip.classList.remove('bg-white');
+    }
+}
+
+// Function to render products (reusable)
+function renderProducts(products) {
+    const productsContainer = document.getElementById('products-container');
+    const noProductsEl = document.getElementById('no-products');
+    const errorEl = document.getElementById('error-message');
+    
+    if (errorEl) errorEl.classList.add('hidden');
+    
+    if (!products || products.length === 0) {
+        if (productsContainer) productsContainer.classList.add('hidden');
+        if (noProductsEl) noProductsEl.classList.remove('hidden');
+        return;
+    }
+    
+    if (productsContainer) {
+        productsContainer.innerHTML = '';
+        products.forEach(product => {
+            const productCard = createProductCard(product);
+            productsContainer.appendChild(productCard);
+        });
+        
+        productsContainer.classList.remove('hidden');
+        if (noProductsEl) noProductsEl.classList.add('hidden');
+    }
+}
+
+// Fetch all seller ratings in batch
+async function fetchAllSellerRatings(products) {
+    // Get unique seller IDs
+    const sellerIds = [...new Set(products.map(p => p.seller?.id || p.sellerId).filter(id => id))];
+    
+    const ratingsMap = {};
+    
+    // Fetch ratings for each seller (you might want to create a batch endpoint later)
+    await Promise.all(sellerIds.map(async (sellerId) => {
+        try {
+            const response = await fetch(`${API_URL}/ratings/seller/${sellerId}`);
+            if (response.ok) {
+                const data = await response.json();
+                ratingsMap[sellerId] = data.data?.summary || { averageRating: 0, totalReviews: 0 };
+            }
+        } catch (error) {
+            console.error(`Error fetching ratings for seller ${sellerId}:`, error);
+        }
+    }));
+    
+    return ratingsMap;
+}
+
+// Update your renderProducts function
+async function renderProducts(products) {
+    const container = document.getElementById('products-container');
+    container.innerHTML = '';
+    container.classList.remove('hidden');
+    
+    // Fetch all seller ratings first
+    const ratingsMap = await fetchAllSellerRatings(products);
+    
+    products.forEach(product => {
+        const sellerId = product.seller?.id || product.sellerId;
+        const sellerRating = ratingsMap[sellerId] || { averageRating: 0, totalReviews: 0 };
+        
+        const productCard = createProductCardWithRating(product, sellerRating);
+        container.appendChild(productCard);
+    });
+    
+    setTimeout(() => {
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    }, 100);
+}
+
+// Create product card with pre-fetched rating
+function createProductCardWithRating(product, sellerRating) {
+    const div = document.createElement('div');
+    div.className = 'product-card cursor-pointer transition-transform hover:scale-105 hover:shadow-lg';
+    
+    div.onclick = function(event) {
+        if (!event.target.closest('button')) {
+            showProductDetails(product.id || product._id);
+        }
+    };
+    
+    const tags = [];
+    if (Math.random() > 0.7) tags.push({text: 'NEW', class: 'tag-new'});
+    if (Math.random() > 0.5) tags.push({text: 'VINTAGE', class: 'tag-vintage text-white'});
+    if (Math.random() > 0.8) tags.push({text: 'BESTSELLER', class: 'tag-bestseller'});
+    
+    const price = product.price ? `Rs.${parseFloat(product.price).toFixed(2)}` : 'Rs.0.00';
+    const sellerName = product.seller?.name || 'Unknown Seller';
+    
+    // Rating stars HTML generator
+    const getRatingStars = (rating) => {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        let stars = '';
+        
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                stars += '<i data-feather="star" class="w-3 h-3 fill-current text-yellow-400 inline"></i>';
+            } else if (i === fullStars && hasHalfStar) {
+                stars += '<i data-feather="star" class="w-3 h-3 fill-current text-yellow-400 inline" style="clip-path: inset(0 50% 0 0);"></i>';
+            } else {
+                stars += '<i data-feather="star" class="w-3 h-3 text-gray-300 inline"></i>';
+            }
+        }
+        return stars;
+    };
+    
+    const avgRating = sellerRating.averageRating || 0;
+    const totalReviews = sellerRating.totalReviews || 0;
+    
+    div.innerHTML = `
+        <div class="relative">
+            <div class="h-48 bg-gray-200 flex items-center justify-center">
+                ${product.imageUrl ? 
+                    `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-cover">` :
+                    `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`
+                }
+            </div>
+            ${tags.map(tag => `
+                <span class="absolute top-2 left-2 px-2 py-1 text-xs font-bold rounded ${tag.class}">${tag.text}</span>
+            `).join('')}
+            ${product.quantity <= 0 ? '<div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center"><span class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">SOLD OUT</span></div>' : ''}
+        </div>
+        <div class="p-4">
+            <h3 class="font-bold text-lg mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
+            <p class="text-gray-600 text-sm mb-2 line-clamp-2">${product.description || 'No description available'}</p>
+            
+            <!-- Seller Info with Rating -->
+            <div class="flex items-center mb-2 text-sm">
+                <span class="text-gray-500">by</span>
+                <span class="font-medium text-gray-700 ml-1 truncate">${sellerName}</span>
+            </div>
+            
+            <!-- Seller Rating Display -->
+            <div class="mb-3">
+                <div class="flex items-center text-xs">
+                    <span class="flex mr-1">
+                        ${getRatingStars(avgRating)}
+                    </span>
+                    <span class="text-gray-600">${avgRating.toFixed(1)}</span>
+                    <span class="text-gray-400 mx-1">•</span>
+                    <span class="text-gray-500">${totalReviews} review${totalReviews !== 1 ? 's' : ''}</span>
+                </div>
+            </div>
+            
+            <div class="flex justify-between items-center">
+                <div class="price-tag px-3 py-1 rounded-lg font-bold text-gray-900">${price}</div>
+                <button onclick="buyProduct('${product.id || product._id}', ${product.price}, '${product.title.replace(/'/g, "\\'")}')" 
+                    class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition duration-300 ${product.quantity <= 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                    ${product.quantity <= 0 ? 'disabled' : ''}>
+                    ${product.quantity <= 0 ? 'Out of Stock' : 'Buy Now'}
+                </button>
+            </div>
+            ${product.quantity > 0 ? `
+                <div class="mt-3 text-xs text-gray-500 flex justify-between">
+                    <span>Stock: ${product.quantity}</span>
+                    <span class="text-blue-600 hover:underline" onclick="event.stopPropagation(); showProductDetails('${product.id || product._id}')">View Details →</span>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    return div;
+}
+
+// Update your loadProducts function to use the new render method
+async function loadProducts() {
+    console.log("loadProducts() called");
+    
+    const loadingEl = document.getElementById('loading');
+    const productsContainer = document.getElementById('products-container');
+    const noProductsEl = document.getElementById('no-products');
+    const errorEl = document.getElementById('error-message');
+    
+    if (loadingEl) loadingEl.classList.remove('hidden');
+    if (productsContainer) productsContainer.classList.add('hidden');
+    if (noProductsEl) noProductsEl.classList.add('hidden');
+    if (errorEl) errorEl.classList.add('hidden');
+    
+    try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        const url = `${API_URL}/products/getAllProducts`;
+        const response = await fetch(url, { headers });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const products = await response.json();
+        
+        if (loadingEl) loadingEl.classList.add('hidden');
+        
+        let productsArray = products;
+        if (products && products.data && Array.isArray(products.data)) {
+            productsArray = products.data;
+        } else if (products && products.products && Array.isArray(products.products)) {
+            productsArray = products.products;
+        }
+        
+        if (!productsArray || !Array.isArray(productsArray) || productsArray.length === 0) {
+            if (noProductsEl) noProductsEl.classList.remove('hidden');
+            return;
+        }
+        
+        allProducts = productsArray;
+        
+        // Use the new render function that fetches seller ratings
+        await renderProducts(productsArray);
+        
+        updateActiveCategory(0);
+        
+    } catch (error) {
+        console.error('Error loading products:', error);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (errorEl) {
+            errorEl.classList.remove('hidden');
+            document.getElementById('error-text').textContent = error.message;
+        }
+    }
+}
+// Add this function to handle product card click
+function showProductDetails(productId) {
+    // Find the product from allProducts array
+    const product = allProducts.find(p => p.id === productId || p._id === productId);
+    
+    if (product) {
+        // Store the selected product in localStorage or sessionStorage
+        // Option 1: Store in sessionStorage (cleared when tab is closed)
+        sessionStorage.setItem('selectedProduct', JSON.stringify(product));
+        
+        // Option 2: Store just the ID and fetch details on the product page
+        // sessionStorage.setItem('selectedProductId', productId);
+        
+        // Navigate to product details page
+        window.location.href = `product-details.html?id=${productId}`;
+        
+        // If you want to open in a new tab:
+        // window.open(`product-details.html?id=${productId}`, '_blank');
+    } else {
+        console.error('Product not found:', productId);
+    }
+}
+// // Function to add product to cart and go to checkout
+// async function addToCartAndCheckout(productId, price, productTitle) {
+//     try {
+//         // Check if user is logged in
+//         const token = localStorage.getItem('token');
+//         if (!token) {
+//             alert('Please login to purchase products');
+//             window.location.href = 'login.html';
+//             return;
+//         }
+
+//         // Ask for quantity
+//         const quantity = prompt(`How many "${productTitle}" do you want to buy?`, '1');
+        
+//         if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
+//             alert('Please enter a valid quantity');
+//             return;
+//         }
+        
+//         const qty = parseInt(quantity);
+//         const totalPrice = price * qty;
+
+//         // Create product object for checkout
+//         const productToBuy = {
+//             id: productId,
+//             title: productTitle,
+//             price: price,
+//             quantity: qty,
+//             image: null, // You can fetch image if needed
+//             total: totalPrice
+//         };
+
+//         // Store in localStorage for checkout page
+//         localStorage.setItem('checkoutCart', JSON.stringify([productToBuy]));
+        
+//         // Optional: Store as single product for immediate checkout
+//         localStorage.setItem('singleProductCheckout', JSON.stringify(productToBuy));
+
+//         // Redirect to checkout page
+//         window.location.href = 'checkout.html';
+
+//     } catch (error) {
+//         console.error('Checkout error:', error);
+//         alert(`Error: ${error.message}`);
+//     }
+// }
+async function buyProduct(productId, price, productTitle) {
+    try {
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login to purchase products');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Fetch product details to get image and verify stock
+        const headers = { 'Authorization': `Bearer ${token}` };
+        const response = await fetch(`${API_URL}/products/getProductById/${productId}`, { headers });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch product details');
+        }
+        
+        const data = await response.json();
+        const product = data.data || data;
+        
+        // Check if product is in stock
+        if (product.quantity <= 0) {
+            alert('Sorry, this product is out of stock');
+            return;
+        }
+
+        // Create product object for checkout with quantity 1
+        const productToBuy = {
+            id: productId,
+            title: product.title || productTitle,
+            price: price,
+            quantity: 1, // Default to 1 - user can change on checkout page
+            image: product.imageUrl || null,
+            maxQuantity: product.quantity // Store max available quantity
+        };
+
+        // Clear any existing checkout data
+        localStorage.removeItem('checkoutCart');
+        localStorage.removeItem('singleProductCheckout');
+        
+        // Store for checkout page
+        localStorage.setItem('singleProductCheckout', JSON.stringify(productToBuy));
+
+        // Redirect to checkout page
+        window.location.href = 'checkout.html';
+
+    } catch (error) {
+        console.error('Buy product error:', error);
+        alert(`Error: ${error.message}`);
+    }
+}
+
+// Quick View function (if you want to keep it)
+async function quickView(productId) {
+    // You can show product details in a modal
+    // Then add a "Buy" button in the modal
+    console.log('Quick view for product:', productId);
+    
+    // Example: Fetch product details and show modal
+    try {
+        const response = await fetch(`${API_URL}/products/${productId}`);
+        const product = await response.json();
+        
+        // Show modal with product details and buy button
+        showProductModal(product);
+    } catch (error) {
+        console.error('Error loading product details:', error);
+    }
+}
+
+// Optional: Modal for product details with buy option
+function showProductModal(product) {
+    // Create modal HTML
+    const modalHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">${product.title}</h3>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <i data-feather="x"></i>
+                    </button>
+                </div>
+                
+                ${product.imageUrl ? 
+                    `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-48 object-cover rounded mb-4">` : 
+                    `<div class="w-full h-48 bg-gray-200 flex items-center justify-center rounded mb-4">
+                        <i data-feather="image" class="w-12 h-12 text-gray-400"></i>
+                    </div>`
+                }
+                
+                <p class="text-gray-600 mb-4">${product.description || 'No description available'}</p>
+                
+                <div class="mb-4">
+                    <p class="text-sm text-gray-500">Price</p>
+                    <p class="text-2xl font-bold text-green-600">Rs.${parseFloat(product.price).toFixed(2)}</p>
+                </div>
+                
+                <div class="mb-6">
+                    <p class="text-sm text-gray-500">Available Stock</p>
+                    <p class="text-lg">${product.quantity} units</p>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <button onclick="closeModal()" 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button onclick="buyProduct(${product.id}, ${product.price}, '${product.title.replace(/'/g, "\\'")}')"
+                            class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 ${product.quantity <= 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                            ${product.quantity <= 0 ? 'disabled' : ''}>
+                        ${product.quantity <= 0 ? 'Out of Stock' : 'Buy Now'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    const modalContainer = document.createElement('div');
+    modalContainer.id = 'product-modal';
+    modalContainer.innerHTML = modalHTML;
+    document.body.appendChild(modalContainer);
+    
+    // Initialize Feather icons
+    setTimeout(() => {
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    }, 10);
+}
+
+function closeModal() {
+    const modal = document.getElementById('product-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+    
+    // Check auth status
+    checkAuthStatus();
+    
+    // Load categories
+    loadCategories();
+    
+    // Load products
+    loadProducts();
+    
+    // Note: Category chips event listeners are now added dynamically in createCategoryCard function
+});
+
+// Make functions available globally
+window.logout = logout;
+window.loadProducts = loadProducts;
+window.filterByCategory = filterByCategory;
+window.loadProductsByCategory = loadProductsByCategory;
+window.renderProducts = renderProducts;
+window.updateActiveCategory = updateActiveCategory;
+window.loadCategories = loadCategories;
+</script>
+</body>
+</html>

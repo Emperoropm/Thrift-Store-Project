@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Thrift Treasure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .heading-font {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .register-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1000px;
+            min-height: 600px;
+        }
+        
+        .register-left {
+            background: linear-gradient(135deg, #2a9d8f 0%, #264653 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .register-left::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://images.unsplash.com/photo-1523381210434-271e8be1f52b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80') center/cover;
+            opacity: 0.2;
+        }
+        
+        .register-right {
+            padding: 60px 40px;
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            z-index: 10;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #2a9d8f;
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+        }
+        
+        .register-btn {
+            background: linear-gradient(135deg, #2a9d8f 0%, #264653 100%);
+            color: white;
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(42, 157, 143, 0.3);
+        }
+        
+        .floating-label {
+            position: absolute;
+            left: 48px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus + .floating-label,
+        .form-input:not(:placeholder-shown) + .floating-label {
+            top: 8px;
+            font-size: 12px;
+            color: #2a9d8f;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+        
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .strength-weak { background: #ef4444; width: 25%; }
+        .strength-fair { background: #f59e0b; width: 50%; }
+        .strength-good { background: #10b981; width: 75%; }
+        .strength-strong { background: #059669; width: 100%; }
+        
+        .password-hints {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        .password-hints ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .password-hints li {
+            margin-bottom: 4px;
+        }
+        
+        .password-hints li.valid {
+            color: #10b981;
+        }
+        
+        .password-hints li.valid::before {
+            content: '✓ ';
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .role-option {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .role-option:hover {
+            border-color: #2a9d8f;
+            background: #f0f9ff;
+        }
+        
+        .role-option.selected {
+            border-color: #2a9d8f;
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        @media (max-width: 768px) {
+            .register-left {
+                display: none;
+            }
+            
+            .register-right {
+                padding: 40px 20px;
+            }
+        }
+        /* Field error styles */
+.field-error {
+    position: absolute;
+    bottom: -20px;
+    left: 48px;
+    font-size: 12px;
+    animation: fadeIn 0.3s ease;
+    z-index: 1;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Error border animation */
+.error-border {
+    border-color: #ef4444 !important;
+    animation: errorPulse 0.5s ease;
+}
+
+@keyframes errorPulse {
+    0% { border-color: #ef4444; }
+    50% { border-color: #fca5a5; }
+    100% { border-color: #ef4444; }
+}
+
+/* Password hints validation */
+.password-hints ul li.valid {
+    color: #10b981;
+}
+
+.password-hints ul li.valid::before {
+    content: '✓ ';
+}
+
+/* Password strength indicator improvements */
+.password-strength {
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 8px;
+    transition: all 0.3s ease;
+}
+
+.strength-weak {
+    width: 25%;
+    background: #ef4444;
+}
+
+.strength-fair {
+    width: 50%;
+    background: #f59e0b;
+}
+
+.strength-good {
+    width: 75%;
+    background: #3b82f6;
+}
+
+.strength-strong {
+    width: 100%;
+    background: #10b981;
+}
+
+/* Password hints container */
+.password-hints {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.password-hints ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.password-hints li {
+    margin-bottom: 2px;
+    transition: color 0.3s ease;
+}
+
+/* Password hints with radio buttons */
+.password-hints {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.password-requirements {
+    margin-bottom: 8px;
+}
+
+.requirement-item {
+    margin-bottom: 4px;
+    padding: 4px 0;
+    transition: all 0.3s ease;
+}
+
+.requirement-radio {
+    width: 16px;
+    height: 16px;
+    appearance: none;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    background: white;
+    cursor: default;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.requirement-radio:checked {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+
+.requirement-radio.radio-checked:checked {
+    background-color: #10b981;
+    border-color: #10b981;
+    animation: radioPulse 0.5s ease;
+}
+
+.requirement-radio.radio-animate:checked {
+    animation: radioSuccess 0.5s ease;
+}
+
+/* Style the checked radio button with a checkmark */
+.requirement-radio:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Style label when radio is checked */
+.requirement-radio:checked + label {
+    color: #10b981;
+    font-weight: 500;
+}
+
+@keyframes radioPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes radioSuccess {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    70% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+/* Update requirement item when met */
+.requirement-item.met {
+    opacity: 1;
+}
+
+.requirement-item.met label {
+    color: #10b981;
+}
+
+/* Progress indicator */
+.progress-tracker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 8px 0;
+}
+
+.progress-step {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #6b7280;
+    position: relative;
+}
+
+.progress-step.completed {
+    background: #10b981;
+    color: white;
+    animation: stepComplete 0.5s ease;
+}
+
+.progress-step.active {
+    background: #3b82f6;
+    color: white;
+}
+
+@keyframes stepComplete {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Password strength meter */
+.password-strength-meter {
+    width: 100%;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    margin: 8px 0;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.strength-weak .strength-fill {
+    width: 25%;
+    background: #ef4444;
+}
+
+.strength-fair .strength-fill {
+    width: 50%;
+    background: #f59e0b;
+}
+
+.strength-good .strength-fill {
+    width: 75%;
+    background: #3b82f6;
+}
+
+.strength-strong .strength-fill {
+    width: 100%;
+    background: #10b981;
+}
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="grid md:grid-cols-2">
+            <!-- Left Side - Welcome Section -->
+            <div class="register-left p-10 flex flex-col justify-between">
+                <div class="relative z-10">
+                    <a href="index.html" class="flex items-center space-x-2 mb-8">
+                        <div class="w-10 h-10 bg-white rounded-full"></div>
+                        <h1 class="heading-font text-2xl font-bold">Thrift<span class="text-green-300">Treasure</span></h1>
+                    </a>
+                    
+                    <div class="mt-10">
+                        <h2 class="heading-font text-3xl font-bold mb-4">Join Our Community</h2>
+                        <p class="text-green-100 text-lg">Start your sustainable shopping journey with unique vintage finds and give pre-loved items a new home.</p>
+                    </div>
+                    
+                    <div class="mt-16 space-y-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-300 rounded-full flex items-center justify-center">
+                                <i data-feather="star" class="w-4 h-4 text-green-800"></i>
+                            </div>
+                            <span>Discover unique vintage treasures</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-300 rounded-full flex items-center justify-center">
+                                <i data-feather="shopping-bag" class="w-4 h-4 text-green-800"></i>
+                            </div>
+                            <span>Sell your own pre-loved items</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-300 rounded-full flex items-center justify-center">
+                                <i data-feather="leaf" class="w-4 h-4 text-green-800"></i>
+                            </div>
+                            <span>Contribute to sustainable fashion</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-300 rounded-full flex items-center justify-center">
+                                <i data-feather="shield" class="w-4 h-4 text-green-800"></i>
+                            </div>
+                            <span>Secure and trusted transactions</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="relative z-10 mt-auto">
+                    <div class="bg-green-800 bg-opacity-30 rounded-xl p-4">
+                        <p class="text-green-200 text-sm italic">"Every thrifted piece tells a story. Join us in creating new chapters for pre-loved fashion."</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Side - Registration Form -->
+            <div class="register-right">
+                <div class="max-w-md mx-auto">
+                    <div class="text-center mb-8 md:hidden">
+                        <a href="index.html" class="flex items-center space-x-2 justify-center mb-6">
+                            <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full"></div>
+                            <h1 class="heading-font text-2xl font-bold text-gray-800">Thrift<span class="text-green-600">Treasure</span></h1>
+                        </a>
+                        <h2 class="heading-font text-2xl font-bold text-gray-800 mb-2">Create Account</h2>
+                        <p class="text-gray-600">Join our sustainable fashion community</p>
+                    </div>
+                    
+                    <h2 class="heading-font text-2xl font-bold text-gray-800 mb-2 hidden md:block">Create Account</h2>
+                    <p class="text-gray-600 mb-8 hidden md:block">Join our community and start your sustainable shopping journey</p>
+                    
+                    <!-- Error Message -->
+                    <div id="error-message" class="error-message">
+                        <div class="flex items-center">
+                            <i data-feather="alert-circle" class="w-5 h-5 mr-2"></i>
+                            <span id="error-text"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Success Message -->
+                    <div id="success-message" class="success-message">
+                        <div class="flex items-center">
+                            <i data-feather="check-circle" class="w-5 h-5 mr-2"></i>
+                            <span id="success-text"></span>
+                        </div>
+                    </div>
+                    
+                    <form id="register-form" onsubmit="register(event)">
+                        <!-- Hidden role field -->
+                        <input type="hidden" id="role" value="USER">
+                        
+                        <div class="input-group">
+                            <i data-feather="user" class="input-icon w-5 h-5"></i>
+                            <input type="text" id="name" class="form-input" placeholder=" " >
+                            <label for="name" class="floating-label">Full Name</label>
+                        </div>
+                        
+                        <div class="input-group">
+                            <i data-feather="mail" class="input-icon w-5 h-5"></i>
+                            <input type="email" id="email" class="form-input" placeholder=" " >
+                            <label for="email" class="floating-label">Email Address</label>
+                        </div>
+                        
+                        <div class="input-group">
+    <i data-feather="lock" class="input-icon w-5 h-5"></i>
+    <input type="password" id="password" class="form-input" placeholder=" "  
+           oninput="checkPasswordStrength(this.value)">
+    <label for="password" class="floating-label">Password</label>
+</div>
+    <!-- Password strength indicator -->
+    <div id="password-strength" class="password-strength"></div>
+    
+    <!-- Password hints with radio buttons -->
+    <div id="password-hints" class="password-hints">
+        <div class="password-requirements">
+            <p class="text-sm font-medium text-gray-700 mb-2">Password Requirements:</p>
+            <div class="space-y-1">
+                <div class="requirement-item flex items-center">
+                    <input type="radio" id="length-radio" disabled class="requirement-radio mr-2">
+                    <label for="length-radio" class="text-sm text-gray-600">At least 6 characters</label>
+                </div>
+                <div class="requirement-item flex items-center">
+                    <input type="radio" id="number-radio" disabled class="requirement-radio mr-2">
+                    <label for="number-radio" class="text-sm text-gray-600">Contains a number</label>
+                </div>
+                <div class="requirement-item flex items-center">
+                    <input type="radio" id="letter-radio" disabled class="requirement-radio mr-2">
+                    <label for="letter-radio" class="text-sm text-gray-600">Contains a letter</label>
+                </div>
+                <div class="requirement-item flex items-center">
+                    <input type="radio" id="special-radio" disabled class="requirement-radio mr-2">
+                    <label for="special-radio" class="text-sm text-gray-600">Contains a special character</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+                        
+                        <div class="input-group">
+                            <i data-feather="lock" class="input-icon w-5 h-5"></i>
+                            <input type="password" id="confirm-password" class="form-input" placeholder=" " 
+                                   oninput="checkPasswordMatch()">
+                            <label for="confirm-password" class="floating-label">Confirm Password</label>
+                            <div id="password-match" class="text-sm mt-1"></div>
+                        </div>
+                        
+                       
+                        
+                        <div class="flex items-center mb-6">
+                            <input type="checkbox" id="terms" class="rounded text-green-600 mr-3" required>
+                            <label for="terms" class="text-sm text-gray-600">
+                                I agree to the 
+                                <a href="#" class="text-green-600 hover:text-green-800">Terms of Service</a>
+                                and 
+                                <a href="#" class="text-green-600 hover:text-green-800">Privacy Policy</a>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="register-btn mb-6 pulse">
+                            <span id="register-btn-text">Create Account</span>
+                            <span id="register-loading" class="hidden">Creating account...</span>
+                        </button>
+                        
+                        <div class="text-center">
+                            <p class="text-gray-600">
+                                Already have an account? 
+                                <a href="login.html" class="text-green-600 font-semibold hover:text-green-800 ml-1">
+                                    Sign in here
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-8 pt-8 border-t border-gray-200">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">
+                                By creating an account, you're joining a community dedicated to sustainable fashion and reducing fashion waste.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+    // Initialize feather icons
+    document.addEventListener('DOMContentLoaded', function() {
+        feather.replace();
+        
+        // Check if already logged in
+        const token = localStorage.getItem('token');
+        if (token) {
+            window.location.href = 'index.html';
+        }
+        
+        // Add input validation
+        setupInputValidation();
+    });
+
+    function setupInputValidation() {
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        
+        // Real-time validation for name
+        nameInput.addEventListener('blur', validateName);
+        nameInput.addEventListener('input', clearNameError);
+        
+        // Real-time validation for email
+        emailInput.addEventListener('blur', validateEmail);
+        emailInput.addEventListener('input', clearEmailError);
+        
+        // Real-time validation for password
+        passwordInput.addEventListener('blur', validatePassword);
+        passwordInput.addEventListener('input', clearPasswordError);
+        
+        // Real-time validation for confirm password
+        confirmPasswordInput.addEventListener('blur', validateConfirmPassword);
+        confirmPasswordInput.addEventListener('input', clearConfirmPasswordError);
+        
+        // Terms checkbox validation
+        document.getElementById('terms').addEventListener('change', validateTerms);
+    }
+    
+    function validateName() {
+        const name = document.getElementById('name').value.trim();
+        
+        if (!name) {
+            showFieldError('name', 'Full name is required');
+            return false;
+        }
+        
+        if (name.length < 2) {
+            showFieldError('name', 'Name must be at least 2 characters');
+            return false;
+        }
+        
+        if (name.length > 50) {
+            showFieldError('name', 'Name must be less than 50 characters');
+            return false;
+        }
+        
+        if (!/^[a-zA-Z\s]+$/.test(name)) {
+            showFieldError('name', 'Name can only contain letters and spaces');
+            return false;
+        }
+        
+        clearFieldError('name');
+        return true;
+    }
+    
+    function validateEmail() {
+        const email = document.getElementById('email').value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!email) {
+            showFieldError('email', 'Email address is required');
+            return false;
+        }
+        
+        if (!emailRegex.test(email)) {
+            showFieldError('email', 'Please enter a valid email address');
+            return false;
+        }
+        
+        if (email.length > 100) {
+            showFieldError('email', 'Email must be less than 100 characters');
+            return false;
+        }
+        
+        clearFieldError('email');
+        return true;
+    }
+    
+    function validatePassword() {
+        const password = document.getElementById('password').value;
+        
+        if (!password) {
+            showFieldError('password', 'Password is required');
+            return false;
+        }
+        
+        if (password.length < 6) {
+            showFieldError('password', 'Password must be at least 6 characters');
+            return false;
+        }
+        
+        if (password.length > 50) {
+            showFieldError('password', 'Password must be less than 50 characters');
+            return false;
+        }
+        
+        if (!/\d/.test(password)) {
+            showFieldError('password', 'Password must contain at least one number');
+            return false;
+        }
+        
+        if (!/[a-zA-Z]/.test(password)) {
+            showFieldError('password', 'Password must contain at least one letter');
+            return false;
+        }
+        
+        clearFieldError('password');
+        return true;
+    }
+    
+    function validateConfirmPassword() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        
+        if (!confirmPassword) {
+            showFieldError('confirm-password', 'Please confirm your password');
+            return false;
+        }
+        
+        if (password !== confirmPassword) {
+            showFieldError('confirm-password', 'Passwords do not match');
+            return false;
+        }
+        
+        clearFieldError('confirm-password');
+        return true;
+    }
+    
+    function validateTerms() {
+        const terms = document.getElementById('terms').checked;
+        const termsLabel = document.querySelector('label[for="terms"]');
+        
+        if (!terms) {
+            termsLabel.classList.add('text-red-500');
+            return false;
+        } else {
+            termsLabel.classList.remove('text-red-500');
+            return true;
+        }
+    }
+    
+    function showFieldError(fieldId, message) {
+        const input = document.getElementById(fieldId);
+        const inputGroup = input.parentElement;
+        
+        // Add error styling
+        input.classList.add('border-red-500', 'error-border');
+        input.classList.remove('border-gray-300');
+        
+        // Create or update error message
+        let errorSpan = inputGroup.querySelector('.field-error');
+        if (!errorSpan) {
+            errorSpan = document.createElement('span');
+            errorSpan.className = 'field-error text-red-500 text-sm mt-1 block';
+            inputGroup.appendChild(errorSpan);
+        }
+        errorSpan.textContent = message;
+    }
+    
+    function clearFieldError(fieldId) {
+        const input = document.getElementById(fieldId);
+        const inputGroup = input.parentElement;
+        
+        // Remove error styling
+        input.classList.remove('border-red-500', 'error-border');
+        input.classList.add('border-gray-300');
+        
+        // Remove error message
+        const errorSpan = inputGroup.querySelector('.field-error');
+        if (errorSpan) {
+            errorSpan.remove();
+        }
+    }
+    
+    function clearNameError() {
+        const name = document.getElementById('name').value.trim();
+        if (name) {
+            clearFieldError('name');
+        }
+    }
+    
+    function clearEmailError() {
+        const email = document.getElementById('email').value.trim();
+        if (email) {
+            clearFieldError('email');
+        }
+    }
+    
+    function clearPasswordError() {
+        const password = document.getElementById('password').value;
+        if (password) {
+            clearFieldError('password');
+        }
+    }
+    
+    function clearConfirmPasswordError() {
+        const confirmPassword = document.getElementById('confirm-password').value;
+        if (confirmPassword) {
+            clearFieldError('confirm-password');
+        }
+    }
+
+    // Select role function
+    function selectRole(role) {
+        document.getElementById('role').value = role;
+        
+        // Update UI
+        document.querySelectorAll('.role-option').forEach(option => {
+            if (option.getAttribute('data-role') === role) {
+                option.classList.add('selected');
+            } else {
+                option.classList.remove('selected');
+            }
+        });
+    }
+
+   // Check password strength with radio buttons
+function checkPasswordStrength(password) {
+    const strengthBar = document.getElementById('password-strength');
+    const lengthRadio = document.getElementById('length-radio');
+    const numberRadio = document.getElementById('number-radio');
+    const letterRadio = document.getElementById('letter-radio');
+    const specialRadio = document.getElementById('special-radio');
+    
+    // Reset all radios
+    [lengthRadio, numberRadio, letterRadio, specialRadio].forEach(radio => {
+        radio.checked = false;
+        radio.classList.remove('radio-checked');
+    });
+    
+    if (!password) {
+        strengthBar.className = 'password-strength';
+        strengthBar.textContent = '';
+        return;
+    }
+    
+    let strength = 0;
+    const requirements = [];
+    
+    // Check length
+    if (password.length >= 6) {
+        lengthRadio.checked = true;
+        lengthRadio.classList.add('radio-checked');
+        strength++;
+        requirements.push('length');
+    }
+    
+    // Check for numbers
+    if (/\d/.test(password)) {
+        numberRadio.checked = true;
+        numberRadio.classList.add('radio-checked');
+        strength++;
+        requirements.push('number');
+    }
+    
+    // Check for letters
+    if (/[a-zA-Z]/.test(password)) {
+        letterRadio.checked = true;
+        letterRadio.classList.add('radio-checked');
+        strength++;
+        requirements.push('letter');
+    }
+    
+    // Check for special characters
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        specialRadio.checked = true;
+        specialRadio.classList.add('radio-checked');
+        strength++;
+        requirements.push('special');
+    }
+    
+    // Update strength bar
+    let strengthClass = 'strength-weak';
+    let strengthText = 'Weak';
+    
+    if (strength === 4) {
+        strengthClass = 'strength-strong';
+        strengthText = 'Strong';
+    } else if (strength === 3) {
+        strengthClass = 'strength-good';
+        strengthText = 'Good';
+    } else if (strength === 2) {
+        strengthClass = 'strength-fair';
+        strengthText = 'Fair';
+    }
+    
+    strengthBar.className = `password-strength ${strengthClass}`;
+    strengthBar.textContent = strengthText;
+    
+    // Animate radio buttons sequentially
+    animateRadioButtons(requirements);
+}
+
+// Animate radio buttons one by one
+function animateRadioButtons(requirements) {
+    const radios = {
+        'length': document.getElementById('length-radio'),
+        'number': document.getElementById('number-radio'),
+        'letter': document.getElementById('letter-radio'),
+        'special': document.getElementById('special-radio')
+    };
+    
+    // Remove all animations first
+    Object.values(radios).forEach(radio => {
+        radio.classList.remove('radio-animate');
+    });
+    
+    // Animate each requirement with delay
+    requirements.forEach((req, index) => {
+        setTimeout(() => {
+            if (radios[req]) {
+                radios[req].classList.add('radio-animate');
+            }
+        }, index * 200);
+    });
+}
+
+    // Check password match
+    function checkPasswordMatch() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const matchDiv = document.getElementById('password-match');
+        
+        if (!confirmPassword) {
+            matchDiv.textContent = '';
+            return;
+        }
+        
+        if (password === confirmPassword) {
+            matchDiv.innerHTML = '<span class="text-green-600">✓ Passwords match</span>';
+            clearFieldError('confirm-password');
+        } else {
+            matchDiv.innerHTML = '<span class="text-red-600">✗ Passwords do not match</span>';
+        }
+    }
+
+    // Enhanced register function
+    async function register(event) {
+        event.preventDefault();
+        
+        // Validate all fields before submission
+        const isNameValid = validateName();
+        const isEmailValid = validateEmail();
+        const isPasswordValid = validatePassword();
+        const isConfirmPasswordValid = validateConfirmPassword();
+        const isTermsValid = validateTerms();
+        
+        // Get UI elements
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const successMessage = document.getElementById('success-message');
+        const successText = document.getElementById('success-text');
+        const registerBtnText = document.getElementById('register-btn-text');
+        const registerLoading = document.getElementById('register-loading');
+        
+        // Hide previous messages
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+        
+        // Check if all validations passed
+        if (!isNameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid || !isTermsValid) {
+            errorText.textContent = 'Please fix all validation errors before submitting';
+            errorMessage.style.display = 'block';
+            
+            // Scroll to first error
+            const firstError = document.querySelector('.field-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+        
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const role = document.getElementById('role').value;
+        const terms = document.getElementById('terms').checked;
+        
+        // Show loading state
+        registerBtnText.classList.add('hidden');
+        registerLoading.classList.remove('hidden');
+        
+        try {
+            // Call the register function
+            const user = {
+                name: name,
+                email: email,
+                password: password,
+                role: role
+            };
+            
+            const res = await fetch(`${API_URL}/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(user)
+            });
+
+            const data = await res.json();
+            
+            if (res.ok) {
+                // Show success message
+                successText.textContent = 'Account created successfully! Redirecting to login...';
+                successMessage.style.display = 'block';
+                
+                // Reset form
+                document.getElementById('register-form').reset();
+                document.getElementById('password-strength').className = 'password-strength';
+                document.getElementById('password-match').textContent = '';
+                
+                // Clear all field errors
+                ['name', 'email', 'password', 'confirm-password'].forEach(clearFieldError);
+                
+                // Redirect to login after delay
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 2000);
+                
+            } else {
+                // Handle server errors
+                let errorMsg = "Registration failed";
+                
+                if (res.status === 400) {
+                    errorMsg = data.message || "Invalid request data";
+                    
+                    // Highlight specific fields with errors
+                    if (data.errors) {
+                        Object.keys(data.errors).forEach(field => {
+                            const fieldId = field.toLowerCase();
+                            const fieldElement = document.getElementById(fieldId);
+                            if (fieldElement) {
+                                showFieldError(fieldId, data.errors[field]);
+                            }
+                        });
+                    }
+                } else if (res.status === 409) {
+                    errorMsg = data.message || "User already exists";
+                    if (data.message && data.message.toLowerCase().includes('email')) {
+                        showFieldError('email', 'This email is already registered');
+                    }
+                } else if (res.status === 422) {
+                    errorMsg = "Validation failed. Please check your input";
+                } else if (res.status === 500) {
+                    errorMsg = "Server error. Please try again later";
+                }
+                
+                errorText.textContent = errorMsg;
+                errorMessage.style.display = 'block';
+                
+                // Reset button
+                registerBtnText.classList.remove('hidden');
+                registerLoading.classList.add('hidden');
+            }
+            
+        } catch (error) {
+            console.error("Registration error:", error);
+            errorText.textContent = "Network error. Please check your connection and try again.";
+            errorMessage.style.display = 'block';
+            
+            // Reset button
+            registerBtnText.classList.remove('hidden');
+            registerLoading.classList.add('hidden');
+        }
+    }
+    
+    // Make functions available globally
+    window.register = register;
+    window.selectRole = selectRole;
+    window.checkPasswordStrength = checkPasswordStrength;
+    window.checkPasswordMatch = checkPasswordMatch;
+</script>
+</body>
+</html>

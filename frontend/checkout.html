@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Thrift Treasure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <!-- Add CryptoJS for HMAC -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/hmac-sha256.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/enc-base64.min.js"></script>
+    <style>
+        .esewa-btn {
+            background: linear-gradient(135deg, #6aa84f 0%, #38761d 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .esewa-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 118, 29, 0.3);
+        }
+        .esewa-btn img {
+            height: 24px;
+            width: auto;
+        }
+        .quantity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="index.html">
+                <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+            </a>
+            <div id="auth-container"></div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6">Checkout</h1>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Left Column: Order Items & Shipping -->
+            <div class="md:col-span-2">
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <h2 class="text-xl font-bold mb-4">Order Items</h2>
+                    <div id="order-items"></div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-4">Shipping Information</h2>
+                    <form id="shipping-form">
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 mb-2">Full Name *</label>
+                                <input type="text" id="full-name" class="w-full px-4 py-2 border rounded-lg" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Phone Number *</label>
+                                <input type="tel" id="phone" class="w-full px-4 py-2 border rounded-lg" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Address *</label>
+                            <textarea id="address" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Email *</label>
+                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg" required>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Right Column: Order Summary -->
+            <div class="md:col-span-1">
+                <div class="bg-white rounded-lg shadow p-6 sticky top-6">
+                    <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between mb-2">
+                            <span>Subtotal</span>
+                            <span id="subtotal">Rs. 0</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span>Tax (13%)</span>
+                            <span id="tax">Rs. 0</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span>Service Charge</span>
+                            <span>Rs. 30</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span>Delivery Charge</span>
+                            <span>Rs. 100</span>
+                        </div>
+                        <div class="flex justify-between font-bold text-lg border-t pt-2">
+                            <span>Total</span>
+                            <span id="total">Rs. 0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Debug Info -->
+                    <div id="debug-info" class="hidden text-xs bg-yellow-50 p-3 rounded mb-4 border border-yellow-200">
+                        <h4 class="font-bold mb-1">Debug Information:</h4>
+                        <p id="debug-amounts"></p>
+                        <p id="debug-signature"></p>
+                    </div>
+                    
+                    <button onclick="processToEsewa()" 
+                            class="w-full esewa-btn mb-4">
+                        <img src="https://esewa.com.np/common/images/esewa_logo.png" alt="eSewa">
+                        Pay with eSewa
+                    </button>
+                    
+                    <p class="text-sm text-gray-500 text-center mb-4">
+                        You will be redirected to eSewa for secure payment
+                    </p>
+                    
+                    <a href="index.html" 
+                       class="block text-center w-full border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50">
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden form for eSewa -->
+    <div id="esewa-form-container" style="display: none;"></div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let checkoutItems = [];
+        const SERVICE_CHARGE = 30;
+        const DELIVERY_CHARGE = 100;
+        const TAX_RATE = 0.13;
+
+        // Load cart from localStorage and fetch latest stock
+        async function loadCheckoutCart() {
+            try {
+                const cartData = localStorage.getItem('checkoutCart');
+                const singleProduct = localStorage.getItem('singleProductCheckout');
+                
+                let items = [];
+                
+                if (cartData) {
+                    items = JSON.parse(cartData);
+                } else if (singleProduct) {
+                    items = [JSON.parse(singleProduct)];
+                } else {
+                    alert('Your cart is empty. Redirecting to shop...');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                // Show loading state
+                document.getElementById('order-items').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-green-600"></div>
+                        <p class="mt-2 text-gray-600">Loading latest stock information...</p>
+                    </div>
+                `;
+                
+                // Fetch latest stock quantities for each item
+                const token = localStorage.getItem('token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                
+                const updatedItems = await Promise.all(items.map(async (item) => {
+                    try {
+                        const response = await fetch(`${API_URL}/products/getProductById/${item.id}`, { headers });
+                        if (response.ok) {
+                            const data = await response.json();
+                            const product = data.data || data;
+                            
+                            // Update max quantity from server
+                            item.maxQuantity = product.quantity || 0;
+                            
+                            // Adjust quantity if it exceeds available stock
+                            if (item.quantity > item.maxQuantity) {
+                                item.quantity = item.maxQuantity;
+                                if (item.maxQuantity === 0) {
+                                    alert(`${item.title} is out of stock and will be removed.`);
+                                    return null;
+                                } else {
+                                    alert(`${item.title} stock limited to ${item.maxQuantity}. Your quantity has been adjusted.`);
+                                }
+                            }
+                            
+                            // Update image if available
+                            if (product.imageUrl) {
+                                item.image = product.imageUrl;
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching product ${item.id}:`, error);
+                    }
+                    return item;
+                }));
+                
+                // Filter out null items (out of stock)
+                checkoutItems = updatedItems.filter(item => item !== null && item.quantity > 0);
+                
+                if (checkoutItems.length === 0) {
+                    alert('All items are out of stock. Redirecting to shop...');
+                    clearCheckoutStorage();
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                // Update storage with adjusted quantities
+                updateCheckoutStorage();
+                
+                displayCheckoutItems();
+                calculateCheckoutTotal();
+                
+            } catch (error) {
+                console.error('Error loading cart:', error);
+                alert('Error loading cart. Please try again.');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Display checkout items with quantity controls
+        // Display checkout items with quantity controls (no delete button)
+function displayCheckoutItems() {
+    const container = document.getElementById('order-items');
+    if (checkoutItems.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">Your cart is empty</p>';
+        return;
+    }
+
+    container.innerHTML = checkoutItems.map((item, index) => `
+        <div class="flex items-center border-b py-4" data-item-index="${index}">
+            <div class="w-16 h-16 bg-gray-200 rounded mr-4">
+                ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover rounded">` : 
+                  `<div class="w-full h-full flex items-center justify-center">
+                     <i data-feather="package" class="w-6 h-6 text-gray-400"></i>
+                   </div>`}
+            </div>
+            <div class="flex-1">
+                <h3 class="font-medium">${item.title}</h3>
+                <p class="text-gray-500 text-sm">Price: Rs. ${parseFloat(item.price).toFixed(2)}</p>
+                
+                <!-- Quantity Controls -->
+                <div class="flex items-center mt-2">
+                    <button onclick="updateQuantity(${index}, -1)" 
+                        class="quantity-btn px-2 py-1 border border-gray-300 rounded-l hover:bg-gray-100"
+                        ${item.quantity <= 1 ? 'disabled' : ''}>
+                        <i data-feather="minus" class="w-4 h-4"></i>
+                    </button>
+                    <input type="number" 
+                        value="${item.quantity}" 
+                        min="1" 
+                        max="${item.maxQuantity || 99}" 
+                        onchange="setQuantity(${index}, this.value)"
+                        class="w-16 text-center border-t border-b border-gray-300 py-1 focus:outline-none"
+                        id="quantity-${index}">
+                    <button onclick="updateQuantity(${index}, 1)" 
+                        class="quantity-btn px-2 py-1 border border-gray-300 rounded-r hover:bg-gray-100"
+                        ${item.quantity >= (item.maxQuantity || 99) ? 'disabled' : ''}>
+                        <i data-feather="plus" class="w-4 h-4"></i>
+                    </button>
+                    
+                    ${item.maxQuantity ? `
+                        <span class="ml-2 text-xs text-gray-500">
+                            Available: ${item.maxQuantity}
+                        </span>
+                    ` : ''}
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="font-bold">Rs. ${(item.price * item.quantity).toFixed(2)}</div>
+            </div>
+        </div>
+    `).join('');
+    
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+        // Update quantity by delta (+1 or -1)
+        function updateQuantity(index, delta) {
+            const item = checkoutItems[index];
+            const newQuantity = item.quantity + delta;
+            
+            if (newQuantity < 1) return;
+            if (item.maxQuantity && newQuantity > item.maxQuantity) {
+                alert(`Only ${item.maxQuantity} items available in stock`);
+                return;
+            }
+            
+            item.quantity = newQuantity;
+            
+            // Update input field value
+            const quantityInput = document.getElementById(`quantity-${index}`);
+            if (quantityInput) {
+                quantityInput.value = newQuantity;
+            }
+            
+            // Update storage and recalculate
+            updateCheckoutStorage();
+            displayCheckoutItems();
+            calculateCheckoutTotal();
+        }
+
+        // Set exact quantity
+        function setQuantity(index, value) {
+            const item = checkoutItems[index];
+            const newQuantity = parseInt(value);
+            
+            if (isNaN(newQuantity) || newQuantity < 1) {
+                item.quantity = 1;
+            } else if (item.maxQuantity && newQuantity > item.maxQuantity) {
+                alert(`Only ${item.maxQuantity} items available in stock`);
+                item.quantity = item.maxQuantity;
+            } else {
+                item.quantity = newQuantity;
+            }
+            
+            // Update storage and recalculate
+            updateCheckoutStorage();
+            displayCheckoutItems();
+            calculateCheckoutTotal();
+        }
+
+        // Remove item from checkout
+        // function removeFromCheckout(index) {
+        //     if (confirm('Are you sure you want to remove this item?')) {
+        //         checkoutItems.splice(index, 1);
+                
+        //         // Update storage
+        //         updateCheckoutStorage();
+                
+        //         // If no items left, redirect to shop
+        //         if (checkoutItems.length === 0) {
+        //             alert('Your cart is empty. Redirecting to shop...');
+        //             clearCheckoutStorage();
+        //             window.location.href = 'index.html';
+        //             return;
+        //         }
+                
+        //         // Refresh display
+        //         displayCheckoutItems();
+        //         calculateCheckoutTotal();
+        //     }
+        // }
+
+        // Update checkout storage
+        function updateCheckoutStorage() {
+            if (localStorage.getItem('checkoutCart')) {
+                localStorage.setItem('checkoutCart', JSON.stringify(checkoutItems));
+            } else if (localStorage.getItem('singleProductCheckout')) {
+                localStorage.setItem('singleProductCheckout', JSON.stringify(checkoutItems[0]));
+            }
+        }
+
+        // Clear checkout storage
+        function clearCheckoutStorage() {
+            localStorage.removeItem('checkoutCart');
+            localStorage.removeItem('singleProductCheckout');
+        }
+
+        // Calculate checkout total
+        function calculateCheckoutTotal() {
+            const subtotal = checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const tax = subtotal * TAX_RATE;
+            const total = subtotal + tax + SERVICE_CHARGE + DELIVERY_CHARGE;
+            
+            document.getElementById('subtotal').textContent = `Rs. ${subtotal.toFixed(2)}`;
+            document.getElementById('tax').textContent = `Rs. ${tax.toFixed(2)}`;
+            document.getElementById('total').textContent = `Rs. ${total.toFixed(2)}`;
+            
+            return {
+                subtotal: subtotal.toFixed(2),
+                tax: tax.toFixed(2),
+                total: total.toFixed(2),
+                serviceCharge: SERVICE_CHARGE.toFixed(2),
+                deliveryCharge: DELIVERY_CHARGE.toFixed(2)
+            };
+        }
+
+        // Validate shipping info
+        function validateShippingInfo() {
+            const fullName = document.getElementById('full-name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (!fullName || !phone || !address || !email) {
+                alert('Please fill in all required fields');
+                return null;
+            }
+
+            if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+                alert('Please enter a valid 10-digit phone number');
+                return null;
+            }
+
+            if (!/^\S+@\S+\.\S+$/.test(email)) {
+                alert('Please enter a valid email address');
+                return null;
+            }
+
+            return { fullName, phone, address, email };
+        }
+
+        // Generate HMAC SHA256 signature using CryptoJS
+        function generateEsewaSignature(message, secret) {
+            try {
+                const hash = CryptoJS.HmacSHA256(message, secret);
+                const signature = CryptoJS.enc.Base64.stringify(hash);
+                return signature;
+            } catch (error) {
+                console.error('Error generating signature:', error);
+                return null;
+            }
+        }
+
+        // Process to eSewa with final stock verification
+        async function processToEsewa() {
+            try {
+                // Validate shipping info
+                const shippingInfo = validateShippingInfo();
+                if (!shippingInfo) return;
+
+                // Final stock verification before payment
+                const token = localStorage.getItem('token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                
+                for (const item of checkoutItems) {
+                    const response = await fetch(`${API_URL}/products/getProductById/${item.id}`, { headers });
+                    if (response.ok) {
+                        const data = await response.json();
+                        const product = data.data || data;
+                        
+                        if (product.quantity < item.quantity) {
+                            alert(`Sorry, ${item.title} now only has ${product.quantity} items available. Please adjust your quantity.`);
+                            
+                            // Update quantity to available stock
+                            item.quantity = product.quantity;
+                            item.maxQuantity = product.quantity;
+                            
+                            // Update display
+                            displayCheckoutItems();
+                            calculateCheckoutTotal();
+                            updateCheckoutStorage();
+                            
+                            return;
+                        }
+                    }
+                }
+
+                const totals = calculateCheckoutTotal();
+                
+                // Generate unique transaction ID
+                const transactionId = `TT${Date.now()}${Math.floor(Math.random() * 1000)}`;
+                
+                
+              // In processToEsewa function
+// In processToEsewa function
+const orderData = {
+    products: checkoutItems.map(item => ({
+        productId: Number(item.id),  // Convert to number when storing
+        quantity: Number(item.quantity),  // Convert to number
+        price: item.price,
+        title: item.title
+    })),
+    shippingInfo: shippingInfo,
+    totals: totals,
+    transactionId: transactionId,
+    totalAmount: totals.total
+};          
+                localStorage.setItem('pendingOrderData', JSON.stringify(orderData));
+                
+                // Show debug info
+                document.getElementById('debug-info').classList.remove('hidden');
+                document.getElementById('debug-amounts').innerHTML = 
+                    `Subtotal: ${totals.subtotal}<br>Tax: ${totals.tax}<br>Total: ${totals.total}`;
+
+                // Prepare eSewa payment data
+                const esewaConfig = {
+                    merchantId: 'EPAYTEST',
+                    secretKey: '8gBm/:&EnhH.1/q',
+                    baseUrl: 'https://rc-epay.esewa.com.np'
+                };
+
+                // Format amounts exactly as eSewa expects
+                const amount = parseFloat(totals.subtotal).toFixed(2);
+                const tax_amount = parseFloat(totals.tax).toFixed(2);
+                const service_charge = totals.serviceCharge;
+                const delivery_charge = totals.deliveryCharge;
+                
+                // Total amount MUST be sum of all components
+                const total_amount = (
+                    parseFloat(amount) + 
+                    parseFloat(tax_amount) + 
+                    parseFloat(service_charge) + 
+                    parseFloat(delivery_charge)
+                ).toFixed(2);
+
+                // Generate signature
+                const signed_field_names = 'total_amount,transaction_uuid,product_code';
+                const message = `total_amount=${total_amount},transaction_uuid=${transactionId},product_code=${esewaConfig.merchantId}`;
+                
+                const signature = generateEsewaSignature(message, esewaConfig.secretKey);
+                
+                if (!signature) {
+                    throw new Error('Failed to generate signature');
+                }
+
+                document.getElementById('debug-signature').textContent = `Signature: ${signature.substring(0, 30)}...`;
+
+                // Success and failure URLs
+                const success_url = `${window.location.origin}/payment-success.html`;
+                const failure_url = `${window.location.origin}/payment-failed.html`;
+
+                // Create and submit eSewa form
+                const formContainer = document.getElementById('esewa-form-container');
+                formContainer.innerHTML = `
+                    <form id="esewa-form" action="${esewaConfig.baseUrl}/api/epay/main/v2/form" method="POST">
+                        <input type="hidden" name="amount" value="${amount}">
+                        <input type="hidden" name="tax_amount" value="${tax_amount}">
+                        <input type="hidden" name="total_amount" value="${total_amount}">
+                        <input type="hidden" name="transaction_uuid" value="${transactionId}">
+                        <input type="hidden" name="product_code" value="${esewaConfig.merchantId}">
+                        <input type="hidden" name="product_service_charge" value="${service_charge}">
+                        <input type="hidden" name="product_delivery_charge" value="${delivery_charge}">
+                        <input type="hidden" name="success_url" value="${success_url}">
+                        <input type="hidden" name="failure_url" value="${failure_url}">
+                        <input type="hidden" name="signed_field_names" value="${signed_field_names}">
+                        <input type="hidden" name="signature" value="${signature}">
+                    </form>
+                `;
+
+                // Auto-submit the form
+                setTimeout(() => {
+                    document.getElementById('esewa-form').submit();
+                }, 100);
+
+            } catch (error) {
+                console.error('Error processing to eSewa:', error);
+                alert('Payment initialization failed: ' + error.message);
+            }
+        }
+
+        // Check auth status
+        function checkAuthStatus() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            const authContainer = document.getElementById('auth-container');
+            
+            if (token && user && authContainer) {
+                try {
+                    const userData = JSON.parse(user);
+                    
+                    authContainer.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <span class="font-medium text-gray-700">${userData.name || 'User'}</span>
+                            <a href="index.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
+                                Shop
+                            </a>
+                            <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
+                                Profile
+                            </a>
+                            <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
+                                Logout
+                            </button>
+                        </div>
+                    `;
+                    
+                } catch(e) {
+                    console.error('Error parsing user data:', e);
+                    showLoginButtons();
+                }
+            } else {
+                showLoginButtons();
+            }
+        }
+
+        function showLoginButtons() {
+            const authContainer = document.getElementById('auth-container');
+            if (authContainer) {
+                authContainer.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <a href="login.html" class="px-4 py-2 text-gray-700 hover:text-green-600 font-medium">Login</a>
+                        <a href="register.html" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Sign Up</a>
+                    </div>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            clearCheckoutStorage();
+            localStorage.removeItem('pendingOrderData');
+            window.location.href = 'index.html';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+            
+            checkAuthStatus();
+            loadCheckoutCart();
+        });
+
+        // Make functions available globally
+        window.logout = logout;
+        window.processToEsewa = processToEsewa;
+        window.updateQuantity = updateQuantity;
+        window.setQuantity = setQuantity;
+        // window.removeFromCheckout = removeFromCheckout;
+    </script>
+</body>
+</html>

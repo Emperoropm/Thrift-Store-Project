@@ -1,0 +1,2968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Products | Thrift Treasure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f9fafb;
+        }
+        
+        .product-card {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .status-active {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-sold {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .order-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-received { background-color: #e0e7ff; color: #3730a3; }
+        .status-pending { background-color: #fef3c7; color: #92400e; }
+        .status-completed { background-color: #d1fae5; color: #065f46; }
+        .status-cancelled { background-color: #fee2e2; color: #991b1b; }
+        
+        /* Add these to your existing status classes */
+.status-processing { background-color: #dbeafe; color: #1e40af; }
+.status-shipped { background-color: #e0e7ff; color: #3730a3; }
+.status-delivered { background-color: #d1fae5; color: #065f46; }
+.status-cancelled, .status-rejected { background-color: #fee2e2; color: #991b1b; }
+
+/* Update the order-status classes to match */
+.order-status.status-pending { background-color: #fef3c7; color: #92400e; }
+.order-status.status-processing { background-color: #dbeafe; color: #1e40af; }
+.order-status.status-delivered { background-color: #d1fae5; color: #065f46; }
+.order-status.status-cancelled { background-color: #fee2e2; color: #991b1b; }
+.order-status.status-partially_delivered { background-color: #fef3c7; color: #92400e; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .order-card {
+            border-left: 4px solid #10b981;
+            transition: all 0.3s ease;
+        }
+        
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background-color: #10b981;
+            color: white;
+        }
+
+        /* Add these to your existing CSS */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.status-pending { background-color: #fef3c7; color: #92400e; }
+.status-processing { background-color: #dbeafe; color: #1e40af; }
+.status-shipped { background-color: #e0e7ff; color: #3730a3; }
+.status-delivered { background-color: #d1fae5; color: #065f46; }
+.status-cancelled, .status-rejected { background-color: #fee2e2; color: #991b1b; }
+
+/* Update tab styles */
+.tab {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.tab:hover {
+    color: #4b5563;
+    background-color: #f3f4f6;
+}
+
+.tab.active {
+    background-color: white;
+    color: #111827;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Add to your style section */
+#photo-view-modal .modal-content {
+    max-width: 600px;
+    background: transparent;
+    box-shadow: none;
+}
+
+#photo-view-modal img {
+    max-height: 80vh;
+    object-fit: contain;
+}
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="index.html">
+                <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+            </a>
+            
+            <div id="auth-container">
+                <!-- Will be filled by JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Seller Dashboard</h1>
+                    <p class="text-gray-600 mt-2">Manage your products and orders</p>
+                </div>
+                <a href="index.html" class="px-4 py-2 text-gray-600 hover:text-green-600 font-medium">
+                    ← Back to Shop
+                </a>
+            </div>
+        </div>
+        
+        <!-- User Info - Updated with Photo Upload -->
+<div class="bg-white rounded-xl shadow p-6 mb-8">
+    <div class="flex items-center space-x-4">
+        <!-- User Photo with Upload -->
+      <!-- User Photo with Upload and View -->
+<div class="relative group">
+    <div id="user-photo-container" class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-green-200 cursor-pointer" onclick="viewProfilePhoto()">
+        <img id="user-photo" src="" alt="Profile" class="w-full h-full object-cover hidden">
+        <svg id="user-photo-placeholder" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+        </svg>
+    </div>
+    
+    <!-- Photo Upload Button (Hover) - Now separate from click -->
+    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        <div class="bg-black bg-opacity-50 rounded-full p-2 cursor-pointer pointer-events-auto" onclick="event.stopPropagation(); document.getElementById('photo-upload').click()">
+            <i data-feather="camera" class="w-5 h-5 text-white"></i>
+        </div>
+    </div>
+    
+    <!-- Hidden File Input -->
+    <input type="file" id="photo-upload" class="hidden" accept="image/*" onchange="uploadProfilePhoto(event)">
+</div>
+
+
+        <div class="flex-1">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="user-name" class="text-xl font-bold text-gray-800">Loading...</h2>
+                    <p id="user-email" class="text-gray-600">Loading...</p>
+                </div>
+                
+                <!-- Photo Action Buttons -->
+                <div class="flex space-x-2">
+                    <button onclick="document.getElementById('photo-upload').click()" 
+                            class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
+                        <i data-feather="upload" class="w-4 h-4 mr-1"></i>
+                        Upload Photo
+                    </button>
+                    <button id="delete-photo-btn" onclick="deleteProfilePhoto()" 
+                            class="px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center hidden">
+                        <i data-feather="trash-2" class="w-4 h-4 mr-1"></i>
+                        Remove
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex space-x-6 mt-2">
+                <div class="text-center">
+                    <div id="total-products" class="text-2xl font-bold text-green-600">0</div>
+                    <div class="text-sm text-gray-500">Products</div>
+                </div>
+                <div class="text-center">
+                    <div id="available-products" class="text-2xl font-bold text-blue-600">0</div>
+                    <div class="text-sm text-gray-500">Available</div>
+                </div>
+                <div class="text-center">
+                    <div id="total-orders" class="text-2xl font-bold text-purple-600">0</div>
+                    <div class="text-sm text-gray-500">Orders</div>
+                </div>
+                <div class="text-center">
+                    <div id="total-revenue" class="text-2xl font-bold text-orange-600">Rs. 0</div>
+                    <div class="text-sm text-gray-500">Revenue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        
+        <!-- Dashboard Tabs -->
+       <!-- Dashboard Tabs -->
+<div class="mb-6">
+    <div class="flex space-x-2 bg-gray-100 p-1 rounded-lg inline-flex">
+        <button id="products-tab" class="tab active" onclick="showTab('products')">
+            <i data-feather="package" class="w-4 h-4 mr-2 inline"></i>
+            My Products
+        </button>
+        <button id="seller-orders-tab" class="tab" onclick="showTab('seller-orders')">
+            <i data-feather="shopping-bag" class="w-4 h-4 mr-2 inline"></i>
+            My Products Orders
+        </button>
+        <button id="buyer-orders-tab" class="tab" onclick="showTab('buyer-orders')">
+            <i data-feather="shopping-cart" class="w-4 h-4 mr-2 inline"></i>
+            My Orders
+        </button>
+    </div>
+    <!-- Add this in your user info section or as a new tab -->
+<a href="my-ratings.html" class="px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+    <i data-feather="star" class="w-4 h-4 mr-2 inline"></i>
+    My Ratings
+</a>
+</div>
+        
+<input type="hidden" id="rating-order-id">
+
+        <!-- ORDERS SECTION -->
+        <div id="orders-section" class="hidden">
+            <!-- Orders Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Recent Orders</h3>
+                <div class="text-sm text-gray-500" id="orders-count">0 orders</div>
+            </div>
+            
+            <!-- Orders Loading State -->
+            <div id="orders-loading" class="flex justify-center items-center py-12">
+                <div class="loader"></div>
+                <span class="ml-3 text-gray-600">Loading orders...</span>
+            </div>
+            
+            <!-- Orders Container -->
+            <div id="orders-container" class="hidden">
+                <!-- Orders will be loaded here -->
+            </div>
+            
+            <!-- No Orders Message -->
+            <div id="no-orders" class="text-center py-12 hidden">
+                <i data-feather="shopping-bag" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-medium text-gray-700 mb-2">No orders yet</h3>
+                <p class="text-gray-500 mb-6">Your products haven't been ordered yet</p>
+            </div>
+            
+            <!-- Orders Error Message -->
+            <div id="orders-error" class="text-center py-12 hidden">
+                <i data-feather="alert-circle" class="w-16 h-16 mx-auto text-red-300 mb-4"></i>
+                <h3 class="text-xl font-medium text-gray-700 mb-2">Unable to load orders</h3>
+                <p class="text-gray-500 mb-4" id="orders-error-text"></p>
+                <button onclick="loadSellerOrders()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Try Again</button>
+            </div>
+        </div>
+        <!-- BUYER ORDERS SECTION (My Orders) -->
+<div id="buyer-orders-section" class="hidden">
+    <div class="mb-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-800">My Orders</h3>
+            <div class="flex space-x-3">
+                <select id="order-filter" class="border rounded-lg px-3 py-2 text-sm bg-white" onchange="filterBuyerOrders()">
+                    <option value="all">All Orders</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="PROCESSING">Processing</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+                <select id="order-sort" class="border rounded-lg px-3 py-2 text-sm bg-white" onchange="sortBuyerOrders()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="price-low">Price: Low to High</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Orders</p>
+                        <p class="text-2xl font-bold" id="total-orders-count">0</p>
+                    </div>
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i data-feather="shopping-bag" class="w-5 h-5 text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-xl shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Pending</p>
+                        <p class="text-2xl font-bold text-yellow-600" id="pending-orders-count">0</p>
+                    </div>
+                    <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i data-feather="clock" class="w-5 h-5 text-yellow-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-xl shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Delivered</p>
+                        <p class="text-2xl font-bold text-green-600" id="delivered-orders-count">0</p>
+                    </div>
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i data-feather="check-circle" class="w-5 h-5 text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-xl shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Spent</p>
+                        <p class="text-2xl font-bold text-purple-600" id="total-spent">Rs. 0</p>
+                    </div>
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i data-feather="dollar-sign" class="w-5 h-5 text-purple-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Orders Loading State -->
+        <div id="buyer-orders-loading" class="flex justify-center items-center py-12">
+            <div class="loader"></div>
+            <span class="ml-3 text-gray-600">Loading your orders...</span>
+        </div>
+        
+        <!-- Orders Container -->
+        <div id="buyer-orders-container" class="hidden">
+            <!-- Buyer orders will be loaded here -->
+        </div>
+        
+        <!-- No Orders Message -->
+        <div id="no-buyer-orders" class="text-center py-12 hidden">
+            <i data-feather="shopping-bag" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-700 mb-2">No orders yet</h3>
+            <p class="text-gray-500 mb-6">You haven't placed any orders yet</p>
+            <a href="index.html" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 inline-flex items-center">
+                <i data-feather="shopping-cart" class="w-4 h-4 mr-2"></i>
+                Browse Products
+            </a>
+        </div>
+        
+        <!-- Orders Error Message -->
+        <div id="buyer-orders-error" class="text-center py-12 hidden">
+            <i data-feather="alert-circle" class="w-16 h-16 mx-auto text-red-300 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-700 mb-2">Unable to load orders</h3>
+            <p class="text-gray-500 mb-4" id="buyer-orders-error-text"></p>
+            <button onclick="loadBuyerOrders()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Try Again</button>
+        </div>
+    </div>
+</div>
+        
+        <!-- PRODUCTS SECTION -->
+        <div id="products-section">
+            <!-- Add New Product Button -->
+            <div class="mb-6">
+                <button onclick="showAddProductForm()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center space-x-2">
+                    <i data-feather="plus" class="w-5 h-5"></i>
+                    <span>Add New Product</span>
+                </button>
+            </div>
+
+            <!-- Add Product Form (Hidden by default) -->
+            <div id="add-product-form" class="bg-white rounded-xl shadow p-6 mb-8 hidden">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Add New Product</h3>
+                <form id="new-product-form" onsubmit="addNewProduct(event)">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Product Title *</label>
+                            <input type="text" id="product-title" class="w-full px-4 py-2 border border-gray-300 rounded-lg" >
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Price (Rs.) *</label>
+                            <input type="number" id="product-price" class="w-full px-4 py-2 border border-gray-300 rounded-lg" step="1" min="1" >
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Quantity *</label>
+                            <input type="number" id="product-quantity" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" max="10" >
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Category</label>
+                            <select id="product-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                <option value="">Select Category</option>
+                                <!-- Categories will be dynamically added by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-gray-700 mb-2">Description</label>
+                        <textarea id="product-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Describe your product..."></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-gray-700 mb-2">Image URL (Optional)</label>
+                        <input type="url" id="product-image" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://example.com/image.jpg">
+                        <p class="text-sm text-gray-500 mt-1">Enter a URL for your product image</p>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" onclick="hideAddProductForm()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Add Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Edit Product Modal (Hidden by default) -->
+            <div id="edit-product-modal" class="modal-overlay hidden">
+                <div class="modal-content p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Edit Product</h3>
+                        <button onclick="hideEditModal()" class="text-gray-500 hover:text-gray-700">
+                            <i data-feather="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <form id="edit-product-form" onsubmit="updateProduct(event)">
+                        <input type="hidden" id="edit-product-id">
+                        
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 mb-2">Product Title *</label>
+                                <input type="text" id="edit-title" class="w-full px-4 py-2 border border-gray-300 rounded-lg" >
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Price (Rs.) *</label>
+                                <input type="number" id="edit-price" class="w-full px-4 py-2 border border-gray-300 rounded-lg" step="1" min="1" >
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Quantity *</label>
+                                <input type="number" id="edit-quantity" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" max="10" >
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">Category</label>
+                                <select id="edit-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                    <option value="">Select Category</option>
+                                    <!-- Categories will be dynamically added by JavaScript -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-gray-700 mb-2">Description</label>
+                            <textarea id="edit-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Describe your product..."></textarea>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-gray-700 mb-2">Image URL</label>
+                            <input type="url" id="edit-image" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://example.com/image.jpg">
+                            <p class="text-sm text-gray-500 mt-1">Enter a URL for your product image</p>
+                        </div>
+                        <div class="flex justify-end space-x-3 mt-6">
+                            <button type="button" onclick="hideEditModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                Update Product
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Products Loading State -->
+            <div id="loading" class="flex justify-center items-center py-12">
+                <div class="loader"></div>
+                <span class="ml-3 text-gray-600">Loading your products...</span>
+            </div>
+            
+            <!-- Products Grid -->
+            <div id="products-container" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Your Products</h3>
+                    <div class="text-sm text-gray-500" id="products-count">0 products</div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
+                    <!-- Products will be loaded here -->
+                </div>
+                
+                <!-- No Products Message -->
+                <div id="no-products" class="text-center py-12 hidden">
+                    <i data-feather="package" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-700 mb-2">You haven't listed any products yet</h3>
+                    <p class="text-gray-500 mb-6">Start selling by adding your first product!</p>
+                    <button onclick="showAddProductForm()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        Add Your First Product
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="error-message" class="text-center py-12 hidden">
+                <i data-feather="alert-circle" class="w-16 h-16 mx-auto text-red-300 mb-4"></i>
+                <h3 class="text-xl font-medium text-gray-700 mb-2">Unable to load products</h3>
+                <p class="text-gray-500 mb-4" id="error-text"></p>
+                <button onclick="loadSellerProducts()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+<div id="rating-modal" class="modal-overlay hidden">
+    <div class="modal-content p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Rate Seller</h3>
+            <button onclick="closeRatingModal()" class="text-gray-500 hover:text-gray-700">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <div id="rating-seller-info" class="mb-4 p-4 bg-gray-50 rounded-lg">
+            <!-- Will be filled dynamically -->
+        </div>
+        
+        <form id="rating-form" onsubmit="submitRating(event)">
+            <input type="hidden" id="rating-order-item-id">
+            <input type="hidden" id="rating-seller-id">
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Rating *</label>
+                <div class="flex space-x-2 text-3xl" id="star-rating">
+                    <span class="star cursor-pointer text-gray-300 hover:text-yellow-400" data-rating="1">★</span>
+                    <span class="star cursor-pointer text-gray-300 hover:text-yellow-400" data-rating="2">★</span>
+                    <span class="star cursor-pointer text-gray-300 hover:text-yellow-400" data-rating="3">★</span>
+                    <span class="star cursor-pointer text-gray-300 hover:text-yellow-400" data-rating="4">★</span>
+                    <span class="star cursor-pointer text-gray-300 hover:text-yellow-400" data-rating="5">★</span>
+                </div>
+                <input type="hidden" id="rating-score" value="0">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Comment (Optional)</label>
+                <textarea id="rating-comment" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Write your feedback about the seller..."></textarea>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="closeRatingModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    Submit Rating
+                </button>
+            </div>
+        </form>
+        
+        <div id="rating-message" class="mt-3 text-sm hidden"></div>
+    </div>
+</div>
+
+
+<!-- Photo View Modal -->
+<div id="photo-view-modal" class="modal-overlay hidden" onclick="closePhotoViewModal()">
+    <div class="modal-content max-w-2xl p-2" onclick="event.stopPropagation()">
+        <div class="relative">
+            <button onclick="closePhotoViewModal()" class="absolute top-2 right-2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 z-10">
+                <i data-feather="x" class="w-5 h-5 text-gray-700"></i>
+            </button>
+            <img id="modal-photo" src="" alt="Profile Photo" class="w-full h-auto rounded-lg">
+        </div>
+        <div class="flex justify-center space-x-3 mt-4 pb-2">
+            <button onclick="document.getElementById('photo-upload').click(); closePhotoViewModal();" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                <i data-feather="upload" class="w-4 h-4 mr-2"></i>
+                Upload New
+            </button>
+            <button onclick="deleteProfilePhoto(); closePhotoViewModal();" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center">
+                <i data-feather="trash-2" class="w-4 h-4 mr-2"></i>
+                Remove
+            </button>
+        </div>
+    </div>
+</div>
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let currentTab = 'products';
+        let ordersData = [];
+        let buyerOrdersData = []; 
+        
+        // Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+    
+    // Check auth and load profile
+    checkAuth();
+    
+    // Load user profile with photo
+    loadUserProfile();
+    
+    // Set initial click handler for photo container
+    const photoContainer = document.getElementById('user-photo-container');
+    if (photoContainer) {
+        photoContainer.onclick = viewProfilePhoto;
+    }
+    
+    // Add star rating click handlers
+    setTimeout(() => {
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = this.getAttribute('data-rating');
+                
+                // Update stars
+                document.querySelectorAll('.star').forEach(s => {
+                    const starRating = s.getAttribute('data-rating');
+                    if (starRating <= rating) {
+                        s.classList.remove('text-gray-300');
+                        s.classList.add('text-yellow-400');
+                    } else {
+                        s.classList.remove('text-yellow-400');
+                        s.classList.add('text-gray-300');
+                    }
+                });
+                
+                document.getElementById('rating-score').value = rating;
+            });
+        });
+    }, 500);
+});
+
+
+        function checkAuth() {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (!token || !user) {
+        // Not logged in, redirect to login
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Update auth UI
+    updateAuthUI();
+    
+    // Load user profile with photo
+    loadUserProfile();
+    
+    // Load seller products by default
+    loadSellerProducts();
+}
+        // Global variable for categories
+        let allCategories = [];
+
+        // Initialize categories on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Preload categories when page loads
+            await loadCategoriesForDropdown();
+        });
+
+        // Update showAddProductForm to ensure categories are loaded
+        function showAddProductForm() {
+            document.getElementById('add-product-form').classList.remove('hidden');
+            
+            // Ensure categories are loaded
+            if (!allCategories || allCategories.length === 0) {
+                loadCategoriesForDropdown();
+            }
+        }
+        
+        // Update auth UI in navigation
+        function updateAuthUI(userData) {
+            const user = localStorage.getItem('user');
+            const authContainer = document.getElementById('auth-container');
+            
+            if (user && authContainer) {
+                try {
+                    const userData = JSON.parse(user);
+                    let adminLink = '';
+                    
+                    // Add Admin link if user is ADMIN
+                    if (userData.role === 'ADMIN') {
+                        adminLink = `
+                            <a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">
+                                Admin
+                            </a>
+                        `;
+                    }
+                    
+                    authContainer.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <span class="font-medium text-gray-700">${userData.name || 'User'}</span>
+                            <a href="index.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
+                                Shop
+                            </a>
+                            ${adminLink}
+                            <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
+                                Logout
+                            </button>
+                        </div>
+                    `;
+                    
+                } catch(e) {
+                    console.error('Error parsing user data:', e);
+                }
+            }
+        }
+        
+        // Show tab function
+        // Update show tab function
+function showTab(tabName) {
+    currentTab = tabName;
+    
+    // Update tab buttons
+    document.getElementById('products-tab').classList.remove('active');
+    document.getElementById('seller-orders-tab').classList.remove('active');
+    document.getElementById('buyer-orders-tab').classList.remove('active');
+    
+    // Hide all sections
+    document.getElementById('products-section').classList.add('hidden');
+    document.getElementById('orders-section').classList.add('hidden');
+    document.getElementById('buyer-orders-section').classList.add('hidden');
+    
+    // Show selected section
+    switch(tabName) {
+        case 'products':
+            document.getElementById('products-tab').classList.add('active');
+            document.getElementById('products-section').classList.remove('hidden');
+            // Load products if not already loaded
+            loadSellerProducts();
+            break;
+            
+        case 'seller-orders':
+            document.getElementById('seller-orders-tab').classList.add('active');
+            document.getElementById('orders-section').classList.remove('hidden');
+            // Load seller orders
+            loadSellerOrders();
+            break;
+            
+        case 'buyer-orders':
+            document.getElementById('buyer-orders-tab').classList.add('active');
+            document.getElementById('buyer-orders-section').classList.remove('hidden');
+            // Load buyer orders
+            loadBuyerOrders();
+            break;
+    }
+}
+        
+        // Load seller products
+        async function loadSellerProducts() {
+            const loadingEl = document.getElementById('loading');
+            const productsContainer = document.getElementById('products-container');
+            const noProductsEl = document.getElementById('no-products');
+            const errorEl = document.getElementById('error-message');
+            
+            if (loadingEl) loadingEl.classList.remove('hidden');
+            if (productsContainer) productsContainer.classList.add('hidden');
+            if (noProductsEl) noProductsEl.classList.add('hidden');
+            if (errorEl) errorEl.classList.add('hidden');
+            
+            try {
+                const token = localStorage.getItem('token');
+                const user = localStorage.getItem('user');
+                
+                if (!token) {
+                    throw new Error('Not authenticated');
+                }
+                
+                // Parse user data
+                let userData = {};
+                if (user) {
+                    userData = JSON.parse(user);
+                }
+                
+                // Update user info
+                document.getElementById('user-name').textContent = userData.name || 'User';
+                document.getElementById('user-email').textContent = userData.email || '';
+                
+                // Fetch seller's products
+                const productsResponse = await fetch(`${API_URL}/products/getBySeller`, {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!productsResponse.ok) {
+                    throw new Error(`Failed to fetch products: ${productsResponse.status}`);
+                }
+                
+                const productsResult = await productsResponse.json();
+                const products = productsResult.data || productsResult;
+                
+                // Hide loading
+                if (loadingEl) loadingEl.classList.add('hidden');
+                
+                if (!products || products.length === 0) {
+                    if (noProductsEl) noProductsEl.classList.remove('hidden');
+                    updateStats(0, 0, 0, 0);
+                    return;
+                }
+                
+                // Calculate product stats
+                let totalProducts = products.length;
+                let availableProducts = products.filter(p => (p.quantity || 0) > 0).length;
+                
+                // Update stats with products data only for now
+                updateStats(totalProducts, availableProducts, 0, 0);
+                
+                // Render products
+                renderSellerProducts(products);
+                
+                // Show products container
+                if (productsContainer) {
+                    productsContainer.classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Error loading seller products:', error);
+                if (loadingEl) loadingEl.classList.add('hidden');
+                if (errorEl) {
+                    errorEl.classList.remove('hidden');
+                    document.getElementById('error-text').textContent = error.message;
+                }
+            }
+        }
+        
+        // Load seller orders
+        async function loadSellerOrders() {
+            const ordersLoadingEl = document.getElementById('orders-loading');
+            const ordersContainer = document.getElementById('orders-container');
+            const noOrdersEl = document.getElementById('no-orders');
+            const ordersErrorEl = document.getElementById('orders-error');
+            
+            if (ordersLoadingEl) ordersLoadingEl.classList.remove('hidden');
+            if (ordersContainer) ordersContainer.classList.add('hidden');
+            if (noOrdersEl) noOrdersEl.classList.add('hidden');
+            if (ordersErrorEl) ordersErrorEl.classList.add('hidden');
+            
+            try {
+                const token = localStorage.getItem('token');
+                
+                if (!token) {
+                    throw new Error('Not authenticated');
+                }
+                
+                // Fetch seller's orders using your existing API endpoint
+                const ordersResponse = await fetch(`${API_URL}/orders/seller/orders`, {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!ordersResponse.ok) {
+                    throw new Error(`Failed to fetch orders: ${ordersResponse.status}`);
+                }
+                
+                const ordersResult = await ordersResponse.json();
+                ordersData = ordersResult.data || ordersResult;
+                
+                console.log('Orders data:', ordersData);
+                
+                // Hide loading
+                if (ordersLoadingEl) ordersLoadingEl.classList.add('hidden');
+                
+                if (!ordersData || ordersData.length === 0) {
+                    if (noOrdersEl) noOrdersEl.classList.remove('hidden');
+                    updateOrdersStats(0, 0);
+                    return;
+                }
+                
+                // Calculate orders stats
+                let totalOrders = ordersData.length;
+                let totalRevenue = 0;
+                
+                // Calculate revenue (sum of price * quantity for each order item)
+                ordersData.forEach(orderItem => {
+                    const itemTotal = orderItem.price * orderItem.quantity;
+                    totalRevenue += itemTotal;
+                });
+                
+                // Update stats with orders data
+                updateOrdersStats(totalOrders, totalRevenue);
+                
+                // Render orders
+                renderSellerOrders(ordersData);
+                
+                // Show orders container
+                if (ordersContainer) {
+                    ordersContainer.classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Error loading seller orders:', error);
+                if (ordersLoadingEl) ordersLoadingEl.classList.add('hidden');
+                if (ordersErrorEl) {
+                    ordersErrorEl.classList.remove('hidden');
+                    document.getElementById('orders-error-text').textContent = error.message;
+                }
+            }
+        }
+        
+        // Update stats with orders data
+        function updateOrdersStats(totalOrders, totalRevenue) {
+            document.getElementById('total-orders').textContent = totalOrders;
+            document.getElementById('total-revenue').textContent = `Rs. ${totalRevenue.toFixed(2)}`;
+            document.getElementById('orders-count').textContent = `${totalOrders} order${totalOrders !== 1 ? 's' : ''}`;
+        }
+        
+        // Update all stats
+        function updateStats(totalProducts, availableProducts, totalOrders = 0, totalRevenue = 0) {
+            document.getElementById('total-products').textContent = totalProducts;
+            document.getElementById('available-products').textContent = availableProducts;
+            document.getElementById('total-orders').textContent = totalOrders;
+            document.getElementById('total-revenue').textContent = `Rs. ${totalRevenue.toFixed(2)}`;
+            document.getElementById('products-count').textContent = `${totalProducts} product${totalProducts !== 1 ? 's' : ''}`;
+        }
+        
+        // Render seller products (existing function)
+        function renderSellerProducts(products) {
+            const productsGrid = document.getElementById('products-grid');
+            
+            if (!productsGrid) return;
+            
+            productsGrid.innerHTML = '';
+            
+            products.forEach(product => {
+                const productCard = createSellerProductCard(product);
+                productsGrid.appendChild(productCard);
+            });
+            
+            // Re-initialize feather icons
+            setTimeout(() => {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            }, 100);
+        }
+        
+        // Mark item as received and show rating modal
+// Mark item as received and show rating modal
+async function markAsReceived(orderItemId, sellerId, productTitle) {
+    try {
+        console.log('Marking as received:', { orderItemId, sellerId, productTitle });
+        
+        // Show loading state on button
+        const button = event?.target;
+        const originalText = button?.innerHTML;
+        if (button) {
+            button.innerHTML = '<i data-feather="loader" class="w-4 h-4 mr-2 animate-spin"></i> Updating...';
+            button.disabled = true;
+        }
+        
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            throw new Error('No authentication token found');
+        }
+        
+        // Use the buyer-specific endpoint
+        const url = `${API_URL}/orders/item/${orderItemId}/receive`;
+        console.log('Calling URL:', url);
+        
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('Response status:', response.status);
+        
+        const responseData = await response.json();
+        console.log('Response data:', responseData);
+        
+        if (!response.ok) {
+            throw new Error(responseData.message || 'Failed to mark as received');
+        }
+        
+        // Refresh orders to update the UI
+        await loadBuyerOrders();
+        
+        // Show rating modal automatically AFTER successful mark as received
+        if (sellerId && sellerId !== 'null' && sellerId !== 'unknown') {
+            // Small delay to ensure UI is updated
+            setTimeout(() => {
+                showRateSellerModal(sellerId, orderItemId, productTitle);
+            }, 500);
+        } else {
+            console.warn('No valid seller ID for rating');
+        }
+        
+    } catch (error) {
+        console.error('Error marking as received:', error);
+        alert(`Failed to mark as received: ${error.message}`);
+        
+        // Reset button if there was an error
+        const button = event?.target;
+        if (button) {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+}
+// Show rate seller modal for buyers
+// Show rate seller modal for buyers
+// Show rate seller modal for buyers
+function showRateSellerModal(sellerId, orderItemId, productTitle) {
+    if (!sellerId || sellerId === 'null' || sellerId === 'unknown') {
+        console.error('Invalid seller ID');
+        alert('Cannot rate: Seller information not available');
+        return;
+    }
+    
+    // Find the order ID from the order item
+    let orderId = null;
+    for (const order of buyerOrdersData) {
+        if (order.items) {
+            const foundItem = order.items.find(item => item.id == orderItemId);
+            if (foundItem) {
+                orderId = order.id;
+                break;
+            }
+        }
+    }
+    
+    document.getElementById('rating-order-item-id').value = orderItemId;
+    document.getElementById('rating-seller-id').value = sellerId;
+    document.getElementById('rating-order-id').value = orderId || ''; // Add this hidden field
+    
+    // Get seller details from the order data
+    const sellerInfo = findSellerDetails(sellerId);
+    
+    document.getElementById('rating-seller-info').innerHTML = `
+        <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                <i data-feather="user" class="w-6 h-6 text-gray-500"></i>
+            </div>
+            <div>
+                <p class="font-semibold">${sellerInfo?.name || `Seller #${sellerId}`}</p>
+                <p class="text-sm text-gray-500">Product: ${productTitle}</p>
+                <p class="text-sm text-gray-500">Order Item ID: ${orderItemId}</p>
+                ${orderId ? `<p class="text-sm text-gray-500">Order ID: ${orderId}</p>` : ''}
+            </div>
+        </div>
+    `;
+    
+    // Reset star rating
+    resetStarRating();
+    
+    // Show modal
+    document.getElementById('rating-modal').classList.remove('hidden');
+    
+    // Initialize feather icons in modal
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+// Find seller details from orders data
+function findSellerDetails(sellerId) {
+    if (!buyerOrdersData || buyerOrdersData.length === 0) return null;
+    
+    for (const order of buyerOrdersData) {
+        if (order.items && Array.isArray(order.items)) {
+            for (const item of order.items) {
+                if (item.product?.sellerId === sellerId || item.sellerId === sellerId) {
+                    return {
+                        name: item.product?.seller?.name || `Seller #${sellerId}`
+                    };
+                }
+            }
+        }
+    }
+    return null;
+}
+
+// Reset star rating
+function resetStarRating() {
+    document.querySelectorAll('.star').forEach(star => {
+        star.classList.remove('text-yellow-400');
+        star.classList.add('text-gray-300');
+    });
+    document.getElementById('rating-score').value = '0';
+}
+
+// Close rating modal
+function closeRatingModal() {
+    document.getElementById('rating-modal').classList.add('hidden');
+    document.getElementById('rating-form').reset();
+    resetStarRating();
+    document.getElementById('rating-message').classList.add('hidden');
+}
+
+// Submit rating
+async function submitRating(event) {
+    event.preventDefault();
+    
+    const orderItemId = document.getElementById('rating-order-item-id').value;
+    const orderId = document.getElementById('rating-order-id').value; // Get the actual order ID
+    const sellerId = document.getElementById('rating-seller-id').value;
+    const score = document.getElementById('rating-score').value;
+    const comment = document.getElementById('rating-comment').value.trim();
+    
+    if (!score || score === '0') {
+        showRatingMessage('Please select a rating', 'error');
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('token');
+        
+        console.log('Submitting rating:', {
+            sellerId: parseInt(sellerId),
+            score: parseInt(score),
+            comment: comment || undefined,
+            orderId: orderId ? parseInt(orderId) : undefined // Use orderId, not orderItemId
+        });
+        
+        const response = await fetch(`${API_URL}/ratings/rate-seller`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sellerId: parseInt(sellerId),
+                score: parseInt(score),
+                comment: comment || undefined,
+                orderId: orderId ? parseInt(orderId) : undefined // Pass the actual order ID
+            })
+        });
+        
+        const responseData = await response.json();
+        console.log('Rating response:', responseData);
+        
+        if (!response.ok) {
+            throw new Error(responseData.message || 'Failed to submit rating');
+        }
+        
+        showRatingMessage('Rating submitted successfully!', 'success');
+        
+        // Refresh orders to update UI
+        await loadBuyerOrders();
+        
+        // Close modal after 1.5 seconds
+        setTimeout(() => {
+            closeRatingModal();
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Error submitting rating:', error);
+        showRatingMessage(error.message, 'error');
+    }
+}
+// Show rating message
+function showRatingMessage(message, type) {
+    const messageEl = document.getElementById('rating-message');
+    messageEl.textContent = message;
+    messageEl.className = `mt-3 text-sm p-2 rounded ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+    messageEl.classList.remove('hidden');
+    
+    setTimeout(() => {
+        messageEl.classList.add('hidden');
+    }, 3000);
+}
+
+        // Create seller product card (existing function)
+        function createSellerProductCard(product) {
+            const div = document.createElement('div');
+            div.className = 'product-card bg-white';
+            
+            const status = (product.quantity || 0) > 0 ? 'Available' : 'Sold Out';
+            const statusClass = (product.quantity || 0) > 0 ? 'status-active' : 'status-sold';
+            
+            div.innerHTML = `
+                <div class="relative">
+                    <div class="h-48 bg-gray-200 flex items-center justify-center">
+                        ${product.imageUrl ? 
+                            `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-cover">` :
+                            `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`
+                        }
+                    </div>
+                    <span class="absolute top-2 right-2 px-3 py-1 text-xs font-bold rounded ${statusClass}">
+                        ${status}
+                    </span>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-lg mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
+                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description || 'No description'}</p>
+                    
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="text-xl font-bold text-green-700">Rs. ${parseFloat(product.price || 0).toFixed(2)}</div>
+                        <div class="text-sm text-gray-500">Qty: ${product.quantity || 0}</div>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <button onclick="showEditModal(${product.id})" class="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-sm">
+                            Edit
+                        </button>
+                        <button onclick="deleteProduct(${product.id})" class="flex-1 px-3 py-2 border border-red-300 text-red-600 rounded hover:bg-red-50 text-sm">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        // Render seller orders
+        function renderSellerOrders(orders) {
+            const ordersContainer = document.getElementById('orders-container');
+            
+            if (!ordersContainer) return;
+            
+            ordersContainer.innerHTML = '';
+            
+            // Group orders by orderId for better display
+            const ordersByOrderId = {};
+            
+            orders.forEach(orderItem => {
+                const orderId = orderItem.order?.id || orderItem.orderId;
+                if (!ordersByOrderId[orderId]) {
+                    ordersByOrderId[orderId] = {
+                        order: orderItem.order,
+                        items: [],
+                        total: orderItem.order?.total || 0
+                    };
+                }
+                ordersByOrderId[orderId].items.push(orderItem);
+            });
+            
+            // Create order cards for each order
+            Object.values(ordersByOrderId).forEach(orderGroup => {
+                const orderCard = createOrderCard(orderGroup);
+                ordersContainer.appendChild(orderCard);
+            });
+            
+            // Re-initialize feather icons
+            setTimeout(() => {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            }, 100);
+        }
+
+// Load buyer orders (My Orders)
+async function loadBuyerOrders() {
+    const loadingEl = document.getElementById('buyer-orders-loading');
+    const ordersContainer = document.getElementById('buyer-orders-container');
+    const noOrdersEl = document.getElementById('no-buyer-orders');
+    const errorEl = document.getElementById('buyer-orders-error');
+    
+    if (loadingEl) loadingEl.classList.remove('hidden');
+    if (ordersContainer) ordersContainer.classList.add('hidden');
+    if (noOrdersEl) noOrdersEl.classList.add('hidden');
+    if (errorEl) errorEl.classList.add('hidden');
+    
+    try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            throw new Error('Not authenticated');
+        }
+        
+        console.log('Fetching buyer orders from:', `${API_URL}/orders/my-orders`);
+        
+        // Fetch buyer's orders using your existing API endpoint
+        const ordersResponse = await fetch(`${API_URL}/orders/my-orders`, {
+            method: 'GET',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('Response status:', ordersResponse.status);
+        
+        if (!ordersResponse.ok) {
+            throw new Error(`Failed to fetch orders: ${ordersResponse.status}`);
+        }
+        
+        const ordersResult = await ordersResponse.json();
+        console.log('Full API Response:', ordersResult);
+        
+        buyerOrdersData = ordersResult.data || ordersResult || [];
+        
+        console.log('Parsed buyer orders data:', buyerOrdersData);
+        
+        // Hide loading
+        if (loadingEl) loadingEl.classList.add('hidden');
+        
+        if (!buyerOrdersData || buyerOrdersData.length === 0) {
+            console.log('No orders data found');
+            if (noOrdersEl) noOrdersEl.classList.remove('hidden');
+            updateBuyerOrdersStats([]);
+            return;
+        }
+        
+        console.log(`Found ${buyerOrdersData.length} orders`);
+        
+        // Calculate and update stats
+        updateBuyerOrdersStats(buyerOrdersData);
+        
+        // Render orders
+        renderBuyerOrders(buyerOrdersData);
+        
+        // Show orders container
+        if (ordersContainer) {
+            ordersContainer.classList.remove('hidden');
+        }
+        
+    } catch (error) {
+        console.error('Error loading buyer orders:', error);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (errorEl) {
+            errorEl.classList.remove('hidden');
+            document.getElementById('buyer-orders-error-text').textContent = error.message;
+        }
+    }
+}
+
+// Update buyer orders statistics
+// Update buyer orders statistics
+function updateBuyerOrdersStats(orders) {
+    console.log('Calculating stats for orders:', orders);
+    
+    const totalOrders = orders.length;
+    
+    let pendingOrders = 0;
+    let deliveredOrders = 0;
+    let totalSpent = 0;
+    
+    orders.forEach(order => {
+        // Check order status
+        const orderStatus = order.status || order.orderStatus || 'PENDING';
+        if (orderStatus === 'PENDING') pendingOrders++;
+        if (orderStatus === 'DELIVERED') deliveredOrders++;
+        
+        // Calculate total spent
+        if (order.total) {
+            totalSpent += Number(order.total);
+        } else if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+                const price = Number(item.price) || 0;
+                const quantity = item.quantity || 0;
+                totalSpent += price * quantity;
+            });
+        }
+    });
+    
+    console.log('Stats calculated:', { totalOrders, pendingOrders, deliveredOrders, totalSpent });
+    
+    document.getElementById('total-orders-count').textContent = totalOrders;
+    document.getElementById('pending-orders-count').textContent = pendingOrders;
+    document.getElementById('delivered-orders-count').textContent = deliveredOrders;
+    document.getElementById('total-spent').textContent = `Rs. ${totalSpent.toFixed(2)}`;
+}
+
+
+// Render buyer orders with fallback
+function renderBuyerOrders(orders) {
+    const ordersContainer = document.getElementById('buyer-orders-container');
+    
+    if (!ordersContainer) return;
+    
+    ordersContainer.innerHTML = '';
+    
+    if (!orders || !Array.isArray(orders)) {
+        console.error('Invalid orders data:', orders);
+        ordersContainer.innerHTML = `
+            <div class="text-center py-12 bg-red-50 rounded-xl">
+                <i data-feather="alert-triangle" class="w-16 h-16 text-red-300 mx-auto mb-4"></i>
+                <h4 class="text-xl font-medium text-red-700 mb-2">Invalid Data Format</h4>
+                <p class="text-red-600 mb-4">Unable to parse orders data. Please check console for details.</p>
+                <button onclick="loadBuyerOrders()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    Retry
+                </button>
+            </div>
+        `;
+        feather.replace();
+        return;
+    }
+    
+    orders.forEach(order => {
+        try {
+            const orderCard = createBuyerOrderCard(order);
+            if (orderCard) {
+                ordersContainer.appendChild(orderCard);
+            }
+        } catch (error) {
+            console.error('Error creating order card:', error, order);
+        }
+    });
+    
+    // Re-initialize feather icons
+    setTimeout(() => {
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    }, 100);
+}
+
+
+// Create buyer order card (returns DOM Node)
+function createBuyerOrderCard(order) {
+    console.log('Creating card for order:', order);
+    
+    // Create the main container div
+    const orderCard = document.createElement('div');
+    orderCard.className = 'bg-white rounded-xl shadow mb-6 overflow-hidden';
+    
+    // Format date - check different possible date fields
+    let orderDate = 'Date not available';
+    const dateFields = ['createdAt', 'orderDate', 'date', 'created_at'];
+    for (const field of dateFields) {
+        if (order[field]) {
+            orderDate = new Date(order[field]).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            break;
+        }
+    }
+    
+    // Get order ID from different possible fields
+    const orderId = order.id || order.orderId || order._id || 'N/A';
+    
+    // Calculate total items - handle different data structures
+    let totalItems = 0;
+    let orderTotal = 0;
+    let items = [];
+    
+    if (order.items && Array.isArray(order.items)) {
+        items = order.items;
+        totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+        orderTotal = items.reduce((sum, item) => 
+            sum + ((Number(item.price) || 0) * (item.quantity || 0)), 0);
+    } else if (order.total) {
+        orderTotal = Number(order.total);
+    }
+    
+    // Get order status
+    const orderStatus = order.status || order.orderStatus || 'PENDING';
+    
+    // Build the HTML content
+    orderCard.innerHTML = `
+        <!-- Order Header -->
+        <div class="p-6 border-b">
+            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                    <div class="flex items-center flex-wrap gap-2 mb-2">
+                        <h4 class="font-bold text-lg text-gray-800">Order #${orderId}</h4>
+                        <span class="status-badge status-${orderStatus.toLowerCase()}">
+                            ${orderStatus}
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+                        <div class="flex items-center">
+                            <i data-feather="calendar" class="w-4 h-4 mr-1"></i>
+                            ${orderDate}
+                        </div>
+                        <div class="flex items-center">
+                            <i data-feather="package" class="w-4 h-4 mr-1"></i>
+                            ${totalItems} item${totalItems !== 1 ? 's' : ''}
+                        </div>
+                        <div class="flex items-center">
+                            <i data-feather="shopping-bag" class="w-4 h-4 mr-1"></i>
+                            Order ID: ${orderId}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold text-gray-900">Rs. ${orderTotal.toFixed(2)}</div>
+                    <p class="text-sm text-gray-500">Total Amount</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Items -->
+        <div class="p-6">
+            <h5 class="font-medium text-gray-700 mb-4">Order Items:</h5>
+            <div class="space-y-6" id="order-items-${orderId}">
+                <!-- Items will be added here -->
+            </div>
+        </div>
+        
+        <!-- Order Footer -->
+        <div class="px-6 py-4 bg-gray-50 border-t">
+            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div class="text-sm text-gray-600">
+                    <p>Order placed on ${orderDate}</p>
+                    <p class="mt-1">Order Status: <span class="font-medium">${orderStatus}</span></p>
+                </div>
+                <div class="flex space-x-3">
+                    ${orderStatus === 'PENDING' ? `
+                        <button class="cancel-order-btn px-4 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50 transition flex items-center" data-order-id="${orderId}">
+                            <i data-feather="x-circle" class="w-4 h-4 mr-2"></i>
+                            Cancel Order
+                        </button>
+                    ` : ''}
+                    <button class="view-order-btn px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center" data-order-id="${orderId}">
+                        <i data-feather="eye" class="w-4 h-4 mr-2"></i>
+                        View Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Get the items container
+    const itemsContainer = orderCard.querySelector(`#order-items-${orderId}`);
+    
+    if (items.length > 0) {
+        // Group items by seller for better organization
+        const itemsBySeller = {};
+        items.forEach(item => {
+            const sellerId = item.product?.sellerId || item.sellerId || 'unknown';
+            if (!itemsBySeller[sellerId]) {
+                itemsBySeller[sellerId] = {
+                    seller: `Seller ID: ${sellerId}`,
+                    items: []
+                };
+            }
+            itemsBySeller[sellerId].items.push(item);
+        });
+        
+        // Add items to the container
+        Object.values(itemsBySeller).forEach(sellerGroup => {
+            const sellerGroupDiv = document.createElement('div');
+            sellerGroupDiv.className = 'border rounded-lg overflow-hidden mb-4';
+            
+            let itemsHTML = '';
+            sellerGroup.items.forEach(item => {
+                const productTitle = item.product?.title || item.productName || 'Unknown Product';
+                const productImage = item.product?.imageUrl || item.imageUrl;
+                const productId = item.productId || item.product?.id || 'N/A';
+                const quantity = item.quantity || 0;
+                const price = Number(item.price) || 0;
+                const itemTotal = price * quantity;
+                const itemStatus = item.status || orderStatus;
+                
+                // Get seller ID safely
+const itemSellerId = item.product?.sellerId || item.sellerId || 'unknown';
+
+itemsHTML += `
+    <div class="flex items-center justify-between p-4 hover:bg-gray-50">
+        <div class="flex items-start space-x-4">
+            <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                ${productImage ? 
+                    `<img src="${productImage}" alt="${productTitle}" 
+                         class="w-full h-full object-cover rounded-lg">` :
+                    `<i data-feather="package" class="w-6 h-6 text-gray-400"></i>`
+                }
+            </div>
+            <div>
+                <h6 class="font-medium text-gray-900 mb-1">${productTitle}</h6>
+                <p class="text-sm text-gray-500 mb-1">Product ID: ${productId}</p>
+                <div class="flex items-center space-x-4 text-sm">
+                    <span class="text-gray-600">Qty: ${quantity}</span>
+                    <span class="text-gray-600">×</span>
+                    <span class="text-gray-600">Rs. ${price.toFixed(2)}</span>
+                </div>
+                <div class="mt-2">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-1 text-xs rounded-full ${
+                            itemStatus === 'DELIVERED' ? 'bg-green-100 text-green-800' :
+                            itemStatus === 'RECEIVED' ? 'bg-purple-100 text-purple-800' :
+                            itemStatus === 'PROCESSING' ? 'bg-blue-100 text-blue-800' :
+                            itemStatus === 'SHIPPED' ? 'bg-indigo-100 text-indigo-800' :
+                            itemStatus === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                        }">
+                            ${itemStatus}
+                        </span>
+                    </div>
+                    
+                    ${itemStatus === 'DELIVERED' ? `
+                        <button onclick="markAsReceived(${item.id}, ${itemSellerId}, '${productTitle.replace(/'/g, "\\'")}')" 
+                                class="w-full text-sm bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
+                            <i data-feather="check-circle" class="w-4 h-4 mr-2"></i>
+                            Mark as Received
+                        </button>
+                    ` : ''}
+                    
+                    ${itemStatus === 'RECEIVED' ? `
+                        <div class="text-xs text-green-600 bg-green-50 p-2 rounded-lg text-center">
+                            <i data-feather="check-circle" class="w-4 h-4 inline mr-1"></i>
+                            ✓ You've received this item
+                        </div>
+                    ` : ''}
+                    
+                    ${itemStatus === 'CANCELLED' ? `
+                        <div class="text-xs text-red-600 bg-red-50 p-2 rounded-lg text-center">
+                            <i data-feather="x-circle" class="w-4 h-4 inline mr-1"></i>
+                            This item was cancelled
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+        <div class="text-right">
+            <div class="text-lg font-bold text-gray-900">
+                Rs. ${itemTotal.toFixed(2)}
+            </div>
+        </div>
+    </div>
+`;
+            });
+            
+            sellerGroupDiv.innerHTML = `
+                <div class="bg-gray-50 px-4 py-2 border-b">
+                    <p class="text-sm font-medium text-gray-700">
+                        <i data-feather="user" class="w-3 h-3 inline mr-1"></i>
+                        ${sellerGroup.seller}
+                    </p>
+                </div>
+                <div class="divide-y">
+                    ${itemsHTML}
+                </div>
+            `;
+            
+            itemsContainer.appendChild(sellerGroupDiv);
+        });
+    } else {
+        // If no items array or empty items
+        itemsContainer.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i data-feather="package" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+                <p class="mb-2">Order details not available</p>
+                <p class="text-sm">Total: Rs. ${orderTotal.toFixed(2)}</p>
+            </div>
+        `;
+    }
+    
+    // Add event listeners to buttons
+    const cancelBtn = orderCard.querySelector('.cancel-order-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            cancelOrder(orderId);
+        });
+    }
+    
+    const viewBtn = orderCard.querySelector('.view-order-btn');
+    if (viewBtn) {
+        viewBtn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            viewOrderDetails(orderId);
+        });
+    }
+    
+    return orderCard;
+}
+
+// Hide add product form
+function hideAddProductForm() {
+    document.getElementById('add-product-form').classList.add('hidden');
+    // Optionally reset the form
+    document.getElementById('new-product-form').reset();
+}
+
+// Filter buyer orders
+function filterBuyerOrders() {
+    const filter = document.getElementById('order-filter').value;
+    const filteredOrders = filter === 'all' 
+        ? buyerOrdersData 
+        : buyerOrdersData.filter(order => order.status === filter);
+    
+    renderFilteredBuyerOrders(filteredOrders);
+}
+
+// Sort buyer orders
+function sortBuyerOrders() {
+    const sortBy = document.getElementById('order-sort').value;
+    let sortedOrders = [...buyerOrdersData];
+    
+    switch(sortBy) {
+        case 'newest':
+            sortedOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            break;
+        case 'oldest':
+            sortedOrders.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            break;
+        case 'price-high':
+            sortedOrders.sort((a, b) => 
+                (Number(b.total) || 0) - (Number(a.total) || 0));
+            break;
+        case 'price-low':
+            sortedOrders.sort((a, b) => 
+                (Number(a.total) || 0) - (Number(b.total) || 0));
+            break;
+    }
+    
+    renderFilteredBuyerOrders(sortedOrders);
+}
+
+
+// Render filtered buyer orders
+function renderFilteredBuyerOrders(orders) {
+    const container = document.getElementById('buyer-orders-container');
+    if (!orders || orders.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 bg-gray-50 rounded-xl">
+                <i data-feather="search" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                <h4 class="text-lg font-medium text-gray-700 mb-2">No orders found</h4>
+                <p class="text-gray-500">Try changing your filter criteria</p>
+            </div>
+        `;
+    } else {
+        container.innerHTML = '';
+        orders.forEach(order => {
+            const orderCard = createBuyerOrderCard(order);
+            container.appendChild(orderCard);
+        });
+        
+        // Update stats for filtered orders
+        updateBuyerOrdersStats(orders);
+        
+        // Re-initialize feather icons
+        setTimeout(() => {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }, 100);
+    }
+}
+
+// Helper functions
+function cancelOrder(orderId) {
+    if (confirm('Are you sure you want to cancel this order?')) {
+        // Implement cancel order logic here
+        alert(`Order #${orderId} cancellation request sent.`);
+        // You would typically make an API call here
+        // Example: fetch(`${API_URL}/orders/${orderId}/cancel`, { method: 'POST' })
+    }
+}
+
+function viewOrderDetails(orderId) {
+    // Implement order details view logic
+    alert(`Viewing details for order #${orderId}`);
+    // You could redirect to a detailed order page or show a modal
+}
+        
+      // Create order card for seller orders with status management
+function createOrderCard(orderGroup) {
+    const div = document.createElement('div');
+    div.className = 'order-card bg-white rounded-xl shadow p-6 mb-6';
+    
+    const order = orderGroup.order;
+    const items = orderGroup.items;
+    const total = orderGroup.total;
+    
+    // Format date
+    const orderDate = order?.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }) : 'Date not available';
+    
+    // Calculate total items in this order
+    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+    
+    // Get buyer name
+    const buyerName = order?.buyer?.name || `Buyer ID: ${order?.buyerId || 'N/A'}`;
+    const buyerEmail = order?.buyer?.email || '';
+    
+    div.innerHTML = `
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <div class="flex items-center space-x-2 mb-2">
+                    <h4 class="font-bold text-lg text-gray-800">Order #${order?.id || 'N/A'}</h4>
+                    <span class="order-status status-${(order?.status || 'PENDING').toLowerCase()}">
+                        ${order?.status || 'PENDING'}
+                    </span>
+                </div>
+                <p class="text-gray-600 text-sm">
+                    <i data-feather="calendar" class="w-4 h-4 inline mr-1"></i>
+                    ${orderDate}
+                </p>
+                <p class="text-gray-600 text-sm mt-1">
+                    <i data-feather="user" class="w-4 h-4 inline mr-1"></i>
+                    ${buyerName} ${buyerEmail ? `(${buyerEmail})` : ''}
+                </p>
+            </div>
+            <div class="text-right">
+                <div class="text-2xl font-bold text-green-700">Rs. ${total.toFixed(2)}</div>
+                <p class="text-sm text-gray-500">${totalItems} item${totalItems !== 1 ? 's' : ''}</p>
+            </div>
+        </div>
+        
+        <div class="border-t pt-4">
+            <h5 class="font-medium text-gray-700 mb-3">Order Items:</h5>
+            <div class="space-y-3">
+                ${items.map(item => `
+                    <div class="border rounded-lg p-3 ${item.status === 'CANCELLED' ? 'bg-red-50 border-red-200' : 
+                        item.status === 'DELIVERED' ? 'bg-green-50 border-green-200' : 'bg-gray-50'}">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+                                    ${item.product?.imageUrl ? 
+                                        `<img src="${item.product.imageUrl}" alt="${item.product.title}" class="w-full h-full object-cover rounded">` :
+                                        `<i data-feather="package" class="w-5 h-5 text-gray-400"></i>`
+                                    }
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">${item.product?.title || 'Unknown Product'}</p>
+                                    <p class="text-sm text-gray-500">Qty: ${item.quantity} × Rs. ${item.price.toFixed(2)}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-gray-800">Rs. ${(item.price * item.quantity).toFixed(2)}</div>
+                                <div class="text-xs text-gray-500">Product ID: ${item.productId}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Status and Actions for Seller -->
+                        <div class="flex justify-between items-center mt-2 pt-2 border-t">
+                            <div>
+                                <span class="status-badge status-${(item.status || 'PENDING').toLowerCase()}">
+                                    ${item.status || 'PENDING'}
+                                </span>
+                                ${item.cancelledReason ? `
+                                    <p class="text-xs text-red-600 mt-1">Reason: ${item.cancelledReason}</p>
+                                ` : ''}
+                                ${item.deliveredAt ? `
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Delivered: ${new Date(item.deliveredAt).toLocaleDateString()}
+                                    </p>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- Action Buttons for Seller -->
+                            <div class="flex space-x-2">
+                                ${item.status === 'PENDING' || item.status === 'PROCESSING' ? `
+                                    <button onclick="updateOrderItemStatus(${item.id}, 'PROCESSING')" 
+                                            class="px-3 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        Process
+                                    </button>
+                                    <button onclick="showCancelModal(${item.id})" 
+                                            class="px-3 py-1 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                        Cancel
+                                    </button>
+                                ` : ''}
+                                
+                                ${item.status === 'PROCESSING' ? `
+                                    <button onclick="updateOrderItemStatus(${item.id}, 'DELIVERED')" 
+                                            class="px-3 py-1 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                        Deliver
+                                    </button>
+                                ` : ''}
+                                
+                                ${item.status === 'CANCELLED' ? `
+                                    <button onclick="reopenOrderItem(${item.id})" 
+                                            class="px-3 py-1 text-xs bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
+                                        Reopen
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    return div;
+}
+
+// Show cancel modal for seller
+function showCancelModal(orderItemId) {
+    const reason = prompt('Please provide a reason for cancellation (min 10 characters):');
+    if (reason && reason.length >= 10) {
+        cancelOrderItem(orderItemId, reason);
+    } else if (reason !== null) {
+        alert('Cancellation reason must be at least 10 characters long.');
+    }
+}
+
+// Update order item status (seller)
+async function updateOrderItemStatus(orderItemId, status) {
+    try {
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`${API_URL}/orders/item/${orderItemId}/status`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            alert(`Order item status updated to ${status}`);
+            loadSellerOrders(); // Refresh orders
+            return result.data;
+        } else {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to update status');
+        }
+    } catch (error) {
+        console.error('Error updating order item status:', error);
+        alert(`Failed to update status: ${error.message}`);
+    }
+}
+
+// Cancel order item with reason (seller)
+async function cancelOrderItem(orderItemId, reason) {
+    try {
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`${API_URL}/orders/item/${orderItemId}/cancel`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reason })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            alert('Order item cancelled successfully');
+            loadSellerOrders(); // Refresh orders
+            return result.data;
+        } else {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to cancel order item');
+        }
+    } catch (error) {
+        console.error('Error cancelling order item:', error);
+        alert(`Failed to cancel order item: ${error.message}`);
+    }
+}
+
+// Mark order item as delivered (seller)
+async function markAsDelivered(orderItemId) {
+    try {
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`${API_URL}/orders/item/${orderItemId}/deliver`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            alert('Order item marked as delivered');
+            loadSellerOrders(); // Refresh orders
+            return result.data;
+        } else {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to mark as delivered');
+        }
+    } catch (error) {
+        console.error('Error marking as delivered:', error);
+        alert(`Failed to mark as delivered: ${error.message}`);
+    }
+}
+
+// Reopen cancelled order item (seller)
+async function reopenOrderItem(orderItemId) {
+    try {
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`${API_URL}/orders/item/${orderItemId}/status`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'PENDING' })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            alert('Order item reopened successfully');
+            loadSellerOrders(); // Refresh orders
+            return result.data;
+        } else {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to reopen order item');
+        }
+    } catch (error) {
+        console.error('Error reopening order item:', error);
+        alert(`Failed to reopen order item: ${error.message}`);
+    }
+}
+
+// Show notification helper
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
+        type === 'success' ? 'bg-green-600 text-white' :
+        type === 'error' ? 'bg-red-600 text-white' :
+        'bg-blue-600 text-white'
+    }`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i data-feather="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-5 h-5 mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Initialize feather icon
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+        // Load categories from API for dropdown (existing function)
+        async function loadCategoriesForDropdown() {
+            try {
+                // First, try the public endpoint
+                const response = await fetch(`${API_URL}/category/getAllCategoriesForDropdown`);
+                
+                if (!response.ok) {
+                    // Try the dropdown endpoint
+                    const dropdownResponse = await fetch(`${API_URL}/category/getAllCategories`);
+                    
+                    if (!dropdownResponse.ok) {
+                        // Try with authentication
+                        const token = localStorage.getItem('token');
+                        if (token) {
+                            const authResponse = await fetch(`${API_URL}/category/with-count`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            
+                            if (authResponse.ok) {
+                                const categories = await authResponse.json();
+                                allCategories = categories.data || categories || [];
+                            }
+                        }
+                        
+                        if (!allCategories || allCategories.length === 0) {
+                            console.log('Failed to fetch categories from all endpoints');
+                            allCategories = [];
+                            return;
+                        }
+                    } else {
+                        const categories = await dropdownResponse.json();
+                        allCategories = categories.data || categories || [];
+                    }
+                } else {
+                    const categories = await response.json();
+                    allCategories = categories.data || categories || [];
+                }
+                
+                console.log('Categories loaded:', allCategories);
+                populateCategoryDropdowns();
+                
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                allCategories = [];
+            }
+        }
+        
+        function populateCategoryDropdowns() {
+            const addCategorySelect = document.getElementById('product-category');
+            const editCategorySelect = document.getElementById('edit-category');
+            
+            // Clear and populate ADD product category dropdown
+            if (addCategorySelect) {
+                while (addCategorySelect.options.length > 1) {
+                    addCategorySelect.remove(1);
+                }
+                
+                // Add category options
+                allCategories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category._id || category.id || category.categoryId || '';
+                    option.textContent = category.name || category.categoryName || 'Unnamed Category';
+                    addCategorySelect.appendChild(option);
+                });
+                
+                console.log(`Populated ${allCategories.length} categories into ADD dropdown`);
+            } else {
+                console.error('Add category select element not found!');
+            }
+            
+            // Clear and populate EDIT product category dropdown
+            if (editCategorySelect) {
+                while (editCategorySelect.options.length > 1) {
+                    editCategorySelect.remove(1);
+                }
+                
+                // Add category options
+                allCategories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category._id || category.id || category.categoryId || '';
+                    option.textContent = category.name || category.categoryName || 'Unnamed Category';
+                    editCategorySelect.appendChild(option);
+                });
+                
+                console.log(`Populated ${allCategories.length} categories into EDIT dropdown`);
+            } else {
+                console.error('Edit category select element not found!');
+            }
+        }
+        
+        // The rest of your existing functions (showEditModal, hideEditModal, addNewProduct, updateProduct, deleteProduct, logout) remain the same...
+        // [Keep all your existing functions for product management here]
+        
+        // Show edit modal (existing function)
+        async function showEditModal(productId) {
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Ensure categories are loaded BEFORE showing the modal
+                if (!allCategories || allCategories.length === 0) {
+                    await loadCategoriesForDropdown();
+                }
+                
+                // First, get the product details
+                const response = await fetch(`${API_URL}/products/getBySeller`, {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load product details');
+                }
+                
+                const result = await response.json();
+                const products = result.data || result;
+                const product = products.find(p => p.id == productId);
+                
+                if (!product) {
+                    throw new Error('Product not found');
+                }
+                
+                // Fill the edit form with product data
+                document.getElementById('edit-product-id').value = product.id;
+                document.getElementById('edit-title').value = product.title || '';
+                document.getElementById('edit-price').value = product.price || 0;
+                document.getElementById('edit-quantity').value = product.quantity || 0;
+                document.getElementById('edit-description').value = product.description || '';
+                document.getElementById('edit-image').value = product.imageUrl || '';
+                
+                // Set the category AFTER dropdown is populated
+                setTimeout(() => {
+                    const categoryId = product.categoryId || product.category?.id || '';
+                    const editCategorySelect = document.getElementById('edit-category');
+                    if (editCategorySelect) {
+                        editCategorySelect.value = categoryId.toString();
+                    }
+                }, 100);
+                
+                // Show the modal
+                document.getElementById('edit-product-modal').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error loading product details:', error);
+                alert('Failed to load product details. Please try again.');
+            }
+        }
+        
+        // Hide edit modal (existing function)
+        function hideEditModal() {
+            document.getElementById('edit-product-modal').classList.add('hidden');
+        }
+        
+        // Add new product (existing function)
+        async function addNewProduct(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('product-title').value;
+            const price = parseFloat(document.getElementById('product-price').value);
+            const quantity = parseInt(document.getElementById('product-quantity').value);
+            const categoryId = document.getElementById('product-category').value;
+            const description = document.getElementById('product-description').value;
+            const imageUrl = document.getElementById('product-image').value;
+            
+            // Validation
+            if (!title || !price || !quantity) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            if (price <= 0) {
+                alert('Price must be greater than 0');
+                return;
+            }
+            
+            if (quantity <= 0 || quantity >=10) {
+                alert('Quantity must be greater than 0 or less than 10');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Prepare product data according to your API
+                const productData = {
+                    title: title,
+                    price: price,
+                    quantity: quantity,
+                    description: description || undefined,
+                    imageUrl: imageUrl || undefined,
+                    categoryId: categoryId ? parseInt(categoryId) : undefined
+                };
+                
+                console.log('Sending product data:', productData);
+                
+                // Call your insertProducts API
+                const response = await fetch(`${API_URL}/products/insertProducts`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                });
+                
+                const result = await response.json();
+                console.log('API Response:', result);
+                
+                if (response.ok) {
+                    alert('Product added successfully!');
+                    hideAddProductForm();
+                    // Reload products
+                    loadSellerProducts();
+                } else {
+                    // Handle validation errors
+                    let errorMessage = 'Failed to add product';
+                    if (result.errors) {
+                        errorMessage += ': ' + Object.values(result.errors).join(', ');
+                    } else if (result.message) {
+                        errorMessage = result.message;
+                    }
+                    alert(errorMessage);
+                }
+                
+            } catch (error) {
+                console.error('Error adding product:', error);
+                alert('Failed to add product. Please try again.');
+            }
+        }
+        
+        // Update product (existing function)
+        async function updateProduct(event) {
+            event.preventDefault();
+            
+            const productId = document.getElementById('edit-product-id').value;
+            const title = document.getElementById('edit-title').value;
+            const price = parseFloat(document.getElementById('edit-price').value);
+            const quantity = parseInt(document.getElementById('edit-quantity').value);
+            const categoryId = document.getElementById('edit-category').value;
+            const description = document.getElementById('edit-description').value;
+            const imageUrl = document.getElementById('edit-image').value;
+            
+            // Validation
+            if (!title || !price || quantity < 0) {
+                alert('Please fill in all required fields correctly');
+                return;
+            }
+            
+            if (price <= 0) {
+                alert('Price must be greater than 0');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Prepare update data
+                const updateData = {};
+                if (title) updateData.title = title;
+                if (price) updateData.price = price;
+                if (quantity >= 0) updateData.quantity = quantity;
+                if (description !== undefined) updateData.description = description || null;
+                if (imageUrl !== undefined) updateData.imageUrl = imageUrl || null;
+                if (categoryId !== undefined) updateData.categoryId = categoryId ? parseInt(categoryId) : null;
+                
+                console.log('Updating product:', productId, updateData);
+                
+                // Call your updateProducts API
+                const response = await fetch(`${API_URL}/products/updateProducts/${productId}`, {
+                    method: 'PATCH', // or 'PUT' depending on your route
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                const result = await response.json();
+                console.log('Update Response:', result);
+                
+                if (response.ok) {
+                    alert('Product updated successfully!');
+                    hideEditModal();
+                    // Reload products
+                    loadSellerProducts();
+                } else {
+                    // Handle validation errors
+                    let errorMessage = 'Failed to update product';
+                    if (result.errors) {
+                        errorMessage += ': ' + Object.values(result.errors).join(', ');
+                    } else if (result.message) {
+                        errorMessage = result.message;
+                    }
+                    alert(errorMessage);
+                }
+                
+            } catch (error) {
+                console.error('Error updating product:', error);
+                alert('Failed to update product. Please try again.');
+            }
+        }
+        
+        // Delete product (existing function)
+        async function deleteProduct(productId) {
+            if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                
+                console.log('Deleting product:', productId);
+                
+                // Call your deleteProducts API
+                const response = await fetch(`${API_URL}/products/deleteProducts/${productId}`, {
+                    method: 'DELETE',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                console.log('Delete Response:', result);
+                
+                if (response.ok) {
+                    alert('Product deleted successfully!');
+                    // Reload products
+                    loadSellerProducts();
+                } else {
+                    let errorMessage = 'Failed to delete product';
+                    if (result.message) {
+                        errorMessage = result.message;
+                    }
+                    alert(errorMessage);
+                }
+                
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                alert('Failed to delete product. Please try again.');
+            }
+        }
+
+// Upload profile photo
+async function uploadProfilePhoto(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.match(/image\/(jpg|jpeg|png|gif)/)) {
+        alert('Please select a valid image file (JPG, JPEG, PNG, GIF)');
+        return;
+    }
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('photo', file);
+    
+    // Get the button that triggered the upload
+    const uploadBtn = document.querySelector('button[onclick*="photo-upload"]');
+    const originalText = uploadBtn?.innerHTML;
+    
+    try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            throw new Error('No authentication token found');
+        }
+        
+        // Show uploading indicator
+        if (uploadBtn) {
+            uploadBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 mr-1 animate-spin"></i> Uploading...';
+            uploadBtn.disabled = true;
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+        
+        console.log('Uploading photo...');
+        
+        const response = await fetch(`${API_URL}/users/photo`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`
+                // Don't set Content-Type - it will be set automatically with boundary
+            },
+            body: formData
+        });
+        
+        console.log('Upload response status:', response.status);
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+                throw new Error('Session expired. Please login again.');
+            }
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Upload failed');
+        }
+        
+        const result = await response.json();
+        console.log('Upload response data:', result);
+        
+        // IMPORTANT: Construct the full image URL
+        // Remove '/api' from API_URL to get the base URL (http://localhost:3000)
+        const baseUrl = API_URL.replace('/api', '');
+        const photoPath = result.data.photo;
+        const fullPhotoUrl = `${baseUrl}${photoPath}`;
+        
+        console.log('Full photo URL:', fullPhotoUrl);
+        
+        // Update photo display
+        const photoImg = document.getElementById('user-photo');
+        const photoPlaceholder = document.getElementById('user-photo-placeholder');
+        const deleteBtn = document.getElementById('delete-photo-btn');
+        const photoContainer = document.getElementById('user-photo-container');
+        
+        // Set up onload handler before setting src
+        photoImg.onload = function() {
+            console.log('Image loaded successfully');
+            // Show image, hide placeholder
+            photoImg.classList.remove('hidden');
+            photoPlaceholder.classList.add('hidden');
+            deleteBtn.classList.remove('hidden');
+            
+            // Ensure photo container has click handler for viewing
+            if (photoContainer) {
+                photoContainer.onclick = viewProfilePhoto;
+            }
+            
+            // Refresh feather icons if needed
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        };
+        
+        // Set up error handler
+        photoImg.onerror = function() {
+            console.error('Failed to load image:', fullPhotoUrl);
+            
+            // Try alternative URL
+            const filename = photoPath.split('/').pop();
+            const altUrl = `${baseUrl}/uploads/users/${filename}`;
+            console.log('Trying alternative URL:', altUrl);
+            
+            // Try alternative URL
+            photoImg.src = altUrl;
+            
+            // If alternative also fails, show placeholder
+            photoImg.onerror = function() {
+                console.error('Alternative URL also failed');
+                photoImg.classList.add('hidden');
+                photoPlaceholder.classList.remove('hidden');
+                deleteBtn.classList.add('hidden');
+                
+                // Reset container click handler to upload
+                if (photoContainer) {
+                    photoContainer.onclick = function() {
+                        document.getElementById('photo-upload').click();
+                    };
+                }
+            };
+        };
+        
+        // Set the image source (this will trigger onload or onerror)
+        photoImg.src = fullPhotoUrl;
+        
+        // Update localStorage user data
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        user.photo = result.data.photo;
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        alert('Photo uploaded successfully!');
+        
+    } catch (error) {
+        console.error('Error uploading photo:', error);
+        alert(error.message || 'Failed to upload photo. Please try again.');
+    } finally {
+        // Reset file input
+        event.target.value = '';
+        
+        // Reset button
+        if (uploadBtn) {
+            uploadBtn.innerHTML = originalText || '<i data-feather="upload" class="w-4 h-4 mr-1"></i>Upload Photo';
+            uploadBtn.disabled = false;
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+    }
+}
+
+// Load user profile with photo
+async function loadUserProfile() {
+    try {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        if (!token || !user) return;
+        
+        const userData = JSON.parse(user);
+        
+        // Update user name and email
+        document.getElementById('user-name').textContent = userData.name || 'User';
+        document.getElementById('user-email').textContent = userData.email || '';
+        
+        // Fetch latest user data to get photo
+        const response = await fetch(`${API_URL}/users/me`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            const userProfile = result.data;
+            
+            console.log('User profile data:', userProfile);
+            
+            // Get DOM elements
+            const photoImg = document.getElementById('user-photo');
+            const photoPlaceholder = document.getElementById('user-photo-placeholder');
+            const deleteBtn = document.getElementById('delete-photo-btn');
+            const photoContainer = document.getElementById('user-photo-container');
+            
+            // Update photo if exists
+            if (userProfile.photo) {
+                // Construct full URL
+                const baseUrl = API_URL.replace('/api', '');
+                const photoUrl = `${baseUrl}${userProfile.photo}`;
+                
+                console.log('Loading photo from:', photoUrl);
+                
+                // Set up the image
+                photoImg.src = photoUrl;
+                
+                // Add load event handler
+                photoImg.onload = function() {
+                    console.log('Profile photo loaded successfully');
+                    // Show image, hide placeholder
+                    photoImg.classList.remove('hidden');
+                    photoPlaceholder.classList.add('hidden');
+                    deleteBtn.classList.remove('hidden');
+                    
+                    // Ensure photo container has click handler for viewing
+                    if (photoContainer) {
+                        photoContainer.onclick = viewProfilePhoto;
+                    }
+                    
+                    // Refresh feather icons
+                    if (typeof feather !== 'undefined') {
+                        feather.replace();
+                    }
+                };
+                
+                // Add error handler
+                photoImg.onerror = function() {
+                    console.error('Failed to load profile photo from:', photoUrl);
+                    
+                    // Try alternative URL (without /api in the path)
+                    const filename = userProfile.photo.split('/').pop();
+                    const altUrl = `${baseUrl}/uploads/users/${filename}`;
+                    
+                    console.log('Trying alternative URL:', altUrl);
+                    
+                    // Try the alternative URL
+                    photoImg.src = altUrl;
+                    
+                    // If that also fails, fallback to placeholder
+                    photoImg.onerror = function() {
+                        console.error('Alternative URL also failed');
+                        photoImg.classList.add('hidden');
+                        photoPlaceholder.classList.remove('hidden');
+                        deleteBtn.classList.add('hidden');
+                        
+                        // Reset container click handler to upload
+                        if (photoContainer) {
+                            photoContainer.onclick = function() {
+                                document.getElementById('photo-upload').click();
+                            };
+                        }
+                    };
+                };
+                
+            } else {
+                // No photo, show placeholder
+                console.log('No profile photo found');
+                photoImg.classList.add('hidden');
+                photoPlaceholder.classList.remove('hidden');
+                deleteBtn.classList.add('hidden');
+                
+                // Set container click handler to upload
+                if (photoContainer) {
+                    photoContainer.onclick = function() {
+                        document.getElementById('photo-upload').click();
+                    };
+                }
+            }
+            
+            // Update any other user info if needed
+            if (userProfile.role) {
+                // You could display role badge if you want
+                console.log('User role:', userProfile.role);
+            }
+            
+        } else {
+            console.error('Failed to fetch user profile:', response.status);
+            
+            // If API fails, at least show data from localStorage
+            if (userData.photo) {
+                const photoImg = document.getElementById('user-photo');
+                const photoPlaceholder = document.getElementById('user-photo-placeholder');
+                const deleteBtn = document.getElementById('delete-photo-btn');
+                const photoContainer = document.getElementById('user-photo-container');
+                
+                const baseUrl = API_URL.replace('/api', '');
+                const photoUrl = `${baseUrl}${userData.photo}`;
+                
+                photoImg.src = photoUrl;
+                photoImg.classList.remove('hidden');
+                photoPlaceholder.classList.add('hidden');
+                
+                if (userData.photo) {
+                    deleteBtn.classList.remove('hidden');
+                }
+                
+                // Set click handler for viewing
+                if (photoContainer) {
+                    photoContainer.onclick = viewProfilePhoto;
+                }
+                
+                photoImg.onerror = function() {
+                    photoImg.classList.add('hidden');
+                    photoPlaceholder.classList.remove('hidden');
+                };
+            }
+        }
+    } catch (error) {
+        console.error('Error loading user profile:', error);
+        
+        // Fallback to localStorage data if API fails
+        try {
+            const user = localStorage.getItem('user');
+            if (user) {
+                const userData = JSON.parse(user);
+                
+                document.getElementById('user-name').textContent = userData.name || 'User';
+                document.getElementById('user-email').textContent = userData.email || '';
+                
+                if (userData.photo) {
+                    const photoImg = document.getElementById('user-photo');
+                    const photoPlaceholder = document.getElementById('user-photo-placeholder');
+                    const deleteBtn = document.getElementById('delete-photo-btn');
+                    const photoContainer = document.getElementById('user-photo-container');
+                    
+                    const baseUrl = API_URL.replace('/api', '');
+                    const photoUrl = `${baseUrl}${userData.photo}`;
+                    
+                    photoImg.src = photoUrl;
+                    photoImg.classList.remove('hidden');
+                    photoPlaceholder.classList.add('hidden');
+                    deleteBtn.classList.remove('hidden');
+                    
+                    // Set click handler for viewing
+                    if (photoContainer) {
+                        photoContainer.onclick = viewProfilePhoto;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error loading from localStorage:', e);
+        }
+    }
+}
+// Delete profile photo
+async function deleteProfilePhoto() {
+    if (!confirm('Are you sure you want to remove your profile photo?')) {
+        return;
+    }
+    
+    const deleteBtn = document.getElementById('delete-photo-btn');
+    const originalText = deleteBtn?.innerHTML;
+    
+    try {
+        const token = localStorage.getItem('token');
+        
+        // Show deleting indicator
+        if (deleteBtn) {
+            deleteBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 mr-1 animate-spin"></i> Removing...';
+            deleteBtn.disabled = true;
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+        
+        const response = await fetch(`${API_URL}/users/photo`, {
+            method: 'DELETE',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            // Reset to placeholder
+            const photoImg = document.getElementById('user-photo');
+            const photoPlaceholder = document.getElementById('user-photo-placeholder');
+            
+            photoImg.src = '';
+            photoImg.classList.add('hidden');
+            photoPlaceholder.classList.remove('hidden');
+            deleteBtn.classList.add('hidden');
+            
+            // Update localStorage user data
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            delete user.photo;
+            localStorage.setItem('user', JSON.stringify(user));
+            
+            alert('Photo removed successfully!');
+        } else {
+            alert(result.message || 'Failed to remove photo');
+        }
+    } catch (error) {
+        console.error('Error deleting photo:', error);
+        alert('Failed to remove photo. Please try again.');
+    } finally {
+        // Reset button
+        if (deleteBtn) {
+            deleteBtn.innerHTML = originalText || '<i data-feather="trash-2" class="w-4 h-4 mr-1"></i>Remove';
+            deleteBtn.disabled = false;
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+    }
+}
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+`;
+document.head.appendChild(style);
+
+        
+
+// View profile photo in modal
+// View profile photo in modal
+function viewProfilePhoto() {
+    const photoImg = document.getElementById('user-photo');
+    const modalPhoto = document.getElementById('modal-photo');
+    const modal = document.getElementById('photo-view-modal');
+    
+    // Check if photo exists and is visible
+    if (!photoImg || photoImg.classList.contains('hidden') || !photoImg.src) {
+        // No photo uploaded, trigger upload instead
+        document.getElementById('photo-upload').click();
+        return;
+    }
+    
+    // Check if src is valid (not empty or about:blank)
+    if (!photoImg.src || photoImg.src === '' || photoImg.src === 'about:blank') {
+        document.getElementById('photo-upload').click();
+        return;
+    }
+    
+    // Set modal photo source
+    modalPhoto.src = photoImg.src;
+    
+    // Add error handler for modal image
+    modalPhoto.onerror = function() {
+        console.error('Failed to load image in modal');
+        closePhotoViewModal();
+        alert('Failed to load image. Please try again.');
+    };
+    
+    // Show modal
+    modal.classList.remove('hidden');
+    
+    // Initialize feather icons in modal
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+// Close photo view modal
+function closePhotoViewModal() {
+    document.getElementById('photo-view-modal').classList.add('hidden');
+}
+
+// Update your existing uploadProfilePhoto function to ensure photo is clickable
+// Add this at the end of the success section in uploadProfilePhoto function
+// After setting photoImg.src, add:
+photoImg.onload = function() {
+    console.log('Image loaded successfully');
+    // Make sure the container has the click handler
+    const container = document.getElementById('user-photo-container');
+    if (container) {
+        container.onclick = viewProfilePhoto;
+    }
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+};
+        // Logout (existing function)
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // Make functions available globally
+window.showAddProductForm = showAddProductForm;
+window.hideAddProductForm = hideAddProductForm;
+window.showEditModal = showEditModal;
+window.hideEditModal = hideEditModal;
+window.addNewProduct = addNewProduct;
+window.updateProduct = updateProduct;
+window.deleteProduct = deleteProduct;
+window.logout = logout;
+window.loadSellerProducts = loadSellerProducts;
+window.loadSellerOrders = loadSellerOrders;
+window.loadBuyerOrders = loadBuyerOrders; // Add this
+window.showTab = showTab;
+window.filterBuyerOrders = filterBuyerOrders; // Add this
+window.sortBuyerOrders = sortBuyerOrders; // Add this
+window.cancelOrder = cancelOrder; // Add this
+window.viewOrderDetails = viewOrderDetails; // Add this
+
+window.showCancelModal = showCancelModal;
+window.updateOrderItemStatus = updateOrderItemStatus;
+window.cancelOrderItem = cancelOrderItem;
+window.markAsDelivered = markAsDelivered;
+window.reopenOrderItem = reopenOrderItem;
+
+// Add these to your window exports
+window.markAsReceived = markAsReceived;
+window.showRateSellerModal = showRateSellerModal;
+window.closeRatingModal = closeRatingModal;
+window.submitRating = submitRating;
+window.resetStarRating = resetStarRating;
+
+window.hideAddProductForm = hideAddProductForm;
+
+window.uploadProfilePhoto = uploadProfilePhoto;
+window.deleteProfilePhoto = deleteProfilePhoto;
+window.loadUserProfile = loadUserProfile;
+
+// Add these to your window exports
+window.viewProfilePhoto = viewProfilePhoto;
+window.closePhotoViewModal = closePhotoViewModal;
+    </script>
+</body>
+</html>

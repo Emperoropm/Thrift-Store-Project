@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Failed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
+            <div class="text-red-500 text-6xl mb-4">✗</div>
+            <h1 class="text-2xl font-bold mb-2">Payment Failed</h1>
+            <p class="text-gray-600 mb-6">Your payment could not be processed.</p>
+            <div id="order-details" class="mb-6"></div>
+            <div class="space-y-3">
+                <a href="checkout.html" 
+                   class="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">
+                    Try Again
+                </a>
+                <a href="index.html" 
+                   class="block w-full border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+        
+        if (orderId) {
+            document.getElementById('order-details').innerHTML = `
+                <p class="text-gray-700">Order ID: <strong>${orderId}</strong></p>
+                <p class="text-sm text-gray-500">Please try again or contact support.</p>
+            `;
+        }
+    </script>
+</body>
+</html>

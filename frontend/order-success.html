@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Successful | Thrift Treasure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold mb-2">Payment Successful!</h1>
+            <p class="text-gray-600 mb-6">Thank you for your purchase. Your order has been confirmed.</p>
+            
+            <div class="mb-6">
+                <p class="text-sm text-gray-500">Order ID:</p>
+                <p class="font-bold" id="order-id">Loading...</p>
+            </div>
+            
+            <div class="space-y-3">
+                <a href="my-orders.html" 
+                   class="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-medium">
+                    View My Orders
+                </a>
+                <a href="index.html" 
+                   class="block w-full border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 font-medium">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get order ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+        
+        if (orderId) {
+            document.getElementById('order-id').textContent = `#${orderId}`;
+            // Clear cart
+            localStorage.removeItem('cart');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Ratings | Thrift Treasure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f9fafb;
+        }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .rating-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid #10b981;
+        }
+        
+        .rating-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .star-filled {
+            color: #fbbf24;
+        }
+        
+        .star-empty {
+            color: #d1d5db;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="index.html">
+                <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+            </a>
+            
+            <div id="auth-container">
+                <!-- Will be filled by JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">My Ratings & Reviews</h1>
+                    <p class="text-gray-600 mt-2">See what buyers say about you</p>
+                </div>
+                <a href="profile.html" class="px-4 py-2 text-gray-600 hover:text-green-600 font-medium">
+                    ← Back to Profile
+                </a>
+            </div>
+        </div>
+
+        <!-- Rating Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Average Rating -->
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-100 rounded-full">
+                        <i data-feather="star" class="w-6 h-6 text-yellow-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">Average Rating</p>
+                        <div class="flex items-center">
+                            <span class="text-3xl font-bold text-gray-800" id="avg-rating">0.0</span>
+                            <span class="text-gray-500 ml-2">/5</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center" id="avg-stars">
+                    <!-- Stars will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Total Reviews -->
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <i data-feather="message-circle" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">Total Reviews</p>
+                        <span class="text-3xl font-bold text-gray-800" id="total-reviews">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5-Star Ratings -->
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-full">
+                        <i data-feather="award" class="w-6 h-6 text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">5-Star Ratings</p>
+                        <span class="text-3xl font-bold text-gray-800" id="five-star-count">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Distribution -->
+        <div class="bg-white rounded-xl shadow p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Rating Distribution</h2>
+            <div class="space-y-3" id="rating-distribution">
+                <!-- Distribution bars will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="flex justify-center items-center py-12">
+            <div class="loader"></div>
+            <span class="ml-3 text-gray-600">Loading your ratings...</span>
+        </div>
+
+        <!-- Ratings Container -->
+        <div id="ratings-container" class="hidden">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">All Reviews</h2>
+            <div id="ratings-list" class="space-y-4">
+                <!-- Ratings will be loaded here -->
+            </div>
+        </div>
+
+        <!-- No Ratings Message -->
+        <div id="no-ratings" class="text-center py-12 hidden">
+            <i data-feather="star" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-700 mb-2">No ratings yet</h3>
+            <p class="text-gray-500 mb-6">You haven't received any ratings from buyers yet</p>
+            <a href="index.html" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 inline-flex items-center">
+                <i data-feather="shopping-cart" class="w-4 h-4 mr-2"></i>
+                Continue Selling
+            </a>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="text-center py-12 hidden">
+            <i data-feather="alert-circle" class="w-16 h-16 mx-auto text-red-300 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-700 mb-2">Unable to load ratings</h3>
+            <p class="text-gray-500 mb-4" id="error-text"></p>
+            <button onclick="loadSellerRatings()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+            
+            checkAuth();
+            loadSellerRatings();
+        });
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (!token || !user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            updateAuthUI();
+        }
+
+        // Update auth UI
+        function updateAuthUI() {
+            const user = localStorage.getItem('user');
+            const authContainer = document.getElementById('auth-container');
+            
+            if (user && authContainer) {
+                try {
+                    const userData = JSON.parse(user);
+                    
+                    authContainer.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <span class="font-medium text-gray-700">${userData.name || 'User'}</span>
+                            <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
+                                Profile
+                            </a>
+                            <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
+                                Logout
+                            </button>
+                        </div>
+                    `;
+                    
+                } catch(e) {
+                    console.error('Error parsing user data:', e);
+                }
+            }
+        }
+
+        // Load seller ratings
+        async function loadSellerRatings() {
+            const loadingEl = document.getElementById('loading');
+            const ratingsContainer = document.getElementById('ratings-container');
+            const noRatingsEl = document.getElementById('no-ratings');
+            const errorEl = document.getElementById('error-message');
+            
+            loadingEl.classList.remove('hidden');
+            ratingsContainer.classList.add('hidden');
+            noRatingsEl.classList.add('hidden');
+            errorEl.classList.add('hidden');
+
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                const sellerId = user.id;
+                
+                const response = await fetch(`${API_URL}/ratings/seller/${sellerId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch ratings');
+                }
+                
+                const result = await response.json();
+                const ratingsData = result.data;
+                
+                console.log('Ratings data:', ratingsData);
+                
+                loadingEl.classList.add('hidden');
+                
+                if (!ratingsData.ratings || ratingsData.ratings.length === 0) {
+                    noRatingsEl.classList.remove('hidden');
+                    return;
+                }
+                
+                // Display summary
+                displayRatingSummary(ratingsData.summary);
+                
+                // Display distribution
+                displayRatingDistribution(ratingsData.ratings);
+                
+                // Display all ratings
+                displayRatings(ratingsData.ratings);
+                
+                ratingsContainer.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Error loading ratings:', error);
+                loadingEl.classList.add('hidden');
+                errorEl.classList.remove('hidden');
+                document.getElementById('error-text').textContent = error.message;
+            }
+        }
+
+        // Display rating summary
+        function displayRatingSummary(summary) {
+            const avgRating = summary.averageRating || 0;
+            const totalReviews = summary.totalReviews || 0;
+            
+            document.getElementById('avg-rating').textContent = avgRating.toFixed(1);
+            document.getElementById('total-reviews').textContent = totalReviews;
+            
+            // Display average stars
+            const avgStarsContainer = document.getElementById('avg-stars');
+            avgStarsContainer.innerHTML = createStarDisplay(avgRating);
+        }
+
+        // Create star display
+        function createStarDisplay(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            
+            let stars = '';
+            
+            // Full stars
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i data-feather="star" class="w-5 h-5 fill-current text-yellow-400"></i>';
+            }
+            
+            // Half star
+            if (hasHalfStar) {
+                stars += '<i data-feather="star" class="w-5 h-5 fill-current text-yellow-400" style="clip-path: inset(0 50% 0 0);"></i>';
+            }
+            
+            // Empty stars
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i data-feather="star" class="w-5 h-5 text-gray-300"></i>';
+            }
+            
+            return stars;
+        }
+
+        // Display rating distribution
+        function displayRatingDistribution(ratings) {
+            const distribution = {
+                5: 0, 4: 0, 3: 0, 2: 0, 1: 0
+            };
+            
+            let fiveStarCount = 0;
+            
+            ratings.forEach(rating => {
+                distribution[rating.score]++;
+                if (rating.score === 5) fiveStarCount++;
+            });
+            
+            document.getElementById('five-star-count').textContent = fiveStarCount;
+            
+            const total = ratings.length;
+            const distributionContainer = document.getElementById('rating-distribution');
+            
+            distributionContainer.innerHTML = '';
+            
+            // Create distribution bars (5 to 1)
+            for (let i = 5; i >= 1; i--) {
+                const count = distribution[i];
+                const percentage = total > 0 ? (count / total * 100) : 0;
+                
+                const row = document.createElement('div');
+                row.className = 'flex items-center';
+                row.innerHTML = `
+                    <span class="text-sm font-medium text-gray-600 w-8">${i} ★</span>
+                    <div class="flex-1 mx-3">
+                        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-yellow-400 rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                    <span class="text-sm text-gray-600 w-12">${count} (${percentage.toFixed(0)}%)</span>
+                `;
+                
+                distributionContainer.appendChild(row);
+            }
+        }
+
+        // Display all ratings
+        function displayRatings(ratings) {
+            const container = document.getElementById('ratings-list');
+            
+            container.innerHTML = ratings.map(rating => `
+                <div class="rating-card bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <div class="flex items-center mb-2">
+                                <div class="flex items-center mr-3">
+                                    ${createStarDisplay(rating.score)}
+                                </div>
+                                <span class="text-lg font-semibold text-gray-800">${rating.score}.0</span>
+                            </div>
+                            <p class="text-gray-600">${rating.comment || 'No comment provided'}</p>
+                        </div>
+                        <span class="text-sm text-gray-500">
+                            ${new Date(rating.createdAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            })}
+                        </span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-500">
+                        <i data-feather="user" class="w-4 h-4 mr-1"></i>
+                        <span>${rating.reviewer?.name || 'Anonymous'}</span>
+                        ${rating.orderId ? `
+                            <span class="mx-2">•</span>
+                            <span>Order #${rating.orderId}</span>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Make functions available globally
+        window.logout = logout;
+        window.loadSellerRatings = loadSellerRatings;
+    </script>
+</body>
+</html>

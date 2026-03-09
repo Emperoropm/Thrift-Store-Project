@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Successful</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3">
+            <a href="index.html">
+                <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+            </a>
+        </div>
+    </nav>
+
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="bg-white p-8 rounded-lg shadow-lg text-center max-w-md w-full">
+            <div class="text-green-500 text-6xl mb-4">
+                <i data-feather="check-circle"></i>
+            </div>
+            <h1 class="text-2xl font-bold mb-2">Payment Successful!</h1>
+            <p class="text-gray-600 mb-6">Your payment was successful. Creating your order...</p>
+            
+            <div id="loading" class="mb-6">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <p class="text-gray-500 mt-2">Processing your order...</p>
+            </div>
+            
+            <div id="success-message" class="hidden mb-6 p-4 bg-green-50 rounded-lg">
+                <p class="text-green-700">Order created successfully!</p>
+                <p class="text-sm text-green-600 mt-1" id="order-id"></p>
+            </div>
+            
+            <div id="error-message" class="hidden mb-6 p-4 bg-red-50 rounded-lg">
+                <p class="text-red-700" id="error-text"></p>
+            </div>
+            
+            <div class="space-y-3">
+                <a href="profile.html" id="orders-btn" 
+                   class="hidden block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">
+                    View Your Orders
+                </a>
+                <a href="index.html" 
+                   class="block w-full border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        // Create order after successful payment
+   async function createOrderAfterPayment() {
+    try {
+        // Get the pending order data from localStorage
+        const pendingOrderData = localStorage.getItem('pendingOrderData');
+        
+        if (!pendingOrderData) {
+            showError('No order data found. Please contact support.');
+            return;
+        }
+
+        const orderData = JSON.parse(pendingOrderData);
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            showError('Please login to complete your order.');
+            return;
+        }
+
+        console.log('Original orderData:', orderData);
+
+        // Format the data - CONVERT STRINGS TO NUMBERS
+        const requestData = {
+            products: orderData.products.map(item => ({
+                productId: Number(item.productId),  // Convert "16" to 16
+                quantity: Number(item.quantity)      // Convert quantity to number
+            }))
+        };
+
+        console.log('Sending to backend:', requestData);
+
+        // Create the actual order on backend
+        const response = await fetch(`${API_URL}/orders/buy`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            console.log('Response is not JSON:', responseText);
+        }
+
+        if (!response.ok) {
+            console.error('Error response:', result);
+            throw new Error(result?.message || 'Failed to create order');
+        }
+
+        console.log('Order created successfully:', result);
+        
+        // Show success message
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('success-message').classList.remove('hidden');
+        document.getElementById('order-id').textContent = `Order ID: #${result.data?.id || result.id}`;
+        document.getElementById('orders-btn').classList.remove('hidden');
+        
+        // Clear cart and pending order data
+        localStorage.removeItem('checkoutCart');
+        localStorage.removeItem('singleProductCheckout');
+        localStorage.removeItem('pendingOrderData');
+        
+    } catch (error) {
+        console.error('Error creating order:', error);
+        showError('Failed to create order: ' + error.message);
+    }
+}
+        function showError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error-message').classList.remove('hidden');
+            document.getElementById('error-text').textContent = message;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+            
+            // Create order when page loads
+            createOrderAfterPayment();
+        });
+    </script>
+</body>
+</html>
