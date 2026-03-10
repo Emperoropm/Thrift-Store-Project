@@ -295,5 +295,26 @@ async getProductById(
     }
   };
 
+  // Add this method to ProductController class
+getProductsBySellerIdPublic = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const sellerId = parseInt(req.params.sellerId!);
+    
+    if (isNaN(sellerId)) {
+      throw new AppError("Invalid seller ID", 400, {});
+    }
+    
+    // Public endpoint - only show approved products with stock
+    const products = await this.productService.getProductsByAnySellerId(sellerId, false);
+    
+    res.status(200).json({
+      message: "Seller products fetched successfully",
+      data: products
+    });
+    
+  } catch (error) {
+    next(error);
+  }
+};
   
 }

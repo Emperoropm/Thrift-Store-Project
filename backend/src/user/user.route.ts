@@ -53,4 +53,10 @@ router.delete("/photo",
 
 // Add this route to user.routes.ts
 router.get("/seller/:sellerId/photo", userController.getSellerPhoto);
+
+
+// Add these routes
+router.get("/seller/:sellerId/profile", userController.getSellerProfile);
+router.get("/seller/:sellerId/products", userController.getSellerProducts);
+
 export default router;

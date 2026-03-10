@@ -85,5 +85,7 @@ router.put(
   }
 );
 
+// Add this route - PUBLIC (no auth required)
+router.get("/getBySeller/:sellerId", productController.getProductsBySellerIdPublic);
 
 export default router;

@@ -68,4 +68,25 @@ async getSellerPhoto(sellerId: number) {
     
     return user;
 }
+
+// Add to UserService class
+async getSellerProfile(sellerId: number) {
+    const seller = await prisma.user.findUnique({
+        where: { id: sellerId },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            photo: true,
+            createdAt: true,
+            role: true
+        }
+    });
+    
+    if (!seller) {
+        throw new AppError("Seller not found", 404, {});
+    }
+    
+    return seller;
+}
 }

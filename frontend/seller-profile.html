@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Profile | Thrift Treasure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f9fafb;
+        }
+        
+        .product-card {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .status-active {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-sold {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .rating-card {
+            border-left: 4px solid #10b981;
+            transition: all 0.3s ease;
+        }
+        
+        .rating-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: #4b5563;
+            background-color: #f3f4f6;
+        }
+
+        .tab.active {
+            background-color: white;
+            color: #111827;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-available { background-color: #d1fae5; color: #065f46; }
+        .status-sold { background-color: #f3f4f6; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="index.html">
+                <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+            </a>
+            
+            <div id="auth-container">
+                <!-- Will be filled by JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Loading State -->
+        <div id="loading" class="flex justify-center items-center py-12">
+            <div class="loader"></div>
+            <span class="ml-3 text-gray-600">Loading seller profile...</span>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="text-center py-12 hidden">
+            <i data-feather="alert-circle" class="w-16 h-16 mx-auto text-red-300 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-700 mb-2">Seller not found</h3>
+            <p class="text-gray-500 mb-4" id="error-text">The seller you're looking for doesn't exist.</p>
+            <a href="index.html" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Back to Shop</a>
+        </div>
+
+        <!-- Seller Profile Container -->
+        <div id="seller-profile" class="hidden">
+            <!-- Back Button -->
+            <div class="mb-4">
+                <a href="javascript:history.back()" class="text-gray-600 hover:text-green-600 flex items-center">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-1"></i>
+                    Back
+                </a>
+            </div>
+
+            <!-- Seller Header -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+                    <!-- Seller Photo -->
+                    <div class="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border-4 border-green-200 flex-shrink-0">
+                        <img id="seller-photo" src="" alt="Seller" class="w-full h-full object-cover hidden">
+                        <svg id="seller-photo-placeholder" xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+
+                    <!-- Seller Info -->
+                    <div class="flex-1 text-center md:text-left">
+                        <h1 id="seller-name" class="text-3xl font-bold text-gray-800 mb-2">Loading...</h1>
+                        <p id="seller-email" class="text-gray-600 mb-3">Loading...</p>
+                        
+                        <!-- Join Date -->
+                        <p id="seller-join-date" class="text-sm text-gray-500 mb-4 flex items-center justify-center md:justify-start">
+                            <i data-feather="calendar" class="w-4 h-4 mr-1"></i>
+                            <span>Member since <span id="join-date">Loading...</span></span>
+                        </p>
+
+                        <!-- Rating Summary -->
+                        <div id="seller-rating-summary" class="flex items-center justify-center md:justify-start space-x-4">
+                            <!-- Will be filled by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="stat-card bg-white p-6 rounded-xl shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Total Products</p>
+                            <p id="total-products" class="text-3xl font-bold text-green-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i data-feather="package" class="w-6 h-6 text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card bg-white p-6 rounded-xl shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Available</p>
+                            <p id="available-products" class="text-3xl font-bold text-blue-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i data-feather="check-circle" class="w-6 h-6 text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card bg-white p-6 rounded-xl shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Sold</p>
+                            <p id="sold-products" class="text-3xl font-bold text-purple-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i data-feather="shopping-bag" class="w-6 h-6 text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card bg-white p-6 rounded-xl shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Total Reviews</p>
+                            <p id="total-reviews" class="text-3xl font-bold text-orange-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <i data-feather="star" class="w-6 h-6 text-orange-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="mb-6">
+                <div class="flex space-x-2 bg-gray-100 p-1 rounded-lg inline-flex">
+                    <button id="products-tab" class="tab active" onclick="showTab('products')">
+                        <i data-feather="package" class="w-4 h-4 mr-2"></i>
+                        Products for Sale
+                    </button>
+                    <button id="sold-tab" class="tab" onclick="showTab('sold')">
+                        <i data-feather="shopping-bag" class="w-4 h-4 mr-2"></i>
+                        Sold Items
+                    </button>
+                    <button id="reviews-tab" class="tab" onclick="showTab('reviews')">
+                        <i data-feather="star" class="w-4 h-4 mr-2"></i>
+                        Reviews
+                    </button>
+                </div>
+            </div>
+
+            <!-- Products Section -->
+            <div id="products-section">
+                <!-- Products Loading -->
+                <div id="products-loading" class="flex justify-center items-center py-12">
+                    <div class="loader"></div>
+                    <span class="ml-3 text-gray-600">Loading products...</span>
+                </div>
+
+                <!-- Products Grid -->
+                <div id="products-container" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="products-grid">
+                        <!-- Products will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- No Products Message -->
+                <div id="no-products" class="text-center py-12 hidden">
+                    <i data-feather="package" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-700 mb-2">No products available</h3>
+                    <p class="text-gray-500">This seller hasn't listed any products yet.</p>
+                </div>
+            </div>
+
+            <!-- Sold Items Section (Hidden by default) -->
+            <div id="sold-section" class="hidden">
+                <!-- Sold Items Loading -->
+                <div id="sold-loading" class="flex justify-center items-center py-12">
+                    <div class="loader"></div>
+                    <span class="ml-3 text-gray-600">Loading sold items...</span>
+                </div>
+
+                <!-- Sold Items Grid -->
+                <div id="sold-container" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="sold-grid">
+                        <!-- Sold items will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- No Sold Items Message -->
+                <div id="no-sold" class="text-center py-12 hidden">
+                    <i data-feather="shopping-bag" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-700 mb-2">No items sold yet</h3>
+                    <p class="text-gray-500">This seller hasn't sold any items yet.</p>
+                </div>
+            </div>
+
+            <!-- Reviews Section (Hidden by default) -->
+            <div id="reviews-section" class="hidden">
+                <!-- Reviews Loading -->
+                <div id="reviews-loading" class="flex justify-center items-center py-12">
+                    <div class="loader"></div>
+                    <span class="ml-3 text-gray-600">Loading reviews...</span>
+                </div>
+
+                <!-- Reviews Container -->
+                <div id="reviews-container" class="hidden space-y-4">
+                    <!-- Reviews will be loaded here -->
+                </div>
+
+                <!-- No Reviews Message -->
+                <div id="no-reviews" class="text-center py-12 hidden">
+                    <i data-feather="message-circle" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-700 mb-2">No reviews yet</h3>
+                    <p class="text-gray-500">This seller hasn't received any reviews yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let currentSellerId = null;
+        let currentTab = 'products';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+            checkAuth();
+            loadSellerProfile();
+        });
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            const authContainer = document.getElementById('auth-container');
+            
+            if (token && user && authContainer) {
+                try {
+                    const userData = JSON.parse(user);
+                    
+                    authContainer.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <span class="font-medium text-gray-700">${userData.name || 'User'}</span>
+                            <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
+                                Profile
+                            </a>
+                            <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
+                                Logout
+                            </button>
+                        </div>
+                    `;
+                    
+                } catch(e) {
+                    console.error('Error parsing user data:', e);
+                    showLoginButtons();
+                }
+            } else {
+                showLoginButtons();
+            }
+        }
+
+        function showLoginButtons() {
+            const authContainer = document.getElementById('auth-container');
+            if (authContainer) {
+                authContainer.innerHTML = `
+                    <a href="login.html" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Login</a>
+                    <a href="register.html" class="px-4 py-2 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 ml-2">Register</a>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        // Show tab function
+        function showTab(tabName) {
+            currentTab = tabName;
+            
+            // Update tab buttons
+            document.getElementById('products-tab').classList.remove('active');
+            document.getElementById('sold-tab').classList.remove('active');
+            document.getElementById('reviews-tab').classList.remove('active');
+            
+            // Hide all sections
+            document.getElementById('products-section').classList.add('hidden');
+            document.getElementById('sold-section').classList.add('hidden');
+            document.getElementById('reviews-section').classList.add('hidden');
+            
+            // Show selected section
+            switch(tabName) {
+                case 'products':
+                    document.getElementById('products-tab').classList.add('active');
+                    document.getElementById('products-section').classList.remove('hidden');
+                    loadSellerProducts(currentSellerId, false); // false = available only
+                    break;
+                    
+                case 'sold':
+                    document.getElementById('sold-tab').classList.add('active');
+                    document.getElementById('sold-section').classList.remove('hidden');
+                    loadSellerProducts(currentSellerId, true); // true = sold items
+                    break;
+                    
+                case 'reviews':
+                    document.getElementById('reviews-tab').classList.add('active');
+                    document.getElementById('reviews-section').classList.remove('hidden');
+                    loadSellerReviews(currentSellerId);
+                    break;
+            }
+        }
+
+        // Load seller profile
+        async function loadSellerProfile() {
+            const loadingEl = document.getElementById('loading');
+            const profileEl = document.getElementById('seller-profile');
+            const errorEl = document.getElementById('error-message');
+
+            // Get seller ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const sellerId = urlParams.get('id');
+
+            if (!sellerId) {
+                showError('No seller ID provided');
+                return;
+            }
+
+            currentSellerId = sellerId;
+
+            try {
+                // Fetch seller details
+                const token = localStorage.getItem('token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                
+                const response = await fetch(`${API_URL}/users/seller/${sellerId}/profile`, { headers });
+                
+                if (!response.ok) {
+                    throw new Error('Seller not found');
+                }
+                
+                const result = await response.json();
+                const seller = result.data;
+                
+                displaySellerProfile(seller);
+                
+                loadingEl.classList.add('hidden');
+                profileEl.classList.remove('hidden');
+                
+                // Load initial products tab
+                loadSellerProducts(sellerId, false);
+                
+            } catch (error) {
+                console.error('Error loading seller profile:', error);
+                showError(error.message);
+            }
+        }
+
+        // Display seller profile
+      // Display seller profile
+function displaySellerProfile(seller) {
+    document.getElementById('seller-name').textContent = seller.name || 'Unknown Seller';
+    document.getElementById('seller-email').textContent = seller.email || '';
+    
+    // Format join date
+    if (seller.createdAt) {
+        const joinDate = new Date(seller.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        document.getElementById('join-date').textContent = joinDate;
+    }
+    
+    // Display seller photo
+    const sellerPhoto = document.getElementById('seller-photo');
+    const sellerPhotoPlaceholder = document.getElementById('seller-photo-placeholder');
+    
+    if (seller.photo) {
+        const baseUrl = API_URL.replace('/api', '');
+        const photoUrl = `${baseUrl}${seller.photo}`;
+        
+        sellerPhoto.src = photoUrl;
+        sellerPhoto.classList.remove('hidden');
+        sellerPhotoPlaceholder.classList.add('hidden');
+        
+        sellerPhoto.onerror = function() {
+            sellerPhoto.classList.add('hidden');
+            sellerPhotoPlaceholder.classList.remove('hidden');
+        };
+    }
+    
+    // Display rating summary
+    if (seller.rating) {
+        displayRatingSummary(seller.rating);
+        document.getElementById('total-reviews').textContent = seller.rating.totalReviews || 0;
+    } else {
+        document.getElementById('total-reviews').textContent = '0';
+        displayRatingSummary({ averageRating: 0, totalReviews: 0 });
+    }
+}
+
+        // Display rating summary
+        function displayRatingSummary(ratingData) {
+            const container = document.getElementById('seller-rating-summary');
+            
+            if (!ratingData || ratingData.totalReviews === 0) {
+                container.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="flex items-center mr-2">
+                            ${Array(5).fill(0).map(() => '<i data-feather="star" class="w-5 h-5 text-gray-300"></i>').join('')}
+                        </div>
+                        <span class="text-gray-500">No ratings yet</span>
+                    </div>
+                `;
+            } else {
+                const avgRating = ratingData.averageRating || 0;
+                const totalReviews = ratingData.totalReviews || 0;
+                
+                container.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="flex items-center mr-2">
+                            ${createStarDisplay(avgRating)}
+                        </div>
+                        <span class="font-semibold text-gray-800">${avgRating.toFixed(1)}</span>
+                    </div>
+                    <span class="text-gray-500">(${totalReviews} review${totalReviews !== 1 ? 's' : ''})</span>
+                `;
+            }
+            
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+
+        // Create star display
+        function createStarDisplay(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            
+            let stars = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i data-feather="star" class="w-5 h-5 fill-current text-yellow-400"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i data-feather="star" class="w-5 h-5 fill-current text-yellow-400" style="clip-path: inset(0 50% 0 0);"></i>';
+            }
+            
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i data-feather="star" class="w-5 h-5 text-gray-300"></i>';
+            }
+            
+            return stars;
+        }
+
+    // Load seller products
+async function loadSellerProducts(sellerId, showSold = false) {
+    const loadingId = showSold ? 'sold-loading' : 'products-loading';
+    const containerId = showSold ? 'sold-container' : 'products-container';
+    const gridId = showSold ? 'sold-grid' : 'products-grid';
+    const noItemsId = showSold ? 'no-sold' : 'no-products';
+    
+    const loadingEl = document.getElementById(loadingId);
+    const containerEl = document.getElementById(containerId);
+    const gridEl = document.getElementById(gridId);
+    const noItemsEl = document.getElementById(noItemsId);
+    
+    loadingEl.classList.remove('hidden');
+    containerEl.classList.add('hidden');
+    noItemsEl.classList.add('hidden');
+    
+    try {
+        const response = await fetch(`${API_URL}/users/seller/${sellerId}/products`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch products');
+        }
+        
+        const result = await response.json();
+        const productsData = result.data;
+        
+        console.log('Products fetched:', productsData);
+        
+        loadingEl.classList.add('hidden');
+        
+        // Update stats with real data
+        if (productsData) {
+            document.getElementById('available-products').textContent = productsData.available?.length || 0;
+            document.getElementById('sold-products').textContent = productsData.sold?.length || 0;
+            document.getElementById('total-products').textContent = 
+                ((productsData.available?.length || 0) + (productsData.sold?.length || 0)).toString();
+        }
+        
+        // Select the appropriate product list based on tab
+        let products = showSold ? productsData.sold : productsData.available;
+        
+        if (!products || products.length === 0) {
+            noItemsEl.classList.remove('hidden');
+            return;
+        }
+        
+        // Render products
+        renderProducts(products, gridEl, showSold);
+        containerEl.classList.remove('hidden');
+        
+    } catch (error) {
+        console.error('Error loading products:', error);
+        loadingEl.classList.add('hidden');
+        noItemsEl.classList.remove('hidden');
+        noItemsEl.innerHTML = `
+            <i data-feather="alert-circle" class="w-16 h-16 mx-auto text-red-300 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-700 mb-2">Failed to load products</h3>
+            <p class="text-gray-500">Please try again later.</p>
+        `;
+    }
+}
+
+        // Render products
+        function renderProducts(products, gridEl, showSold = false) {
+            gridEl.innerHTML = '';
+            
+            products.forEach(product => {
+                const productCard = createProductCard(product, showSold);
+                gridEl.appendChild(productCard);
+            });
+            
+            setTimeout(() => {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            }, 100);
+        }
+
+        // Create product card
+        function createProductCard(product, showSold = false) {
+            const div = document.createElement('div');
+            div.className = 'product-card bg-white cursor-pointer';
+            
+            const status = showSold ? 'Sold' : 'Available';
+            const statusClass = showSold ? 'status-sold' : 'status-active';
+            
+            div.onclick = () => {
+                window.location.href = `product-details.html?id=${product.id}`;
+            };
+            
+            div.innerHTML = `
+                <div class="relative">
+                    <div class="h-48 bg-gray-200 flex items-center justify-center">
+                        ${product.imageUrl ? 
+                            `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-cover">` :
+                            `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`
+                        }
+                    </div>
+                    <span class="absolute top-2 right-2 px-3 py-1 text-xs font-bold rounded ${statusClass}">
+                        ${status}
+                    </span>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-lg mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
+                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description || 'No description'}</p>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="text-xl font-bold text-green-700">Rs. ${parseFloat(product.price || 0).toFixed(2)}</div>
+                        ${!showSold ? `<div class="text-sm text-gray-500">Qty: ${product.quantity || 0}</div>` : ''}
+                    </div>
+                    
+                    <div class="mt-3 text-sm text-gray-500">
+                        <i data-feather="tag" class="w-4 h-4 inline mr-1"></i>
+                        ${product.category?.name || 'Uncategorized'}
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Load seller reviews
+        async function loadSellerReviews(sellerId) {
+            const loadingEl = document.getElementById('reviews-loading');
+            const containerEl = document.getElementById('reviews-container');
+            const noReviewsEl = document.getElementById('no-reviews');
+            
+            loadingEl.classList.remove('hidden');
+            containerEl.classList.add('hidden');
+            noReviewsEl.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_URL}/ratings/seller/${sellerId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch reviews');
+                }
+                
+                const result = await response.json();
+                const ratingsData = result.data;
+                
+                loadingEl.classList.add('hidden');
+                
+                if (!ratingsData.ratings || ratingsData.ratings.length === 0) {
+                    noReviewsEl.classList.remove('hidden');
+                    document.getElementById('total-reviews').textContent = '0';
+                    return;
+                }
+                
+                document.getElementById('total-reviews').textContent = ratingsData.ratings.length;
+                
+                renderReviews(ratingsData.ratings);
+                containerEl.classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                loadingEl.classList.add('hidden');
+                noReviewsEl.classList.remove('hidden');
+                noReviewsEl.innerHTML = `
+                    <i data-feather="alert-circle" class="w-16 h-16 mx-auto text-red-300 mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-700 mb-2">Failed to load reviews</h3>
+                    <p class="text-gray-500">Please try again later.</p>
+                `;
+            }
+        }
+
+        // Render reviews
+        function renderReviews(ratings) {
+            const container = document.getElementById('reviews-container');
+            
+            container.innerHTML = ratings.map(rating => `
+                <div class="rating-card bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <div class="flex items-center mb-2">
+                                <div class="flex items-center mr-3">
+                                    ${Array(5).fill(0).map((_, i) => `
+                                        <i data-feather="star" class="w-4 h-4 ${i < rating.score ? 'fill-current text-yellow-400' : 'text-gray-300'}"></i>
+                                    `).join('')}
+                                </div>
+                                <span class="text-sm font-semibold text-gray-700">${rating.score}.0</span>
+                            </div>
+                            <p class="text-gray-600">${rating.comment || 'No comment provided'}</p>
+                        </div>
+                        <span class="text-sm text-gray-500">
+                            ${new Date(rating.createdAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            })}
+                        </span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-500">
+                        <i data-feather="user" class="w-4 h-4 mr-1"></i>
+                        <span>${rating.reviewer?.name || 'Anonymous'}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error-message').classList.remove('hidden');
+            document.getElementById('error-text').textContent = message;
+        }
+
+        // Make functions available globally
+        window.showTab = showTab;
+        window.logout = logout;
+    </script>
+</body>
+</html>

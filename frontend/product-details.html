@@ -65,6 +65,19 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -126,37 +139,42 @@
                             </div>
                         </div>
 
-                       <!-- Seller Information with Rating and Photo -->
-<div class="mb-6 p-4 bg-gray-50 rounded-lg">
-    <h3 class="text-lg font-semibold mb-3">Seller Information</h3>
-    <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <!-- Seller Photo -->
-            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-green-200 flex-shrink-0">
-                <img id="seller-photo" src="" alt="Seller" class="w-full h-full object-cover hidden">
-                <svg id="seller-photo-placeholder" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                </svg>
-            </div>
-            <div>
-                <p id="seller-name" class="font-medium text-gray-800"></p>
-                <p id="seller-email" class="text-sm text-gray-500"></p>
-            </div>
-        </div>
-        <div class="text-right">
-            <div class="flex items-center" id="seller-rating-stars">
-                <!-- Stars will be inserted here -->
-            </div>
-            <p id="seller-rating-text" class="text-sm text-gray-600 mt-1"></p>
-        </div>
-    </div>
-</div>
+                        <!-- Seller Information with Rating and Photo - Make it clickable -->
+                        <div id="seller-container" class="mb-6 p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition">
+                            <h3 class="text-lg font-semibold mb-3">Seller Information</h3>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <!-- Seller Photo -->
+                                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-green-200 flex-shrink-0">
+                                        <img id="seller-photo" src="" alt="Seller" class="w-full h-full object-cover hidden">
+                                        <svg id="seller-photo-placeholder" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p id="seller-name" class="font-medium text-gray-800 hover:text-green-600"></p>
+                                        <p id="seller-email" class="text-sm text-gray-500"></p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-center" id="seller-rating-stars">
+                                        <!-- Stars will be inserted here -->
+                                    </div>
+                                    <p id="seller-rating-text" class="text-sm text-gray-600 mt-1"></p>
+                                </div>
+                            </div>
+                        </div>
 
-                        <!-- Buy Now Button Only -->
+                        <!-- Buy Now Button (shown only when in stock) -->
                         <button id="buy-now-btn" 
                             class="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300 text-lg font-semibold">
                             Buy Now
                         </button>
+                        
+                        <!-- Out of Stock Message (shown when out of stock) -->
+                        <div id="out-of-stock-message" class="w-full px-6 py-3 bg-gray-400 text-white rounded-lg text-center text-lg font-semibold hidden">
+                            Out of Stock
+                        </div>
                     </div>
                 </div>
 
@@ -252,64 +270,65 @@
             localStorage.removeItem('user');
             window.location.href = 'index.html';
         }
-async function loadProductDetails() {
-    const loadingEl = document.getElementById('loading');
-    const detailsEl = document.getElementById('product-details');
-    const errorEl = document.getElementById('error-message');
 
-    // Get product ID from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('id');
+        async function loadProductDetails() {
+            const loadingEl = document.getElementById('loading');
+            const detailsEl = document.getElementById('product-details');
+            const errorEl = document.getElementById('error-message');
 
-    if (!productId) {
-        showError('No product ID provided');
-        return;
-    }
+            // Get product ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
 
-    try {
-        // Try to get product from sessionStorage first
-        let product = JSON.parse(sessionStorage.getItem('selectedProduct'));
-
-        // If not in storage or ID doesn't match, fetch from API
-        if (!product || (product.id != productId && product._id != productId)) {
-            const token = localStorage.getItem('token');
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            
-            const response = await fetch(`${API_URL}/products/getProductById/${productId}`, { headers });
-            
-            if (!response.ok) {
-                throw new Error('Product not found');
+            if (!productId) {
+                showError('No product ID provided');
+                return;
             }
-            
-            const responseData = await response.json();
-            console.log("Product data received:", responseData);
-            
-            product = responseData.data || responseData;
-        }
 
-        currentProduct = product;
-        currentSellerId = product.seller?.id || product.sellerId;
+            try {
+                // Try to get product from sessionStorage first
+                let product = JSON.parse(sessionStorage.getItem('selectedProduct'));
 
-        loadingEl.classList.add('hidden');
-        
-        if (product) {
-            displayProductDetails(product);
-            detailsEl.classList.remove('hidden');
-            
-            // Load seller ratings and reviews
-            if (currentSellerId) {
-                loadSellerRatings(currentSellerId);
-                loadSellerPhoto(currentSellerId); // Load seller photo
+                // If not in storage or ID doesn't match, fetch from API
+                if (!product || (product.id != productId && product._id != productId)) {
+                    const token = localStorage.getItem('token');
+                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                    
+                    const response = await fetch(`${API_URL}/products/getProductById/${productId}`, { headers });
+                    
+                    if (!response.ok) {
+                        throw new Error('Product not found');
+                    }
+                    
+                    const responseData = await response.json();
+                    console.log("Product data received:", responseData);
+                    
+                    product = responseData.data || responseData;
+                }
+
+                currentProduct = product;
+                currentSellerId = product.seller?.id || product.sellerId;
+
+                loadingEl.classList.add('hidden');
+                
+                if (product) {
+                    displayProductDetails(product);
+                    detailsEl.classList.remove('hidden');
+                    
+                    // Load seller ratings and reviews
+                    if (currentSellerId) {
+                        loadSellerRatings(currentSellerId);
+                        loadSellerPhoto(currentSellerId); // Load seller photo
+                    }
+                } else {
+                    showError('Product not found');
+                }
+
+            } catch (error) {
+                console.error('Error loading product details:', error);
+                showError(error.message);
             }
-        } else {
-            showError('Product not found');
         }
-
-    } catch (error) {
-        console.error('Error loading product details:', error);
-        showError(error.message);
-    }
-}
 
         async function loadSellerRatings(sellerId) {
             const reviewsContainer = document.getElementById('reviews-container');
@@ -429,98 +448,118 @@ async function loadProductDetails() {
             }
         }
 
-    function displayProductDetails(product) {
-    // Get seller name from the included seller data
-    const sellerName = product.seller?.name || 'Unknown Seller';
-    const sellerEmail = product.seller?.email || '';
-    const sellerPhoto = product.seller?.photo || null; // Get seller photo if available
-    
-    // Get category name from the included category data
-    const categoryName = product.category?.name || product.category || 'Uncategorized';
-    
-    // Set product title
-    document.getElementById('product-title').textContent = product.title || 'Unnamed Product';
-    
-    // Set product price
-    document.getElementById('product-price').textContent = product.price ? 
-        `Rs.${parseFloat(product.price).toFixed(2)}` : 'Rs.0.00';
-    
-    // Set product description
-    document.getElementById('product-description').textContent = 
-        product.description || 'No description available';
-    
-    // Set product category
-    document.getElementById('product-category').textContent = categoryName;
-    
-    // Set seller info
-    document.getElementById('seller-name').textContent = sellerName;
-    document.getElementById('seller-email').textContent = sellerEmail;
-    
-    // Set seller photo if available in product data
-    if (sellerPhoto) {
-        const sellerPhotoImg = document.getElementById('seller-photo');
-        const sellerPhotoPlaceholder = document.getElementById('seller-photo-placeholder');
-        const baseUrl = API_URL.replace('/api', '');
-        const photoUrl = `${baseUrl}${sellerPhoto}`;
-        
-        sellerPhotoImg.src = photoUrl;
-        sellerPhotoImg.classList.remove('hidden');
-        sellerPhotoPlaceholder.classList.add('hidden');
-        
-        sellerPhotoImg.onerror = function() {
-            console.error('Failed to load seller photo from product data');
-            sellerPhotoImg.classList.add('hidden');
-            sellerPhotoPlaceholder.classList.remove('hidden');
-        };
-    }
-    
-    // Set stock status
-    const stockEl = document.getElementById('product-stock');
-    if (product.quantity > 0) {
-        stockEl.textContent = `In Stock (${product.quantity} available)`;
-        stockEl.classList.add('bg-green-100', 'text-green-800');
-        stockEl.classList.remove('bg-red-100', 'text-red-800');
-    } else {
-        stockEl.textContent = 'Out of Stock';
-        stockEl.classList.add('bg-red-100', 'text-red-800');
-        stockEl.classList.remove('bg-green-100', 'text-green-800');
-    }
-    
-    // Set product image
-    const imageContainer = document.getElementById('product-image');
-    if (product.imageUrl) {
-        imageContainer.innerHTML = `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-contain">`;
-    } else {
-        imageContainer.innerHTML = '<i data-feather="image" class="w-24 h-24 text-gray-400"></i>';
-    }
-    
-    // Set additional details
-    const detailsList = document.getElementById('product-details-list');
-    detailsList.innerHTML = '';
-    
-    if (product.brand) {
-        detailsList.innerHTML += `<p><span class="font-semibold">Brand:</span> ${product.brand}</p>`;
-    }
-    if (product.material) {
-        detailsList.innerHTML += `<p><span class="font-semibold">Material:</span> ${product.material}</p>`;
-    }
-    if (product.era) {
-        detailsList.innerHTML += `<p><span class="font-semibold">Era:</span> ${product.era}</p>`;
-    }
-    if (product.condition) {
-        detailsList.innerHTML += `<p><span class="font-semibold">Condition:</span> ${product.condition}</p>`;
-    }
-    
-    // Set up Buy Now button
-    document.getElementById('buy-now-btn').onclick = function() {
-        buyProduct(product.id || product._id, product.price, product.title);
-    };
-    
-    // Initialize feather icons
-    if (typeof feather !== 'undefined') {
-        feather.replace();
-    }
-}
+        function displayProductDetails(product) {
+            // Get seller name from the included seller data
+            const sellerName = product.seller?.name || 'Unknown Seller';
+            const sellerEmail = product.seller?.email || '';
+            const sellerPhoto = product.seller?.photo || null; // Get seller photo if available
+            
+            // Get category name from the included category data
+            const categoryName = product.category?.name || product.category || 'Uncategorized';
+            
+            // Set product title
+            document.getElementById('product-title').textContent = product.title || 'Unnamed Product';
+            
+            // Set product price
+            document.getElementById('product-price').textContent = product.price ? 
+                `Rs.${parseFloat(product.price).toFixed(2)}` : 'Rs.0.00';
+            
+            // Set product description
+            document.getElementById('product-description').textContent = 
+                product.description || 'No description available';
+            
+            // Set product category
+            document.getElementById('product-category').textContent = categoryName;
+            
+            // Set seller info
+            document.getElementById('seller-name').textContent = sellerName;
+            document.getElementById('seller-email').textContent = sellerEmail;
+            
+            // Set click handler for seller container
+            const sellerContainer = document.getElementById('seller-container');
+            if (sellerContainer && currentSellerId) {
+                sellerContainer.onclick = function() {
+                    viewSellerProfile(currentSellerId);
+                };
+            }
+            
+            // Set seller photo if available in product data
+            if (sellerPhoto) {
+                const sellerPhotoImg = document.getElementById('seller-photo');
+                const sellerPhotoPlaceholder = document.getElementById('seller-photo-placeholder');
+                const baseUrl = API_URL.replace('/api', '');
+                const photoUrl = `${baseUrl}${sellerPhoto}`;
+                
+                sellerPhotoImg.src = photoUrl;
+                sellerPhotoImg.classList.remove('hidden');
+                sellerPhotoPlaceholder.classList.add('hidden');
+                
+                sellerPhotoImg.onerror = function() {
+                    console.error('Failed to load seller photo from product data');
+                    sellerPhotoImg.classList.add('hidden');
+                    sellerPhotoPlaceholder.classList.remove('hidden');
+                };
+            }
+            
+            // Set stock status and show/hide buy button
+            const stockEl = document.getElementById('product-stock');
+            const buyNowBtn = document.getElementById('buy-now-btn');
+            const outOfStockMsg = document.getElementById('out-of-stock-message');
+            
+            if (product.quantity > 0) {
+                stockEl.textContent = `In Stock (${product.quantity} available)`;
+                stockEl.classList.add('bg-green-100', 'text-green-800');
+                stockEl.classList.remove('bg-red-100', 'text-red-800');
+                
+                // Show Buy Now button, hide out of stock message
+                buyNowBtn.classList.remove('hidden');
+                outOfStockMsg.classList.add('hidden');
+            } else {
+                stockEl.textContent = 'Out of Stock';
+                stockEl.classList.add('bg-red-100', 'text-red-800');
+                stockEl.classList.remove('bg-green-100', 'text-green-800');
+                
+                // Hide Buy Now button, show out of stock message
+                buyNowBtn.classList.add('hidden');
+                outOfStockMsg.classList.remove('hidden');
+            }
+            
+            // Set product image
+            const imageContainer = document.getElementById('product-image');
+            if (product.imageUrl) {
+                imageContainer.innerHTML = `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-contain">`;
+            } else {
+                imageContainer.innerHTML = '<i data-feather="image" class="w-24 h-24 text-gray-400"></i>';
+            }
+            
+            // Set additional details
+            const detailsList = document.getElementById('product-details-list');
+            detailsList.innerHTML = '';
+            
+            if (product.brand) {
+                detailsList.innerHTML += `<p><span class="font-semibold">Brand:</span> ${product.brand}</p>`;
+            }
+            if (product.material) {
+                detailsList.innerHTML += `<p><span class="font-semibold">Material:</span> ${product.material}</p>`;
+            }
+            if (product.era) {
+                detailsList.innerHTML += `<p><span class="font-semibold">Era:</span> ${product.era}</p>`;
+            }
+            if (product.condition) {
+                detailsList.innerHTML += `<p><span class="font-semibold">Condition:</span> ${product.condition}</p>`;
+            }
+            
+            // Set up Buy Now button
+            document.getElementById('buy-now-btn').onclick = function() {
+                buyProduct(product.id || product._id, product.price, product.title);
+            };
+            
+            // Initialize feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        }
+
         function buyProduct(productId, price, productTitle) {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -550,40 +589,45 @@ async function loadProductDetails() {
         }
 
         async function loadSellerPhoto(sellerId) {
-    try {
-        const token = localStorage.getItem('token');
-        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-        
-        const response = await fetch(`${API_URL}/users/seller/${sellerId}/photo`, { headers });
-        
-        if (response.ok) {
-            const result = await response.json();
-            const sellerData = result.data;
-            
-            const sellerPhoto = document.getElementById('seller-photo');
-            const sellerPhotoPlaceholder = document.getElementById('seller-photo-placeholder');
-            
-            if (sellerData.photo) {
-                const baseUrl = API_URL.replace('/api', '');
-                const photoUrl = `${baseUrl}${sellerData.photo}`;
+            try {
+                const token = localStorage.getItem('token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
                 
-                sellerPhoto.src = photoUrl;
-                sellerPhoto.classList.remove('hidden');
-                sellerPhotoPlaceholder.classList.add('hidden');
+                const response = await fetch(`${API_URL}/users/seller/${sellerId}/photo`, { headers });
                 
-                sellerPhoto.onerror = function() {
-                    sellerPhoto.classList.add('hidden');
-                    sellerPhotoPlaceholder.classList.remove('hidden');
-                };
-            } else {
-                sellerPhoto.classList.add('hidden');
-                sellerPhotoPlaceholder.classList.remove('hidden');
+                if (response.ok) {
+                    const result = await response.json();
+                    const sellerData = result.data;
+                    
+                    const sellerPhoto = document.getElementById('seller-photo');
+                    const sellerPhotoPlaceholder = document.getElementById('seller-photo-placeholder');
+                    
+                    if (sellerData && sellerData.photo) {
+                        const baseUrl = API_URL.replace('/api', '');
+                        const photoUrl = `${baseUrl}${sellerData.photo}`;
+                        
+                        sellerPhoto.src = photoUrl;
+                        sellerPhoto.classList.remove('hidden');
+                        sellerPhotoPlaceholder.classList.add('hidden');
+                        
+                        sellerPhoto.onerror = function() {
+                            console.error('Failed to load seller photo');
+                            sellerPhoto.classList.add('hidden');
+                            sellerPhotoPlaceholder.classList.remove('hidden');
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading seller photo:', error);
             }
         }
-    } catch (error) {
-        console.error('Error loading seller photo:', error);
-    }
-}
+
+        // View seller profile
+        function viewSellerProfile(sellerId) {
+            if (sellerId) {
+                window.location.href = `seller-profile.html?id=${sellerId}`;
+            }
+        }
     </script>
 </body>
 </html>

@@ -3,12 +3,16 @@ import { UserService } from "./user.service";
 import { AppError } from "../error/app.error";
 import fs from 'fs';
 import path from 'path';
-
+import { RatingService } from "../ratings/rating.service";
+import { ProductService } from "../product/product.service";
 export class UserController {
   private userService: UserService;
-
+ private productService: ProductService; // Add product service
+  private ratingService: RatingService;
   constructor() {
     this.userService = new UserService();
+        this.productService = new ProductService(); // Initialize product service
+    this.ratingService = new RatingService();
   }
 
   getProfile = async (req: Request, res: Response, next: NextFunction) => {
@@ -120,5 +124,62 @@ getSellerPhoto = async (req: Request, res: Response, next: NextFunction) => {
     } catch (error) {
         next(error);
     }
+};
+
+// Add to UserController class
+getSellerProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const sellerId = parseInt(req.params.sellerId!);
+        
+        if (isNaN(sellerId)) {
+            throw new AppError("Invalid seller ID", 400, {});
+        }
+        
+        const seller = await this.userService.getSellerProfile(sellerId);
+        
+        // Get seller's rating summary
+        const ratingService = new RatingService();
+        const ratingSummary = await ratingService.getSellerRatingSummary(sellerId);
+        
+        res.status(200).json({
+            message: "Seller profile fetched successfully",
+            data: {
+                ...seller,
+                rating: ratingSummary
+            }
+        });
+        
+    } catch (error) {
+        next(error);
+    }
+};
+
+getSellerProducts = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const sellerId = parseInt(req.params.sellerId!);
+    
+    if (isNaN(sellerId)) {
+      throw new AppError("Invalid seller ID", 400, {});
+    }
+    
+    // Fetch all products (including sold) for stats
+    const allProducts = await this.productService.getProductsByAnySellerId(sellerId, true);
+    
+    // Separate into available and sold
+    const availableProducts = allProducts.filter(p => p.quantity > 0 && p.status === 'APPROVED');
+    const soldProducts = allProducts.filter(p => p.quantity === 0);
+    
+    res.status(200).json({
+      message: "Seller products fetched successfully",
+      data: {
+        all: allProducts,
+        available: availableProducts,
+        sold: soldProducts
+      }
+    });
+    
+  } catch (error) {
+    next(error);
+  }
 };
 }

@@ -295,4 +295,23 @@ export class ProductService {
     });
   }
 
+  // Add this method to ProductService class
+async getProductsByAnySellerId(sellerId: number, includeAll: boolean = false): Promise<Product[]> {
+  const whereClause: any = { sellerId };
+  
+  // If not including all, only show approved products with quantity > 0
+  if (!includeAll) {
+    whereClause.status = 'APPROVED';
+    whereClause.quantity = { gt: 0 };
+  }
+  // If includeAll is true, show all products regardless of status or quantity
+  
+  return prisma.product.findMany({
+    where: whereClause,
+    include: {
+      category: true
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+}
 }
