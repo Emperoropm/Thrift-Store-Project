@@ -10,6 +10,7 @@ import CategoryRouter from "./categories/categories.route"
 import PaymentRouter from "./esewa/payment.routes";
 import { errorHandler } from "./middleware/errorhandler";
 import ratingRoutes from "./ratings/rating.route";
+import ChatRouter from "./chat/chat.routes";
 
 const app = express();
 
@@ -28,7 +29,7 @@ app.use("/api/users", UserRouter);
 app.use("/api/category",CategoryRouter);
 app.use("/api/payment/simple", PaymentRouter);
 app.use("/api/ratings", ratingRoutes);
-
+app.use('/api/chat', ChatRouter);
 // Serve static files from frontend directory
 app.use(express.static(path.join(__dirname, "../../frontend")));
 

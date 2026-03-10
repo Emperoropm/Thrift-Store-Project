@@ -25,6 +25,11 @@ model User {
   givenRatings    UserRating[] @relation("Reviewer")
   receivedRatings UserRating[] @relation("Seller")
 
+conversations1 Conversation[] @relation("User1Conversation")
+conversations2 Conversation[] @relation("User2Conversation")
+
+sentMessages Message[] @relation("MessageSender")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -190,4 +195,36 @@ model UserRating {
   createdAt DateTime @default(now())
 
   @@unique([reviewerId, sellerId, orderId])
+}
+
+model Conversation {
+  id Int @id @default(autoincrement())
+
+  user1Id Int
+  user1 User @relation("User1Conversation", fields: [user1Id], references: [id])
+
+  user2Id Int
+  user2 User @relation("User2Conversation", fields: [user2Id], references: [id])
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([user1Id, user2Id])
+}
+
+model Message {
+  id Int @id @default(autoincrement())
+
+  conversationId Int
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+
+  senderId Int
+  sender User @relation("MessageSender", fields: [senderId], references: [id])
+
+  content String
+  read Boolean @default(false)
+
+  createdAt DateTime @default(now())
 }

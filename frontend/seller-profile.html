@@ -170,6 +170,14 @@
                             <!-- Will be filled by JavaScript -->
                         </div>
                     </div>
+
+                    <!-- Add this after the rating summary div -->
+<div id="chat-button-container" class="mt-4 flex justify-center md:justify-start">
+    <button onclick="startChat()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+        <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
+        Chat with Seller
+    </button>
+</div>
                 </div>
             </div>
 
@@ -761,6 +769,69 @@ async function loadSellerProducts(sellerId, showSold = false) {
             document.getElementById('error-message').classList.remove('hidden');
             document.getElementById('error-text').textContent = message;
         }
+
+        // Add this function to your seller-profile.html JavaScript section
+async function startChat() {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (!token || !user) {
+        // Redirect to login with return URL
+        window.location.href = `login.html?redirect=seller-profile.html?id=${currentSellerId}`;
+        return;
+    }
+    
+    try {
+        const userData = JSON.parse(user);
+        
+        // Don't allow chatting with yourself
+        if (userData.id === parseInt(currentSellerId)) {
+            alert("You cannot chat with yourself!");
+            return;
+        }
+        
+        // Show loading state
+        const chatButton = event.target;
+        const originalText = chatButton.innerHTML;
+        chatButton.innerHTML = '<i data-feather="loader" class="w-4 h-4 mr-2 animate-spin"></i>Starting chat...';
+        chatButton.disabled = true;
+        
+        // Create or get conversation
+        const response = await fetch(`${API_URL}/chat/conversations`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                otherUserId: parseInt(currentSellerId)
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to start conversation');
+        }
+        
+        const result = await response.json();
+        const conversation = result.data;
+        
+        // Redirect to chat inbox with this conversation selected
+        window.location.href = `chat-inbox.html?conversation=${conversation.id}`;
+        
+    } catch (error) {
+        console.error('Error starting chat:', error);
+        alert(error.message || 'Failed to start chat. Please try again.');
+        
+        // Reset button
+        const chatButton = event.target;
+        chatButton.innerHTML = '<i data-feather="message-circle" class="w-4 h-4 mr-2"></i>Chat with Seller';
+        chatButton.disabled = false;
+    }
+}
+
+// Make function globally available
+window.startChat = startChat;
 
         // Make functions available globally
         window.showTab = showTab;

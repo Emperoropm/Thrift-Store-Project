@@ -164,17 +164,17 @@
 </head>
 <body class="bg-gray-50">
 <!-- Navigation -->
+<!-- Navigation - Update the auth-container section -->
 <nav class="bg-white shadow-md sticky top-0 z-50">
     <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-       <a href="index.html">
-    <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
-</a>
+        <a href="index.html">
+            <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+        </a>
         <div class="hidden md:flex space-x-8">
             <a href="#featured" class="text-gray-700 hover:text-green-600 font-medium">Featured</a>
             <a href="#categories" class="text-gray-700 hover:text-green-600 font-medium">Categories</a>
             <a href="#products" class="text-gray-700 hover:text-green-600 font-medium">All Items</a>
             <a href="#about" class="text-gray-700 hover:text-green-600 font-medium">About</a>
-            
         </div>
         
         <!-- Single auth container - will show login/signup OR user info -->
@@ -417,6 +417,18 @@
     </div>
     <div id="cart-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40" onclick="toggleCart()"></div>
 
+    <!-- Floating Chat Button - Add this before closing body tag -->
+<div class="fixed bottom-6 right-6 z-40">
+    <button onclick="goToInbox()" class="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-all duration-300 hover:scale-110 flex items-center justify-center relative group">
+        <i data-feather="message-circle" class="w-6 h-6"></i>
+        <span class="absolute right-full mr-3 bg-gray-800 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+            Chat Inbox
+        </span>
+        <!-- Unread Badge -->
+        <span id="chat-unread-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+    </button>
+</div>
+
    <script>
  // API Configuration
 const API_URL = 'http://localhost:3000/api';
@@ -435,6 +447,16 @@ function checkAuthStatus() {
         try {
             const userData = JSON.parse(user);
             let adminLink = '';
+            let chatLink = '';
+            
+            // Add Chat link for all logged-in users
+            chatLink = `
+                <a href="chat-inbox.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium flex items-center relative">
+                    <i data-feather="message-circle" class="w-4 h-4 mr-1"></i>
+                    Chat
+                    <span id="nav-unread-badge" class="ml-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
+                </a>
+            `;
             
             // Add Admin link if user is ADMIN
             if (userData.role === 'ADMIN') {
@@ -445,7 +467,7 @@ function checkAuthStatus() {
                 `;
             }
             
-            // User is logged in - with profile and admin buttons
+            // User is logged in - with chat, profile and admin buttons
             authContainer.innerHTML = `
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-2">
@@ -456,6 +478,7 @@ function checkAuthStatus() {
                         </div>
                         <span class="font-medium text-gray-700">Hi, ${userData.name || 'User'}</span>
                     </div>
+                    ${chatLink}
                     ${adminLink}
                     <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
                         Profile
@@ -466,6 +489,9 @@ function checkAuthStatus() {
                 </div>
             `;
             
+            // Fetch unread messages count
+            fetchUnreadCount();
+            
         } catch(e) {
             console.error('Error parsing user data:', e);
             showLoginButtons();
@@ -473,6 +499,78 @@ function checkAuthStatus() {
     } else {
         showLoginButtons();
     }
+}
+
+
+// Fetch unread messages count
+async function fetchUnreadCount() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    try {
+        console.log('Fetching unread count...');
+        const response = await fetch(`${API_URL}/chat/conversations`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Conversations data:', result); // Debug log
+            
+            const conversations = result.data || [];
+            
+            // Calculate total unread count
+            let totalUnread = 0;
+            conversations.forEach(conv => {
+                console.log(`Conversation ${conv.id}: unreadCount = ${conv.unreadCount}`);
+                totalUnread += (conv.unreadCount || 0);
+            });
+            
+            console.log('Total unread:', totalUnread); // Debug log
+            
+            // Update badges
+            const navBadge = document.getElementById('nav-unread-badge');
+            const floatingBadge = document.getElementById('chat-unread-badge');
+            
+            if (navBadge) {
+                if (totalUnread > 0) {
+                    navBadge.classList.remove('hidden');
+                    navBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+                } else {
+                    navBadge.classList.add('hidden');
+                }
+            }
+            
+            if (floatingBadge) {
+                if (totalUnread > 0) {
+                    floatingBadge.classList.remove('hidden');
+                    floatingBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+                } else {
+                    floatingBadge.classList.add('hidden');
+                }
+            }
+        } else {
+            console.error('Failed to fetch conversations:', response.status);
+        }
+    } catch (error) {
+        console.error('Error fetching unread count:', error);
+    }
+}
+// Periodically check for new messages (every 30 seconds)
+
+
+
+// Navigate to chat inbox
+function goToInbox() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Please login to access chat');
+        window.location.href = 'login.html?redirect=index.html';
+        return;
+    }
+    window.location.href = 'chat-inbox.html';
 }
 
 // Show login buttons when not logged in
@@ -1248,14 +1346,109 @@ document.addEventListener('DOMContentLoaded', function() {
     // Note: Category chips event listeners are now added dynamically in createCategoryCard function
 });
 
+// Socket integration for real-time updates (optional)
+let chatSocket = null;
+
+// Initialize chat socket for real-time updates
+function initializeChatSocket() {
+    const token = localStorage.getItem('token');
+    if (!token || typeof io === 'undefined') return;
+    
+    console.log('Initializing chat socket...');
+    
+    chatSocket = io('http://localhost:3000', {
+        auth: { token: token },
+        reconnection: true,
+        reconnectionAttempts: 5
+    });
+    
+    chatSocket.on('connect', () => {
+        console.log('Connected to chat for notifications');
+        
+        // Join user's personal room
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.id) {
+            chatSocket.emit('joinUserRoom', user.id);
+            console.log('Joined user room:', user.id);
+        }
+    });
+    
+    chatSocket.on('newMessageNotification', (data) => {
+        console.log('New message notification received:', data);
+        
+        // Update unread count when new message arrives
+        fetchUnreadCount();
+        
+        // Show browser notification if supported and page is not focused
+        if (Notification.permission === 'granted' && document.hidden) {
+            const otherUser = data.message.sender;
+            new Notification(`New message from ${otherUser?.name || 'Someone'}`, {
+                body: data.message.content.substring(0, 50),
+                icon: '/assets/images/logo.png',
+                tag: 'chat-notification'
+            });
+        }
+    });
+    
+    chatSocket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+    });
+    
+    chatSocket.on('disconnect', () => {
+        console.log('Disconnected from chat');
+    });
+}
+
+
+
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+}
+
+// Update unread count when page gets focus
+window.addEventListener('focus', function() {
+    console.log('Page focused, checking for new messages');
+    fetchUnreadCount();
+});
+
+// Also update when tab becomes visible
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        console.log('Tab visible, checking for new messages');
+        fetchUnreadCount();
+    }
+});
+
+// Initialize socket after auth check
+document.addEventListener('DOMContentLoaded', function() {
+    // ... existing code ...
+    
+    // Initialize socket if user is logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+        // Load socket.io script first
+        const script = document.createElement('script');
+        script.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
+        script.onload = () => {
+            initializeChatSocket();
+        };
+        document.head.appendChild(script);
+    }
+});
+
 // Make functions available globally
-window.logout = logout;
-window.loadProducts = loadProducts;
-window.filterByCategory = filterByCategory;
-window.loadProductsByCategory = loadProductsByCategory;
-window.renderProducts = renderProducts;
-window.updateActiveCategory = updateActiveCategory;
-window.loadCategories = loadCategories;
+ window.logout = logout;
+    window.goToInbox = goToInbox;
+    window.loadProducts = loadProducts;
+    window.filterByCategory = filterByCategory;
+    window.loadProductsByCategory = loadProductsByCategory;
+    window.renderProducts = renderProducts;
+    window.updateActiveCategory = updateActiveCategory;
+    window.loadCategories = loadCategories;
+    window.buyProduct = buyProduct;
+    window.showProductDetails = showProductDetails;
+    window.closeModal = closeModal;
 </script>
 </body>
 </html>

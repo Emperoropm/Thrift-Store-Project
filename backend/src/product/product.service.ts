@@ -1,4 +1,4 @@
-import { Product, ProductStatus, Rating } from '@prisma/client';
+import { Product, ProductStatus} from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
 import { AppError } from '../error/app.error';
 import { NotificationService } from './notification.service';
