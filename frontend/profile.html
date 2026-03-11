@@ -6,6 +6,7 @@
     <title>My Products | Thrift Treasure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -649,6 +650,18 @@
         </div>
     </div>
 </div>
+
+<!-- Floating Chat Button - Add this before closing body tag -->
+<div class="fixed bottom-6 right-6 z-40">
+    <button onclick="goToInbox()" class="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-all duration-300 hover:scale-110 flex items-center justify-center relative group">
+        <i data-feather="message-circle" class="w-6 h-6"></i>
+        <span class="absolute right-full mr-3 bg-gray-800 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+            Chat Inbox
+        </span>
+        <!-- Unread Badge -->
+        <span id="chat-unread-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+    </button>
+</div>
     <script>
         const API_URL = 'http://localhost:3000/api';
         let currentTab = 'products';
@@ -696,8 +709,49 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }, 500);
+    
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+    
+    // Initialize socket if user is logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+        // Make sure socket.io script is loaded
+        if (typeof io !== 'undefined') {
+            initializeChatSocket();
+        } else {
+            // Load socket.io script if not already loaded
+            const script = document.createElement('script');
+            script.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
+            script.onload = () => {
+                initializeChatSocket();
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Initial fetch of unread count
+        setTimeout(fetchUnreadCount, 1000);
+        
+        // Fetch unread count periodically (every 30 seconds)
+        setInterval(fetchUnreadCount, 30000);
+    }
 });
 
+// Update unread count when page gets focus
+window.addEventListener('focus', function() {
+    console.log('Page focused, checking for new messages');
+    fetchUnreadCount();
+});
+
+// Also update when tab becomes visible
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        console.log('Tab visible, checking for new messages');
+        fetchUnreadCount();
+    }
+});
 
         function checkAuth() {
     const token = localStorage.getItem('token');
@@ -738,42 +792,59 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Update auth UI in navigation
-        function updateAuthUI(userData) {
-            const user = localStorage.getItem('user');
-            const authContainer = document.getElementById('auth-container');
+      // Update auth UI in navigation
+function updateAuthUI(userData) {
+    const user = localStorage.getItem('user');
+    const authContainer = document.getElementById('auth-container');
+    
+    if (user && authContainer) {
+        try {
+            const userData = JSON.parse(user);
+            let adminLink = '';
+            let chatLink = '';
             
-            if (user && authContainer) {
-                try {
-                    const userData = JSON.parse(user);
-                    let adminLink = '';
-                    
-                    // Add Admin link if user is ADMIN
-                    if (userData.role === 'ADMIN') {
-                        adminLink = `
-                            <a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">
-                                Admin
-                            </a>
-                        `;
-                    }
-                    
-                    authContainer.innerHTML = `
-                        <div class="flex items-center space-x-4">
-                            <span class="font-medium text-gray-700">${userData.name || 'User'}</span>
-                            <a href="index.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
-                                Shop
-                            </a>
-                            ${adminLink}
-                            <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
-                                Logout
-                            </button>
-                        </div>
-                    `;
-                    
-                } catch(e) {
-                    console.error('Error parsing user data:', e);
-                }
+            // Add Chat link for all logged-in users
+            chatLink = `
+                <a href="chat-inbox.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium flex items-center relative">
+                    <i data-feather="message-circle" class="w-4 h-4 mr-1"></i>
+                    Chat
+                    <span id="nav-unread-badge" class="ml-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
+                </a>
+            `;
+            
+            // Add Admin link if user is ADMIN
+            if (userData.role === 'ADMIN') {
+                adminLink = `
+                    <a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">
+                        Admin
+                    </a>
+                `;
             }
+            
+            authContainer.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <span class="font-medium text-gray-700">${userData.name || 'User'}</span>
+                    <a href="index.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
+                        Shop
+                    </a>
+                    ${chatLink}
+                    ${adminLink}
+                    <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
+                        Logout
+                    </button>
+                </div>
+            `;
+            
+            // Fetch unread messages count after adding the badge element
+            setTimeout(() => {
+                fetchUnreadCount();
+            }, 100);
+            
+        } catch(e) {
+            console.error('Error parsing user data:', e);
         }
+    }
+}
         
         // Show tab function
         // Update show tab function
@@ -2923,6 +2994,115 @@ photoImg.onload = function() {
             }
         }
         
+
+// Navigate to chat inbox
+function goToInbox() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Please login to access chat');
+        window.location.href = 'login.html?redirect=profile.html';
+        return;
+    }
+    window.location.href = 'chat-inbox.html';
+}
+
+// Fetch unread messages count
+async function fetchUnreadCount() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    try {
+        console.log('Fetching unread count...');
+        const response = await fetch(`${API_URL}/chat/conversations`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Conversations data:', result);
+            
+            const conversations = result.data || [];
+            
+            // Calculate total unread count
+            const totalUnread = conversations.reduce((sum, conv) => {
+                console.log(`Conversation ${conv.id}: unreadCount = ${conv.unreadCount}`);
+                return sum + (conv.unreadCount || 0);
+            }, 0);
+            
+            console.log('Total unread:', totalUnread);
+            
+            // Update badges
+            const floatingBadge = document.getElementById('chat-unread-badge');
+            
+            if (totalUnread > 0) {
+                if (floatingBadge) {
+                    floatingBadge.classList.remove('hidden');
+                    floatingBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+                }
+            } else {
+                if (floatingBadge) floatingBadge.classList.add('hidden');
+            }
+        } else {
+            console.error('Failed to fetch conversations:', response.status);
+        }
+    } catch (error) {
+        console.error('Error fetching unread count:', error);
+    }
+}
+
+// Initialize chat socket for real-time updates
+function initializeChatSocket() {
+    const token = localStorage.getItem('token');
+    if (!token || typeof io === 'undefined') return;
+    
+    console.log('Initializing chat socket...');
+    
+    const chatSocket = io('http://localhost:3000', {
+        auth: { token: token },
+        reconnection: true,
+        reconnectionAttempts: 5
+    });
+    
+    chatSocket.on('connect', () => {
+        console.log('Connected to chat for notifications');
+        
+        // Join user's personal room
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.id) {
+            chatSocket.emit('joinUserRoom', user.id);
+        }
+    });
+    
+    chatSocket.on('newMessageNotification', (data) => {
+        console.log('New message notification received:', data);
+        
+        // Update unread count when new message arrives
+        fetchUnreadCount();
+        
+        // Show browser notification if supported and page is not focused
+        if (Notification.permission === 'granted' && document.hidden) {
+            const otherUser = data.message.sender;
+            new Notification(`New message from ${otherUser?.name || 'Someone'}`, {
+                body: data.message.content.substring(0, 50),
+                icon: '/assets/images/logo.png',
+                tag: 'chat-notification'
+            });
+        }
+    });
+    
+    chatSocket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+    });
+    
+    chatSocket.on('disconnect', () => {
+        console.log('Disconnected from chat');
+    });
+    
+    return chatSocket;
+}
+
         // Make functions available globally
 window.showAddProductForm = showAddProductForm;
 window.hideAddProductForm = hideAddProductForm;
@@ -2963,6 +3143,11 @@ window.loadUserProfile = loadUserProfile;
 // Add these to your window exports
 window.viewProfilePhoto = viewProfilePhoto;
 window.closePhotoViewModal = closePhotoViewModal;
+
+// Add these to your window exports
+window.goToInbox = goToInbox;
+window.fetchUnreadCount = fetchUnreadCount;
+window.initializeChatSocket = initializeChatSocket;
     </script>
 </body>
 </html>

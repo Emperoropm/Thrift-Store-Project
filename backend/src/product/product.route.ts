@@ -14,7 +14,7 @@ router.get("/getByCategory/:categoryId", productController.getProductsByCategory
 router.post(
   "/insertProducts",
   authMiddleware,
-  allowRoles("USER"),
+  allowRoles("USER","ADMIN"),
   (request: Request, response: Response, next: NextFunction) => {
     productController.insertProduct(request, response, next);
   }
@@ -37,7 +37,7 @@ router.delete(
 router.get(
   "/getBySeller",
   authMiddleware,
-  allowRoles("USER"),
+  allowRoles("USER","ADMIN"),
   productController.getProductsBySellerId
 );
 
