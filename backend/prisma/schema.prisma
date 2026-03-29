@@ -51,8 +51,14 @@ model Product {
   description String?
   price       Float
   quantity    Int           @default(1)
-  imageUrl    String?
+  images      String[]      // Store array of image URLs
   status      ProductStatus @default(PENDING)
+
+  // New fields
+  purchaseDate DateTime?     // When the seller purchased the item
+  gender       String?       // MEN, WOMEN, UNISEX, KIDS
+  refundable   Boolean       @default(true)
+  location     Json?         // Store { address, lat, lng } as JSON
 
   rejectionReason String?
 

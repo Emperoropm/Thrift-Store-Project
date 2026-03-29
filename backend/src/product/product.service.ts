@@ -1,4 +1,4 @@
-import { Product, ProductStatus} from '@prisma/client';
+import { Product, ProductStatus } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
 import { AppError } from '../error/app.error';
 import { NotificationService } from './notification.service';
@@ -6,7 +6,7 @@ import { NotificationService } from './notification.service';
 const prisma = new PrismaClient();
 
 export class ProductService {
-  async insertProduct(product: Omit<Product, "id" | "status" | "createdAt" | "updatedAt">, sellerId: number): Promise<Product> {
+  async insertProduct(product: any, sellerId: number): Promise<Product> {
     // Check daily limit
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -49,17 +49,27 @@ export class ProductService {
       }
     }
 
-    // Create product
+    // Create product with new fields
     const result = await prisma.product.create({
       data: {
         title: product.title,
         description: product.description ?? null,
         price: product.price,
         quantity: product.quantity,
-        imageUrl: product.imageUrl ?? null,
+        images: product.images ?? [],
+        purchaseDate: product.purchaseDate ? new Date(product.purchaseDate) : null,
+        gender: product.gender ?? null,
+        refundable: product.refundable ?? true,
+        location: product.location ?? null,
         categoryId: product.categoryId ?? null,
         sellerId: sellerId,
         status: 'PENDING'
+      },
+      include: {
+        category: true,
+        seller: {
+          select: { id: true, name: true, email: true }
+        }
       }
     });
 
@@ -143,7 +153,8 @@ export class ProductService {
         seller: {
           select: { id: true, name: true, email: true }
         }
-      }
+      },
+      orderBy: { createdAt: 'desc' }
     });
   }
 
@@ -151,7 +162,7 @@ export class ProductService {
     id: number,
     sellerId: number,
     userRole: string,
-    productData: Partial<Product>
+    productData: any
   ): Promise<Product> => {
     const existingProduct = await prisma.product.findUnique({ 
       where: { id },
@@ -165,14 +176,39 @@ export class ProductService {
       throw new AppError("You are not authorized to update this product", 403, {});
     }
 
-    // If product is approved and seller is editing, change status to PENDING
     const updateData: any = {};
+    
+    // Basic fields
     if (productData.title !== undefined) updateData.title = productData.title;
     if (productData.description !== undefined) updateData.description = productData.description;
     if (productData.price !== undefined) updateData.price = productData.price;
     if (productData.quantity !== undefined) updateData.quantity = productData.quantity;
     if (productData.imageUrl !== undefined) updateData.imageUrl = productData.imageUrl;
     if (productData.categoryId !== undefined) updateData.categoryId = productData.categoryId;
+    
+    // New fields
+    if (productData.purchaseDate !== undefined) {
+      updateData.purchaseDate = productData.purchaseDate ? new Date(productData.purchaseDate) : null;
+    }
+    if (productData.gender !== undefined) updateData.gender = productData.gender;
+    if (productData.refundable !== undefined) updateData.refundable = productData.refundable;
+    if (productData.location !== undefined) updateData.location = productData.location;
+    
+    // Handle images array - full replacement
+    if (productData.images !== undefined) {
+      updateData.images = productData.images;
+    } 
+    // Handle adding new images
+    else if (productData.newImages && productData.newImages.length > 0) {
+      const currentImages = existingProduct.images || [];
+      updateData.images = [...currentImages, ...productData.newImages];
+    }
+    
+    // Handle deleting images
+    if (productData.imagesToDelete && productData.imagesToDelete.length > 0) {
+      const currentImages = updateData.images !== undefined ? updateData.images : (existingProduct.images || []);
+      updateData.images = currentImages.filter((img: string) => !productData.imagesToDelete.includes(img));
+    }
 
     // Auto-change status for approved products edited by sellers
     if (existingProduct.status === 'APPROVED' && userRole === 'USER') {
@@ -183,7 +219,13 @@ export class ProductService {
 
     const result = await prisma.product.update({
       where: { id },
-      data: updateData
+      data: updateData,
+      include: {
+        category: true,
+        seller: {
+          select: { id: true, name: true, email: true }
+        }
+      }
     });
 
     return result;
@@ -226,6 +268,25 @@ export class ProductService {
       orderBy: { createdAt: 'desc' }
     });
   };
+
+  // Get products by any seller ID (public endpoint)
+  async getProductsByAnySellerId(sellerId: number, includeAll: boolean = false): Promise<Product[]> {
+    const whereClause: any = { sellerId };
+    
+    // If not including all, only show approved products with quantity > 0
+    if (!includeAll) {
+      whereClause.status = 'APPROVED';
+      whereClause.quantity = { gt: 0 };
+    }
+    
+    return prisma.product.findMany({
+      where: whereClause,
+      include: {
+        category: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
 
   // ========== ADMIN METHODS ==========
   
@@ -294,24 +355,4 @@ export class ProductService {
       data: updateData
     });
   }
-
-  // Add this method to ProductService class
-async getProductsByAnySellerId(sellerId: number, includeAll: boolean = false): Promise<Product[]> {
-  const whereClause: any = { sellerId };
-  
-  // If not including all, only show approved products with quantity > 0
-  if (!includeAll) {
-    whereClause.status = 'APPROVED';
-    whereClause.quantity = { gt: 0 };
-  }
-  // If includeAll is true, show all products regardless of status or quantity
-  
-  return prisma.product.findMany({
-    where: whereClause,
-    include: {
-      category: true
-    },
-    orderBy: { createdAt: 'desc' }
-  });
-}
 }

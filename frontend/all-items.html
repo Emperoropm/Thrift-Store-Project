@@ -78,67 +78,64 @@
             position: relative;
         }
         
-      /* Search suggestions styles - Fix text color */
-.search-suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-    z-index: 50;
-    max-height: 400px;
-    overflow-y: auto;
-}
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            max-height: 400px;
+            overflow-y: auto;
+        }
 
-.search-suggestion-item {
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: background 0.2s;
-    border-bottom: 1px solid #f3f4f6;
-    color: #1f2937 !important; /* Force dark text color */
-}
+        .search-suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f3f4f6;
+            color: #1f2937 !important;
+        }
 
-.search-suggestion-item:hover {
-    background: #f9fafb;
-}
+        .search-suggestion-item:hover {
+            background: #f9fafb;
+        }
 
-.search-suggestion-item .font-medium {
-    color: #111827 !important; /* Dark color for title */
-    font-weight: 500;
-}
+        .search-suggestion-item .font-medium {
+            color: #111827 !important;
+            font-weight: 500;
+        }
 
-.search-suggestion-item .text-sm {
-    color: #6b7280 !important; /* Gray color for seller name and price */
-}
+        .search-suggestion-item .text-sm {
+            color: #6b7280 !important;
+        }
 
-.search-highlight {
-    background-color: #fef3c7;
-    color: #92400e !important; /* Dark amber color for highlighted text */
-    font-weight: 600;
-    padding: 0 2px;
-    border-radius: 4px;
-}
+        .search-highlight {
+            background-color: #fef3c7;
+            color: #92400e !important;
+            font-weight: 600;
+            padding: 0 2px;
+            border-radius: 4px;
+        }
 
-/* Search button styles */
-#search-button {
-    transition: all 0.3s ease;
-}
+        #search-button {
+            transition: all 0.3s ease;
+        }
 
-#search-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
+        #search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
 
-#search-button:active {
-    transform: translateY(0);
-}
+        #search-button:active {
+            transform: translateY(0);
+        }
 
-/* Search stats animation */
-#search-stats {
-    transition: all 0.3s ease;
-}
+        #search-stats {
+            transition: all 0.3s ease;
+        }
         
         /* Filter sidebar */
         .filter-sidebar {
@@ -195,6 +192,33 @@
         .tag-new { background-color: #e76f51; }
         .tag-vintage { background-color: #264653; }
         .tag-bestseller { background-color: #e9c46a; color: #000; }
+        
+        /* Product badges */
+        .product-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 10;
+        }
+        
+        .badge-refundable {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .badge-non-refundable {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .badge-gender {
+            background-color: #8b5cf6;
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -212,21 +236,21 @@
             <a href="#about" class="text-gray-700 hover:text-green-600 font-medium">About</a>
         </div>
         
-        <!-- Single auth container - will show login/signup OR user info -->
+        <!-- Single auth container -->
         <div id="auth-container">
             <!-- Will be filled by JavaScript -->
         </div>
     </div>
 </nav>
 
-<!-- Page Header with Background Image -->
+<!-- Page Header -->
 <section class="relative py-20 bg-cover bg-center bg-no-repeat" style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');">
     <div class="container mx-auto px-4 relative z-10">
         <div class="text-center">
             <h1 class="heading-font text-4xl md:text-5xl font-bold mb-4 text-white">All Items</h1>
             <p class="text-xl text-white/90 mb-8">Discover every treasure in our collection</p>
             
-            <!-- Enhanced Search Bar with Search Button -->
+            <!-- Enhanced Search Bar -->
             <div class="max-w-3xl mx-auto search-container">
                 <div class="relative flex gap-2">
                     <div class="relative flex-1">
@@ -259,6 +283,7 @@
         </div>
     </div>
 </section>
+
 <!-- Main Content -->
 <div class="container mx-auto px-4 py-8">
     <div class="flex flex-col lg:flex-row gap-8">
@@ -285,7 +310,7 @@
                     </div>
                 </div>
                 
-                <!-- Price Range Filter with Slider -->
+                <!-- Price Range Filter -->
                 <div class="filter-section mb-4">
                     <h4 class="font-semibold text-gray-700 mb-3">Price Range</h4>
                     <div class="space-y-3">
@@ -301,6 +326,40 @@
                         <button onclick="applyPriceFilter()" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
                             Apply Price
                         </button>
+                    </div>
+                </div>
+                
+                <!-- Gender Filter -->
+                <div class="filter-section mb-4">
+                    <h4 class="font-semibold text-gray-700 mb-3">Gender</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="gender-men" value="MEN" onchange="applyFilters()" class="rounded text-green-600">
+                            <span class="text-sm text-gray-600">👨 Men</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="gender-women" value="WOMEN" onchange="applyFilters()" class="rounded text-green-600">
+                            <span class="text-sm text-gray-600">👩 Women</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="gender-unisex" value="UNISEX" onchange="applyFilters()" class="rounded text-green-600">
+                            <span class="text-sm text-gray-600">👥 Unisex</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="gender-kids" value="KIDS" onchange="applyFilters()" class="rounded text-green-600">
+                            <span class="text-sm text-gray-600">👶 Kids</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Refundable Filter -->
+                <div class="filter-section mb-4">
+                    <h4 class="font-semibold text-gray-700 mb-3">Refundable</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="refundable-only" onchange="applyFilters()" class="rounded text-green-600">
+                            <span class="text-sm text-gray-600">✅ Refundable Only</span>
+                        </label>
                     </div>
                 </div>
                 
@@ -325,29 +384,6 @@
                         <input type="checkbox" id="in-stock-only" onchange="applyFilters()" class="rounded text-green-600">
                         <span class="text-sm text-gray-600">In Stock Only</span>
                     </label>
-                </div>
-                
-                <!-- Condition Filter -->
-                <div class="filter-section mb-4">
-                    <h4 class="font-semibold text-gray-700 mb-3">Condition</h4>
-                    <div class="space-y-2">
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" id="condition-new" value="new" onchange="applyFilters()" class="rounded text-green-600">
-                            <span class="text-sm text-gray-600">New</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" id="condition-like-new" value="like-new" onchange="applyFilters()" class="rounded text-green-600">
-                            <span class="text-sm text-gray-600">Like New</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" id="condition-good" value="good" onchange="applyFilters()" class="rounded text-green-600">
-                            <span class="text-sm text-gray-600">Good</span>
-                        </label>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" id="condition-fair" value="fair" onchange="applyFilters()" class="rounded text-green-600">
-                            <span class="text-sm text-gray-600">Fair</span>
-                        </label>
-                    </div>
                 </div>
                 
                 <!-- Clear Filters Button -->
@@ -484,7 +520,7 @@ const itemsPerPage = 12;
 let allCategories = [];
 let selectedCategoryId = null;
 let currentView = 'grid';
-let fuse = null; // Fuse.js instance for fuzzy search
+let fuse = null;
 let currentSearchTerm = '';
 let debounceTimer = null;
 
@@ -537,34 +573,27 @@ function logout() {
     window.location.href = "index.html";
 }
 
-// Initialize Fuse.js for fuzzy search
-// Initialize Fuse.js for fuzzy search - ONLY searches by product name
+// Initialize Fuse.js for search
 function initFuseSearch(products) {
     const searchOptions = {
-        keys: [
-            { name: 'title', weight: 1.0 }  // Only search by product title
-        ],
-        threshold: 0.3,  // Slightly stricter matching for better relevance
+        keys: [{ name: 'title', weight: 1.0 }],
+        threshold: 0.3,
         distance: 50,
         includeScore: true,
         ignoreLocation: false,
-        minMatchCharLength: 2,  // Minimum characters to trigger search
+        minMatchCharLength: 2,
         shouldSort: true,
         findAllMatches: true
     };
-    
     fuse = new Fuse(products, searchOptions);
 }
 
-// Perform search with fuzzy matching - ONLY by product name
 function performSearch(searchTerm) {
-    if (!searchTerm || searchTerm.trim() === '') {
-        return allProducts;
-    }
-    
+    if (!searchTerm || searchTerm.trim() === '') return allProducts;
     const results = fuse.search(searchTerm);
     return results.map(result => result.item);
 }
+
 // Load categories
 async function loadCategories() {
     const loadingEl = document.getElementById('categories-loading');
@@ -625,22 +654,6 @@ function renderDefaultCategories() {
             <input type="radio" name="category" value="all" checked onchange="filterByCategory(null)" class="text-green-600">
             <span class="text-sm text-gray-700">All Categories</span>
         </label>
-        <label class="flex items-center space-x-2 cursor-pointer mb-2">
-            <input type="radio" name="category" value="1" onchange="filterByCategory(1)" class="text-green-600">
-            <span class="text-sm text-gray-700">Jackets</span>
-        </label>
-        <label class="flex items-center space-x-2 cursor-pointer mb-2">
-            <input type="radio" name="category" value="2" onchange="filterByCategory(2)" class="text-green-600">
-            <span class="text-sm text-gray-700">T-shirts</span>
-        </label>
-        <label class="flex items-center space-x-2 cursor-pointer mb-2">
-            <input type="radio" name="category" value="3" onchange="filterByCategory(3)" class="text-green-600">
-            <span class="text-sm text-gray-700">Pants</span>
-        </label>
-        <label class="flex items-center space-x-2 cursor-pointer mb-2">
-            <input type="radio" name="category" value="4" onchange="filterByCategory(4)" class="text-green-600">
-            <span class="text-sm text-gray-700">Shoes</span>
-        </label>
     `;
     
     const loadingEl = document.getElementById('categories-loading');
@@ -692,7 +705,7 @@ async function fetchSellerRatings(products) {
     return ratingsMap;
 }
 
-// Create product card (grid view)
+// Create product card (grid view) with all new fields
 function createProductCard(product, sellerRating) {
     const div = document.createElement('div');
     div.className = 'product-card cursor-pointer transition-transform hover:scale-105 hover:shadow-lg';
@@ -708,6 +721,15 @@ function createProductCard(product, sellerRating) {
     const totalReviews = sellerRating?.totalReviews || 0;
     const stars = getRatingStarsHtml(avgRating);
     
+    // Gender icon mapping
+    const genderIcon = {
+        'MEN': '👨', 'WOMEN': '👩', 'UNISEX': '👥', 'KIDS': '👶'
+    };
+    const genderDisplay = product.gender ? `${genderIcon[product.gender] || '👤'} ${product.gender}` : null;
+    
+    // Purchase date
+    const purchaseDate = product.purchaseDate ? new Date(product.purchaseDate).toLocaleDateString() : null;
+    
     // Highlight search term in title
     let title = product.title || 'Unnamed Product';
     if (currentSearchTerm) {
@@ -715,28 +737,55 @@ function createProductCard(product, sellerRating) {
         title = title.replace(regex, '<mark class="bg-yellow-200 px-0.5 rounded">$1</mark>');
     }
     
+    // Get product images
+    const productImages = product.images || [];
+    const firstImage = productImages.length > 0 ? productImages[0] : (product.imageUrl || null);
+    const hasMultipleImages = productImages.length > 1;
+    
     div.innerHTML = `
         <div class="relative">
             <div class="h-48 bg-gray-200 flex items-center justify-center">
-                ${product.imageUrl ? 
-                    `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-cover">` : 
+                ${firstImage ? 
+                    `<img src="${firstImage}" alt="${product.title}" class="w-full h-full object-cover">` : 
                     `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`
                 }
+                ${hasMultipleImages ? `
+                    <span class="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
+                        +${productImages.length - 1}
+                    </span>
+                ` : ''}
             </div>
+            
+            <!-- Badges -->
+            <div class="absolute top-2 left-2 flex flex-col gap-1">
+                ${genderDisplay ? `<span class="badge-gender text-xs px-2 py-1 rounded-full">${genderDisplay}</span>` : ''}
+                ${product.refundable !== undefined ? 
+                    `<span class="${product.refundable ? 'badge-refundable' : 'badge-non-refundable'} text-xs px-2 py-1 rounded-full">
+                        ${product.refundable ? '✅ Refundable' : '❌ Non-refundable'}
+                    </span>` : ''
+                }
+                ${purchaseDate ? `<span class="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">📅 ${purchaseDate}</span>` : ''}
+            </div>
+            
             ${product.quantity <= 0 ? '<div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center"><span class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">SOLD OUT</span></div>' : ''}
         </div>
         <div class="p-4">
             <h3 class="font-bold text-lg mb-1 truncate">${title}</h3>
+            <p class="text-gray-600 text-sm mb-2 line-clamp-2">${product.description || 'No description available'}</p>
+            
             <div class="flex items-center mb-2 text-sm">
                 <span class="text-gray-500">by</span>
                 <span class="font-medium text-gray-700 ml-1 truncate">${sellerName}</span>
+                ${product.quantity > 0 ? `<span class="ml-2 text-xs text-green-600">● In Stock</span>` : '<span class="ml-2 text-xs text-red-600">● Out of Stock</span>'}
             </div>
+            
             <div class="mb-3 flex items-center text-xs">
                 <span class="flex mr-1">${stars}</span>
                 <span class="text-gray-600">${avgRating.toFixed(1)}</span>
                 <span class="text-gray-400 mx-1">•</span>
                 <span class="text-gray-500">${totalReviews} review${totalReviews !== 1 ? 's' : ''}</span>
             </div>
+            
             <div class="flex justify-between items-center">
                 <div class="price-tag px-3 py-1 rounded-lg font-bold text-gray-900">${price}</div>
                 <button onclick="event.stopPropagation(); buyProduct('${product.id || product._id}', ${product.price}, '${product.title.replace(/'/g, "\\'")}')" 
@@ -751,7 +800,7 @@ function createProductCard(product, sellerRating) {
     return div;
 }
 
-// Create product card (list view)
+// Create product card (list view) with all new fields
 function createProductCardList(product, sellerRating) {
     const div = document.createElement('div');
     div.className = 'product-card cursor-pointer hover:shadow-lg flex flex-col md:flex-row';
@@ -767,32 +816,65 @@ function createProductCardList(product, sellerRating) {
     const totalReviews = sellerRating?.totalReviews || 0;
     const stars = getRatingStarsHtml(avgRating);
     
+    // Gender icon mapping
+    const genderIcon = {
+        'MEN': '👨', 'WOMEN': '👩', 'UNISEX': '👥', 'KIDS': '👶'
+    };
+    const genderDisplay = product.gender ? `${genderIcon[product.gender]} ${product.gender}` : null;
+    
+    // Purchase date
+    const purchaseDate = product.purchaseDate ? new Date(product.purchaseDate).toLocaleDateString() : null;
+    
     let title = product.title || 'Unnamed Product';
     if (currentSearchTerm) {
         const regex = new RegExp(`(${currentSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
         title = title.replace(regex, '<mark class="bg-yellow-200 px-0.5 rounded">$1</mark>');
     }
     
+    // Get product images
+    const productImages = product.images || [];
+    const firstImage = productImages.length > 0 ? productImages[0] : (product.imageUrl || null);
+    const hasMultipleImages = productImages.length > 1;
+    
     div.innerHTML = `
-        <div class="md:w-48 h-48 bg-gray-200 flex items-center justify-center flex-shrink-0">
-            ${product.imageUrl ? 
-                `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-cover">` : 
+        <div class="md:w-48 h-48 bg-gray-200 flex items-center justify-center flex-shrink-0 relative">
+            ${firstImage ? 
+                `<img src="${firstImage}" alt="${product.title}" class="w-full h-full object-cover">` : 
                 `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`
             }
+            ${hasMultipleImages ? `
+                <span class="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
+                    +${productImages.length - 1}
+                </span>
+            ` : ''}
         </div>
         <div class="p-4 flex-1 flex flex-col">
+            <div class="flex flex-wrap gap-2 mb-2">
+                ${genderDisplay ? `<span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">${genderDisplay}</span>` : ''}
+                ${product.refundable !== undefined ? 
+                    `<span class="text-xs ${product.refundable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} px-2 py-1 rounded-full">
+                        ${product.refundable ? '✅ Refundable' : '❌ Non-refundable'}
+                    </span>` : ''
+                }
+                ${purchaseDate ? `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">📅 ${purchaseDate}</span>` : ''}
+            </div>
+            
             <h3 class="font-bold text-xl mb-2">${title}</h3>
             <p class="text-gray-600 text-sm mb-2 line-clamp-2">${product.description || 'No description available'}</p>
+            
             <div class="flex items-center mb-2 text-sm">
                 <span class="text-gray-500">Seller:</span>
                 <span class="font-medium text-gray-700 ml-1">${sellerName}</span>
+                ${product.quantity > 0 ? `<span class="ml-2 text-xs text-green-600">● In Stock (${product.quantity})</span>` : '<span class="ml-2 text-xs text-red-600">● Out of Stock</span>'}
             </div>
+            
             <div class="mb-3 flex items-center text-xs">
                 <span class="flex mr-1">${stars}</span>
                 <span class="text-gray-600">${avgRating.toFixed(1)}</span>
                 <span class="text-gray-400 mx-1">•</span>
                 <span class="text-gray-500">${totalReviews} review${totalReviews !== 1 ? 's' : ''}</span>
             </div>
+            
             <div class="flex justify-between items-center mt-auto">
                 <div class="price-tag px-3 py-2 rounded-lg font-bold text-gray-900 text-xl">${price}</div>
                 <button onclick="event.stopPropagation(); buyProduct('${product.id || product._id}', ${product.price}, '${product.title.replace(/'/g, "\\'")}')" 
@@ -834,7 +916,7 @@ async function buyProduct(productId, price, productTitle) {
             title: product.title || productTitle,
             price: price,
             quantity: 1,
-            image: product.imageUrl || null,
+            image: product.images?.[0] || product.imageUrl || null,
             maxQuantity: product.quantity
         };
         
@@ -847,15 +929,14 @@ async function buyProduct(productId, price, productTitle) {
     }
 }
 
-// Apply all filters with search
+// Apply all filters
 function applyFilters() {
     let filtered = [...allProducts];
     
-    // Apply search first (fuzzy search)
+    // Apply search
     if (currentSearchTerm && currentSearchTerm.trim() !== '') {
         filtered = performSearch(currentSearchTerm);
         
-        // Update search stats to show current search
         const searchStats = document.getElementById('search-stats');
         if (searchStats && !searchStats.innerHTML.includes('Showing results')) {
             searchStats.innerHTML = `🔍 Showing results for: "<strong>${escapeHtml(currentSearchTerm)}</strong>" <button onclick="clearSearch()" class="underline ml-2 hover:text-yellow-200">Clear</button>`;
@@ -873,24 +954,28 @@ function applyFilters() {
     const maxPrice = parseFloat(document.getElementById('max-price')?.value) || Infinity;
     filtered = filtered.filter(p => p.price >= minPrice && p.price <= maxPrice);
     
+    // Gender filter
+    const selectedGenders = [];
+    if (document.getElementById('gender-men')?.checked) selectedGenders.push('MEN');
+    if (document.getElementById('gender-women')?.checked) selectedGenders.push('WOMEN');
+    if (document.getElementById('gender-unisex')?.checked) selectedGenders.push('UNISEX');
+    if (document.getElementById('gender-kids')?.checked) selectedGenders.push('KIDS');
+    if (selectedGenders.length > 0) {
+        filtered = filtered.filter(p => selectedGenders.includes(p.gender));
+    }
+    
+    // Refundable filter
+    const refundableOnly = document.getElementById('refundable-only')?.checked;
+    if (refundableOnly) {
+        filtered = filtered.filter(p => p.refundable === true);
+    }
+    
     // In stock filter
     const inStockOnly = document.getElementById('in-stock-only')?.checked;
     if (inStockOnly) filtered = filtered.filter(p => p.quantity > 0);
     
-    // Condition filter
-    const conditions = [];
-    if (document.getElementById('condition-new')?.checked) conditions.push('new');
-    if (document.getElementById('condition-like-new')?.checked) conditions.push('like-new');
-    if (document.getElementById('condition-good')?.checked) conditions.push('good');
-    if (document.getElementById('condition-fair')?.checked) conditions.push('fair');
-    if (conditions.length > 0) {
-        filtered = filtered.filter(p => conditions.includes(p.condition?.toLowerCase() || 'good'));
-    }
-    
-    // Store the min rating to apply later
-    filtered.minRating = parseFloat(document.getElementById('rating-filter')?.value || 0);
-    
     filteredProducts = filtered;
+    filteredProducts.minRating = parseFloat(document.getElementById('rating-filter')?.value || 0);
     currentPage = 1;
     renderProductsWithFilters();
 }
@@ -898,7 +983,6 @@ function applyFilters() {
 function applyPriceFilter() {
     const minPrice = document.getElementById('min-price').value;
     const maxPrice = document.getElementById('max-price').value;
-    const slider = document.getElementById('price-slider');
     
     if (minPrice) document.getElementById('min-price-display').textContent = minPrice;
     if (maxPrice) document.getElementById('max-price-display').textContent = maxPrice;
@@ -907,7 +991,7 @@ function applyPriceFilter() {
     applyFilters();
 }
 
-// Set view (grid or list)
+// Set view
 function setView(view) {
     currentView = view;
     
@@ -933,7 +1017,7 @@ function setView(view) {
     renderProductsWithFilters();
 }
 
-// Render products with filters, search, and pagination
+// Render products
 async function renderProductsWithFilters() {
     const loadingEl = document.getElementById('loading');
     const gridContainer = document.getElementById('products-container');
@@ -986,31 +1070,18 @@ async function renderProductsWithFilters() {
             productsToRate.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
         } else if (sortBy === 'newest') {
             productsToRate.sort((a, b) => (b.id || b._id) - (a.id || a._id));
-        } else {
-            // Relevance sort - if search term exists, keep original relevance order from Fuse
-            if (currentSearchTerm && fuse) {
-                const searchResults = fuse.search(currentSearchTerm);
-                const relevanceMap = new Map(searchResults.map((r, idx) => [r.item.id || r.item._id, idx]));
-                productsToRate.sort((a, b) => {
-                    const scoreA = relevanceMap.get(a.id || a._id) ?? Infinity;
-                    const scoreB = relevanceMap.get(b.id || b._id) ?? Infinity;
-                    return scoreA - scoreB;
-                });
-            } else {
-                // Default to highest rated
-                productsToRate.sort((a, b) => {
-                    const ratingA = ratingsMap[a.seller?.id || a.sellerId]?.averageRating || 0;
-                    const ratingB = ratingsMap[b.seller?.id || b.sellerId]?.averageRating || 0;
-                    if (ratingA === 0 && ratingB > 0) return 1;
-                    if (ratingB === 0 && ratingA > 0) return -1;
-                    return ratingB - ratingA;
-                });
-            }
+        } else if (sortBy === 'relevance' && currentSearchTerm && fuse) {
+            const searchResults = fuse.search(currentSearchTerm);
+            const relevanceMap = new Map(searchResults.map((r, idx) => [r.item.id || r.item._id, idx]));
+            productsToRate.sort((a, b) => {
+                const scoreA = relevanceMap.get(a.id || a._id) ?? Infinity;
+                const scoreB = relevanceMap.get(b.id || b._id) ?? Infinity;
+                return scoreA - scoreB;
+            });
         }
         
         filteredProducts = productsToRate;
         
-        // Update results count and search badge
         document.getElementById('results-count').textContent = `${filteredProducts.length} item${filteredProducts.length !== 1 ? 's' : ''} found`;
         
         if (currentSearchTerm) {
@@ -1027,7 +1098,7 @@ async function renderProductsWithFilters() {
         const endIndex = startIndex + itemsPerPage;
         const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
         
-        // Render products based on view
+        // Render products
         if (currentView === 'grid' && gridContainer) {
             gridContainer.innerHTML = '';
             paginatedProducts.forEach(product => {
@@ -1062,38 +1133,6 @@ async function renderProductsWithFilters() {
         if (errorEl) errorEl.classList.remove('hidden');
         document.getElementById('error-text').textContent = error.message;
     }
-}
-
-// Manual search triggered by button press
-function performManualSearch() {
-    const searchTerm = document.getElementById('search-input').value;
-    currentSearchTerm = searchTerm;
-    
-    // Hide suggestions
-    document.getElementById('search-suggestions').classList.add('hidden');
-    
-    // Reset to first page
-    currentPage = 1;
-    
-    // Apply filters with the search term
-    applyFilters();
-    
-    // Show feedback that search was performed
-    const searchStats = document.getElementById('search-stats');
-    if (searchTerm && searchTerm.trim() !== '') {
-        searchStats.innerHTML = `🔍 Showing results for: "<strong>${escapeHtml(searchTerm)}</strong>" <button onclick="clearSearch()" class="underline ml-2 hover:text-yellow-200">Clear</button>`;
-        searchStats.classList.add('bg-black/20', 'rounded-lg', 'p-2');
-    } else {
-        searchStats.innerHTML = `🔍 Try searching for: "vintage jacket", "leather shoes", "denim jeans"`;
-        searchStats.classList.remove('bg-black/20', 'rounded-lg', 'p-2');
-    }
-}
-
-// Helper function to escape HTML
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 function renderPagination(totalPages) {
@@ -1155,7 +1194,6 @@ function renderPagination(totalPages) {
     }, 100);
 }
 
-// Clear all filters and search
 function clearAllFilters() {
     // Reset search
     currentSearchTerm = '';
@@ -1174,17 +1212,21 @@ function clearAllFilters() {
     document.getElementById('min-price-display').textContent = '0';
     document.getElementById('max-price-display').textContent = '10000';
     
+    // Reset gender filters
+    ['gender-men', 'gender-women', 'gender-unisex', 'gender-kids'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = false;
+    });
+    
+    // Reset refundable filter
+    const refundableOnly = document.getElementById('refundable-only');
+    if (refundableOnly) refundableOnly.checked = false;
+    
     // Reset rating
     document.getElementById('rating-filter').value = '0';
     
     // Reset stock filter
     document.getElementById('in-stock-only').checked = false;
-    
-    // Reset conditions
-    ['condition-new', 'condition-like-new', 'condition-good', 'condition-fair'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.checked = false;
-    });
     
     // Reset sort
     document.getElementById('sort-by').value = 'relevance';
@@ -1199,7 +1241,6 @@ function clearSearch() {
     currentSearchTerm = '';
     document.getElementById('search-suggestions').classList.add('hidden');
     
-    // Reset search stats
     const searchStats = document.getElementById('search-stats');
     searchStats.innerHTML = `🔍 Try searching for: "vintage jacket", "leather shoes", "denim jeans"`;
     searchStats.classList.remove('bg-black/20', 'rounded-lg', 'p-2');
@@ -1207,13 +1248,10 @@ function clearSearch() {
     applyFilters();
 }
 
-// Handle search with debounce (for real-time suggestions)
 function handleSearchInput() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
         const searchTerm = document.getElementById('search-input').value;
-        
-        // Show suggestions while typing (but don't filter results yet)
         if (searchTerm && searchTerm.trim() !== '') {
             showSearchSuggestions(searchTerm);
         } else {
@@ -1222,18 +1260,6 @@ function handleSearchInput() {
     }, 300);
 }
 
-// Add enter key support for search
-const searchInput = document.getElementById('search-input');
-if (searchInput) {
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            performManualSearch();
-        }
-    });
-}
-// Show search suggestions
-// Show search suggestions - shows only products matching by name
 function showSearchSuggestions(term) {
     if (!fuse || !term.trim()) return;
     
@@ -1267,6 +1293,29 @@ function selectSearchSuggestion(suggestion) {
     applyFilters();
 }
 
+function performManualSearch() {
+    const searchTerm = document.getElementById('search-input').value;
+    currentSearchTerm = searchTerm;
+    document.getElementById('search-suggestions').classList.add('hidden');
+    currentPage = 1;
+    applyFilters();
+    
+    const searchStats = document.getElementById('search-stats');
+    if (searchTerm && searchTerm.trim() !== '') {
+        searchStats.innerHTML = `🔍 Showing results for: "<strong>${escapeHtml(searchTerm)}</strong>" <button onclick="clearSearch()" class="underline ml-2 hover:text-yellow-200">Clear</button>`;
+        searchStats.classList.add('bg-black/20', 'rounded-lg', 'p-2');
+    } else {
+        searchStats.innerHTML = `🔍 Try searching for: "vintage jacket", "leather shoes", "denim jeans"`;
+        searchStats.classList.remove('bg-black/20', 'rounded-lg', 'p-2');
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Load all items
 async function loadAllItems() {
     const loadingEl = document.getElementById('loading');
@@ -1293,7 +1342,7 @@ async function loadAllItems() {
         // Set up price slider max
         const maxPrice = Math.max(...allProducts.map(p => p.price || 0), 10000);
         const slider = document.getElementById('price-slider');
-        slider.max = maxPrice;
+        if (slider) slider.max = maxPrice;
         document.getElementById('max-price-display').textContent = maxPrice;
         
         filteredProducts = [...allProducts];
@@ -1314,7 +1363,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCategories();
     loadAllItems();
     
-    // Setup search input listener
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
         searchInput.addEventListener('input', handleSearchInput);
@@ -1331,7 +1379,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Make functions global
-// Make functions global
 window.logout = logout;
 window.filterByCategory = filterByCategory;
 window.applyFilters = applyFilters;
@@ -1341,7 +1388,8 @@ window.clearSearch = clearSearch;
 window.buyProduct = buyProduct;
 window.setView = setView;
 window.selectSearchSuggestion = selectSearchSuggestion;
-window.performManualSearch = performManualSearch;  // Add this line
+window.performManualSearch = performManualSearch;
+window.loadAllItems = loadAllItems;
 </script>
 </body>
 </html>

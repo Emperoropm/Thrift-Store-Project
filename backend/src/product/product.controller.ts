@@ -13,54 +13,158 @@ export class ProductController {
     this.productService = new ProductService();
     this.insertProduct = this.insertProduct.bind(this);
     this.getProducts = this.getProducts.bind(this);
+    this.getProductById = this.getProductById.bind(this);
+    this.getProductsByCategory = this.getProductsByCategory.bind(this);
+    this.updateProduct = this.updateProduct.bind(this);
+    this.deleteProduct = this.deleteProduct.bind(this);
+    this.getProductsBySellerId = this.getProductsBySellerId.bind(this);
+    this.getPendingProducts = this.getPendingProducts.bind(this);
+    this.approveProduct = this.approveProduct.bind(this);
+    this.rejectProduct = this.rejectProduct.bind(this);
+    this.updateProductStatus = this.updateProductStatus.bind(this);
+    this.getProductsBySellerIdPublic = this.getProductsBySellerIdPublic.bind(this);
   }
-
-  async insertProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const userId = (req as any).user?.id;
-      const userRole = (req as any).user?.role;
-      
-      if (!userId || !userRole) {
-        throw new AppError("User information missing from token", 401, {});
-      }
-
-      const product = new ProductModel(
-        req.body.title,
-        req.body.price,
-        req.body.quantity,
-        userId,
-        req.body.description,
-        req.body.imageUrl,
-        req.body.categoryId
-      );
-
-      const errors = await validate(product);
-      if (errors.length > 0) {
-        const validationError: Record<string, string> = {};
-        for (const err of errors) {
-          if (err.constraints) {
-            const message = Object.values(err.constraints);
-            if (message.length > 0 && typeof message[0] === "string") {
-              validationError[err.property] = message[0];
-            }
-          }
-        }
-        throw new AppError("Validation failed", 400, validationError);
-      }
-
-      const result = await this.productService.insertProduct({
-        ...req.body
-      }, userId);
-
-      res.status(201).json({
-        message: "Product submitted for admin approval",
-        data: result
-      });
-
-    } catch (error) {
-      next(error);
+async insertProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const userId = (req as any).user?.id;
+    const userRole = (req as any).user?.role;
+    
+    if (!userId || !userRole) {
+      throw new AppError("User information missing from token", 401, {});
     }
+
+    // Handle uploaded files
+    const files = req.files as Express.Multer.File[];
+    let imageUrls: string[] = [];
+    
+    if (files && files.length > 0) {
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      imageUrls = files.map(file => `${baseUrl}/uploads/products/${file.filename}`);
+    }
+
+    // Parse location if it's a string
+    let locationData = null;
+    if (req.body.location) {
+      try {
+        locationData = typeof req.body.location === 'string' 
+          ? JSON.parse(req.body.location) 
+          : req.body.location;
+      } catch (e) {
+        console.error('Error parsing location:', e);
+      }
+    }
+
+    // Prepare product data
+    const productData = {
+      title: req.body.title,
+      price: parseFloat(req.body.price),
+      quantity: parseInt(req.body.quantity),
+      description: req.body.description,
+      categoryId: req.body.categoryId ? parseInt(req.body.categoryId) : null,
+      images: imageUrls,
+      purchaseDate: req.body.purchaseDate,
+      gender: req.body.gender,
+      refundable: req.body.refundable === 'true' || req.body.refundable === true,
+      location: locationData
+    };
+
+    console.log('Product data to insert:', productData);
+
+    const result = await this.productService.insertProduct(productData, userId);
+
+    res.status(201).json({
+      message: "Product submitted for admin approval",
+      data: result
+    });
+
+  } catch (error) {
+    next(error);
   }
+}
+
+async updateProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const id = Number(req.params.id);
+    const userId = (req as any).user?.id;
+    const userRole = (req as any).user?.role;
+
+    if (isNaN(id) || id <= 0 || !userId) {
+      throw new AppError("Invalid product ID or user ID", 400, {});
+    }
+
+    // Handle uploaded new images
+    const files = req.files as Express.Multer.File[];
+    let newImageUrls: string[] = [];
+    
+    if (files && files.length > 0) {
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      newImageUrls = files.map(file => `${baseUrl}/uploads/products/${file.filename}`);
+    }
+
+    // Parse imagesToDelete if it's a string
+    let imagesToDelete = req.body.imagesToDelete;
+    if (imagesToDelete && typeof imagesToDelete === 'string') {
+      try {
+        imagesToDelete = JSON.parse(imagesToDelete);
+      } catch (e) {
+        imagesToDelete = imagesToDelete.split(',').filter((s: string) => s.trim());
+      }
+    }
+
+    // Parse location if it's a string
+    let locationData = null;
+    if (req.body.location) {
+      try {
+        locationData = typeof req.body.location === 'string' 
+          ? JSON.parse(req.body.location) 
+          : req.body.location;
+      } catch (e) {
+        console.error('Error parsing location:', e);
+      }
+    }
+
+    // Prepare update data
+    const updateData: any = {
+      title: req.body.title,
+      price: req.body.price ? parseFloat(req.body.price) : undefined,
+      quantity: req.body.quantity ? parseInt(req.body.quantity) : undefined,
+      description: req.body.description,
+      categoryId: req.body.categoryId ? parseInt(req.body.categoryId) : null,
+      purchaseDate: req.body.purchaseDate,
+      gender: req.body.gender,
+      refundable: req.body.refundable !== undefined ? 
+        (req.body.refundable === 'true' || req.body.refundable === true) : 
+        undefined,
+      location: locationData,
+      newImages: newImageUrls,
+      imagesToDelete: imagesToDelete
+    };
+
+    // Remove undefined values
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
+
+    console.log('Update data:', updateData);
+
+    const result = await this.productService.updateProduct(id, userId, userRole, updateData);
+
+    const message = result.status === 'PENDING' 
+      ? 'Product updated and sent for re-approval'
+      : 'Product updated successfully';
+
+    res.status(200).json({
+      message,
+      data: result
+    });
+
+  } catch (error) {
+    next(error);
+  }
+}
+
 
   async getProducts(request: Request, response: Response, next: NextFunction): Promise<void> {
     try {
@@ -79,32 +183,32 @@ export class ProductController {
     }
   }
 
-async getProductById(
-  request: Request,
-  response: Response,
-  next: NextFunction
-): Promise<void> {
-  try {
-    const id = Number(request.params.id);
+  async getProductById(
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const id = Number(request.params.id);
 
-    const result = await this.productService.getProductById(id);
+      const result = await this.productService.getProductById(id);
 
-    if (!result) {
-      response.status(404).json({
-        message: "Product not found"
+      if (!result) {
+        response.status(404).json({
+          message: "Product not found"
+        });
+        return;
+      }
+
+      response.status(200).json({
+        message: "Product fetched successfully",
+        data: result
       });
-      return;
+
+    } catch (error) {
+      next(error);
     }
-
-    response.status(200).json({
-      message: "Product fetched successfully",
-      data: result
-    });
-
-  } catch (error) {
-    next(error);
   }
-}
 
   getProductsByCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -127,47 +231,6 @@ async getProductById(
     }
   }
 
-  updateProduct = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = Number(req.params.id);
-      const userId = (req as any).user?.id;
-      const userRole = (req as any).user?.role;
-
-      if (isNaN(id) || id <= 0 || !userId) {
-        throw new AppError("Invalid product ID or user ID", 400, {});
-      }
-
-      // Validate only provided fields
-      const productData = Object.assign(new ProductPatchModel(), req.body);
-      const errors = await validate(productData, { skipMissingProperties: true });
-      if (errors.length > 0) {
-        const validationError: Record<string, string> = {};
-        for (const err of errors) {
-          if (err.constraints) {
-            const message = Object.values(err.constraints);
-            if (message.length > 0 && typeof message[0] === "string") {
-              validationError[err.property] = message[0];
-            }
-          }
-        }
-        throw new AppError("Validation failed", 400, validationError);
-      }
-
-      const result = await this.productService.updateProduct(id, userId, userRole, req.body);
-
-      const message = result.status === 'PENDING' 
-        ? 'Product updated and sent for re-approval'
-        : 'Product updated successfully';
-
-      res.status(200).json({
-        message,
-        data: result
-      });
-
-    } catch (error) {
-      next(error);
-    }
-  };
 
   deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -214,6 +277,28 @@ async getProductById(
         message: `Products fetched successfully`,
         data: products,
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Public endpoint to get products by seller ID
+  getProductsBySellerIdPublic = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const sellerId = parseInt(req.params.sellerId!);
+      
+      if (isNaN(sellerId)) {
+        throw new AppError("Invalid seller ID", 400, {});
+      }
+      
+      // Public endpoint - only show approved products with stock
+      const products = await this.productService.getProductsByAnySellerId(sellerId, false);
+      
+      res.status(200).json({
+        message: "Seller products fetched successfully",
+        data: products
+      });
+      
     } catch (error) {
       next(error);
     }
@@ -294,27 +379,4 @@ async getProductById(
       next(error);
     }
   };
-
-  // Add this method to ProductController class
-getProductsBySellerIdPublic = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const sellerId = parseInt(req.params.sellerId!);
-    
-    if (isNaN(sellerId)) {
-      throw new AppError("Invalid seller ID", 400, {});
-    }
-    
-    // Public endpoint - only show approved products with stock
-    const products = await this.productService.getProductsByAnySellerId(sellerId, false);
-    
-    res.status(200).json({
-      message: "Seller products fetched successfully",
-      data: products
-    });
-    
-  } catch (error) {
-    next(error);
-  }
-};
-  
 }

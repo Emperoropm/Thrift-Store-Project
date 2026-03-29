@@ -116,6 +116,49 @@
             color: white;
         }
 
+
+/* Make sure modal is above everything */
+.modal-overlay {
+    z-index: 9999;
+}
+
+#location-modal .modal-content {
+    z-index: 10000;
+}
+        /* Image upload styles */
+#image-upload-area, #edit-image-upload-area {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#image-upload-area.drag-over, #edit-image-upload-area.drag-over {
+    border-color: #10b981;
+    background-color: #f0fdf4;
+}
+
+/* Product card image gallery */
+.product-images-preview {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 8px 0;
+}
+
+.product-image-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.product-image-thumb:hover {
+    border-color: #10b981;
+    transform: scale(1.05);
+}
+
         /* Add these to your existing CSS */
 .status-badge {
     padding: 4px 12px;
@@ -443,103 +486,188 @@
             </div>
 
             <!-- Add Product Form (Hidden by default) -->
-            <div id="add-product-form" class="bg-white rounded-xl shadow p-6 mb-8 hidden">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Add New Product</h3>
-                <form id="new-product-form" onsubmit="addNewProduct(event)">
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 mb-2">Product Title *</label>
-                            <input type="text" id="product-title" class="w-full px-4 py-2 border border-gray-300 rounded-lg" >
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 mb-2">Price (Rs.) *</label>
-                            <input type="number" id="product-price" class="w-full px-4 py-2 border border-gray-300 rounded-lg" step="1" min="1" >
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 mb-2">Quantity *</label>
-                            <input type="number" id="product-quantity" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" max="10" >
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 mb-2">Category</label>
-                            <select id="product-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                                <option value="">Select Category</option>
-                                <!-- Categories will be dynamically added by JavaScript -->
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <label class="block text-gray-700 mb-2">Description</label>
-                        <textarea id="product-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Describe your product..."></textarea>
-                    </div>
-                    <div class="mt-4">
-                        <label class="block text-gray-700 mb-2">Image URL (Optional)</label>
-                        <input type="url" id="product-image" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://example.com/image.jpg">
-                        <p class="text-sm text-gray-500 mt-1">Enter a URL for your product image</p>
-                    </div>
-                    <div class="flex justify-end space-x-3 mt-6">
-                        <button type="button" onclick="hideAddProductForm()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                            Add Product
-                        </button>
-                    </div>
-                </form>
+<div id="add-product-form" class="bg-white rounded-xl shadow p-6 mb-8 hidden">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Add New Product</h3>
+    <form id="new-product-form" onsubmit="addNewProduct(event)">
+        <div class="grid md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-gray-700 mb-2">Product Title *</label>
+                <input type="text" id="product-title" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
             </div>
-
-            <!-- Edit Product Modal (Hidden by default) -->
-            <div id="edit-product-modal" class="modal-overlay hidden">
-                <div class="modal-content p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold text-gray-800">Edit Product</h3>
-                        <button onclick="hideEditModal()" class="text-gray-500 hover:text-gray-700">
-                            <i data-feather="x" class="w-5 h-5"></i>
+            <div>
+                <label class="block text-gray-700 mb-2">Price (Rs.) *</label>
+                <input type="number" id="product-price" class="w-full px-4 py-2 border border-gray-300 rounded-lg" step="1" min="1" required>
+            </div>
+            <div>
+                <label class="block text-gray-700 mb-2">Quantity *</label>
+                <input type="number" id="product-quantity" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" max="10" required>
+            </div>
+            <div>
+                <label class="block text-gray-700 mb-2">Category</label>
+                <select id="product-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <option value="">Select Category</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-gray-700 mb-2">Purchase Date *</label>
+                <input type="date" id="product-purchase-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+            </div>
+            <div>
+                <label class="block text-gray-700 mb-2">Gender *</label>
+                <select id="product-gender" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+                    <option value="">Select Gender</option>
+                    <option value="MEN">Men</option>
+                    <option value="WOMEN">Women</option>
+                    <option value="UNISEX">Unisex</option>
+                    <option value="KIDS">Kids</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-gray-700 mb-2">Refundable</label>
+                <select id="product-refundable" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <option value="true">Yes, Refundable</option>
+                    <option value="false">No, Not Refundable</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-gray-700 mb-2">Location *</label>
+                <div class="flex gap-2">
+                    <input type="text" id="product-location" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg" placeholder="Search location..." readonly>
+                 <button type="button" onclick="openLocationPicker('add')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <i data-feather="map-pin" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <input type="hidden" id="product-latitude">
+                <input type="hidden" id="product-longitude">
+                <p class="text-xs text-gray-500 mt-1">Click the map button to select your location</p>
+            </div>
+        </div>
+        
+       <!-- Multiple Image Upload -->
+<div class="mt-4">
+    <label class="block text-gray-700 mb-2">Product Images *</label>
+    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-green-500 transition" 
+         id="image-upload-area" 
+         onclick="document.getElementById('product-images').click()">
+        <input type="file" id="product-images" class="hidden" accept="image/jpeg,image/png,image/jpg,image/gif" multiple onchange="previewImages(this.files, 'add')">
+        <i data-feather="upload-cloud" class="w-10 h-10 mx-auto text-gray-400 mb-2"></i>
+        <p class="text-gray-500">Click or drag images here to upload</p>
+        <p class="text-xs text-gray-400 mt-1">You can select multiple images (Max 5, JPG/PNG/GIF only)</p>
+    </div>
+    <div id="add-image-preview" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3"></div>
+</div>
+        
+        <div class="mt-4">
+            <label class="block text-gray-700 mb-2">Description</label>
+            <textarea id="product-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Describe your product..."></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3 mt-6">
+            <button type="button" onclick="hideAddProductForm()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                Cancel
+            </button>
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                Add Product
+            </button>
+        </div>
+    </form>
+</div>
+           <!-- Edit Product Modal (Hidden by default) -->
+<div id="edit-product-modal" class="modal-overlay hidden">
+    <div class="modal-content p-6 max-w-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Edit Product</h3>
+            <button onclick="hideEditModal()" class="text-gray-500 hover:text-gray-700">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <form id="edit-product-form" onsubmit="updateProduct(event)">
+            <input type="hidden" id="edit-product-id">
+            
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 mb-2">Product Title *</label>
+                    <input type="text" id="edit-title" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Price (Rs.) *</label>
+                    <input type="number" id="edit-price" class="w-full px-4 py-2 border border-gray-300 rounded-lg" step="1" min="1" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Quantity *</label>
+                    <input type="number" id="edit-quantity" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" max="10" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Category</label>
+                    <select id="edit-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Purchase Date *</label>
+                    <input type="date" id="edit-purchase-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Gender *</label>
+                    <select id="edit-gender" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+                        <option value="">Select Gender</option>
+                        <option value="MEN">Men</option>
+                        <option value="WOMEN">Women</option>
+                        <option value="UNISEX">Unisex</option>
+                        <option value="KIDS">Kids</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Refundable</label>
+                    <select id="edit-refundable" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="true">Yes, Refundable</option>
+                        <option value="false">No, Not Refundable</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Location *</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="edit-location" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg" placeholder="Search location..." readonly>
+                        <button type="button" onclick="openLocationPicker('edit')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <i data-feather="map-pin" class="w-4 h-4"></i>
                         </button>
                     </div>
-                    <form id="edit-product-form" onsubmit="updateProduct(event)">
-                        <input type="hidden" id="edit-product-id">
-                        
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-gray-700 mb-2">Product Title *</label>
-                                <input type="text" id="edit-title" class="w-full px-4 py-2 border border-gray-300 rounded-lg" >
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 mb-2">Price (Rs.) *</label>
-                                <input type="number" id="edit-price" class="w-full px-4 py-2 border border-gray-300 rounded-lg" step="1" min="1" >
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 mb-2">Quantity *</label>
-                                <input type="number" id="edit-quantity" class="w-full px-4 py-2 border border-gray-300 rounded-lg" min="1" max="10" >
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 mb-2">Category</label>
-                                <select id="edit-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                                    <option value="">Select Category</option>
-                                    <!-- Categories will be dynamically added by JavaScript -->
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <label class="block text-gray-700 mb-2">Description</label>
-                            <textarea id="edit-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Describe your product..."></textarea>
-                        </div>
-                        <div class="mt-4">
-                            <label class="block text-gray-700 mb-2">Image URL</label>
-                            <input type="url" id="edit-image" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="https://example.com/image.jpg">
-                            <p class="text-sm text-gray-500 mt-1">Enter a URL for your product image</p>
-                        </div>
-                        <div class="flex justify-end space-x-3 mt-6">
-                            <button type="button" onclick="hideEditModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
-                                Cancel
-                            </button>
-                            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                                Update Product
-                            </button>
-                        </div>
-                    </form>
+                    <input type="hidden" id="edit-latitude">
+                    <input type="hidden" id="edit-longitude">
                 </div>
             </div>
+            
+            <!-- Multiple Image Upload for Edit -->
+            <<!-- Multiple Image Upload for Edit -->
+<div class="mt-4">
+    <label class="block text-gray-700 mb-2">Product Images</label>
+    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-green-500 transition" id="edit-image-upload-area">
+        <input type="file" id="edit-product-images" class="hidden" accept="image/jpeg,image/png,image/jpg,image/gif" multiple onchange="previewEditImages(this.files)">
+        <i data-feather="upload-cloud" class="w-10 h-10 mx-auto text-gray-400 mb-2"></i>
+        <p class="text-gray-500">Click or drag images here to add more (Max 5 total)</p>
+        <p class="text-xs text-gray-400 mt-1">You can select multiple images (JPG/PNG/GIF only)</p>
+    </div>
+    <div id="edit-image-preview" class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
+        <!-- Existing images will be shown here -->
+    </div>
+</div>
+            
+            <div class="mt-4">
+                <label class="block text-gray-700 mb-2">Description</label>
+                <textarea id="edit-description" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Describe your product..."></textarea>
+            </div>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" onclick="hideEditModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    Update Product
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
             <!-- Products Loading State -->
             <div id="loading" class="flex justify-center items-center py-12">
@@ -651,6 +779,58 @@
     </div>
 </div>
 
+
+<!-- Location Picker Modal with Google Maps -->
+<div id="location-modal" class="modal-overlay hidden">
+    <div class="modal-content p-6 max-w-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Select Location</h3>
+            <button onclick="closeLocationModal()" class="text-gray-500 hover:text-gray-700">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <!-- Search input for location -->
+        <div class="mb-4">
+            <input type="text" id="location-search" placeholder="Search for a location..." 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+        </div>
+        
+        <!-- Map container -->
+        <div id="map" class="w-full h-96 rounded-lg mb-4"></div>
+        
+        <!-- Selected location info -->
+        <div id="selected-location-info" class="text-sm text-gray-600 mb-4">
+            Click on the map to select a location
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <button type="button" onclick="closeLocationModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                Cancel
+            </button>
+            <button type="button" onclick="confirmLocation()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                Confirm Location
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Load Google Maps API -->
+<script>
+    window.initGoogleMapsCallback = function() {
+        console.log('Google Maps API loaded successfully');
+        if (window.googleMapsLoaded !== undefined) {
+            window.googleMapsLoaded = true;
+            if (window.pendingMapCallbacks) {
+                while (window.pendingMapCallbacks.length > 0) {
+                    const callback = window.pendingMapCallbacks.shift();
+                    callback();
+                }
+            }
+        }
+    };
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDV4RusfME-LbLAqLzRRUVuTq8dXfuVCB4&libraries=places&callback=initGoogleMapsCallback" async defer></script>
 <!-- Floating Chat Button - Add this before closing body tag -->
 <div class="fixed bottom-6 right-6 z-40">
     <button onclick="goToInbox()" class="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-all duration-300 hover:scale-110 flex items-center justify-center relative group">
@@ -667,7 +847,22 @@
         let currentTab = 'products';
         let ordersData = [];
         let buyerOrdersData = []; 
-        
+        let selectedImageFiles = [];
+let imagesToDelete = [];
+
+// Location picker variables
+let currentLocationContext = null;
+let googleMap = null;
+let googleMarker = null;
+let geocoder = null;
+let autocomplete = null;
+let googleMapsLoaded = false;
+let pendingMapCallbacks = [];
+
+// Add these with your other variables
+let newEditImageFiles = []; // Store new image files for edit
+let existingImagesList = []; // Store existing image URLs
+
         // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize feather icons
@@ -1308,48 +1503,96 @@ function showRatingMessage(message, type) {
     }, 3000);
 }
 
-        // Create seller product card (existing function)
-        function createSellerProductCard(product) {
-            const div = document.createElement('div');
-            div.className = 'product-card bg-white';
+      // Add this helper function to get valid image URL
+function getValidImageUrl(image) {
+    if (!image) return null;
+    
+    // If it's already a full URL or base64, return as is
+    if (image.startsWith('http') || image.startsWith('data:image')) {
+        return image;
+    }
+    
+    // If it's a path from server, construct full URL
+    const baseUrl = API_URL.replace('/api', '');
+    return `${baseUrl}${image}`;
+}
+
+// Update the createSellerProductCard function
+function createSellerProductCard(product) {
+    const div = document.createElement('div');
+    div.className = 'product-card bg-white';
+    
+    const status = (product.quantity || 0) > 0 ? 'Available' : 'Sold Out';
+    const statusClass = (product.quantity || 0) > 0 ? 'status-active' : 'status-sold';
+    
+    // Debug: Log product images
+    console.log('Product images for', product.title, ':', product.images);
+    
+    // Get first image - check multiple possible locations
+    let firstImage = null;
+    if (product.images && product.images.length > 0) {
+        firstImage = getValidImageUrl(product.images[0]);
+    } else if (product.imageUrl) {
+        firstImage = getValidImageUrl(product.imageUrl);
+    } else if (product.image) {
+        firstImage = getValidImageUrl(product.image);
+    }
+    
+    const genderIcon = product.gender === 'MEN' ? '👨' : product.gender === 'WOMEN' ? '👩' : product.gender === 'UNISEX' ? '👥' : '👶';
+    const refundableText = product.refundable ? '✅ Refundable' : '❌ Non-refundable';
+    
+    div.innerHTML = `
+        <div class="relative">
+            <div class="h-48 bg-gray-200 flex items-center justify-center">
+                ${firstImage ? 
+                    `<img src="${firstImage}" alt="${product.title}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">` :
+                    `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`
+                }
+            </div>
+            <span class="absolute top-2 right-2 px-3 py-1 text-xs font-bold rounded ${statusClass}">
+                ${status}
+            </span>
+            ${product.images && product.images.length > 1 ? 
+                `<span class="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                    +${product.images.length - 1} more
+                </span>` : ''
+            }
+        </div>
+        <div class="p-4">
+            <h3 class="font-bold text-lg mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
+            <p class="text-gray-600 text-sm mb-2 line-clamp-2">${product.description || 'No description'}</p>
             
-            const status = (product.quantity || 0) > 0 ? 'Available' : 'Sold Out';
-            const statusClass = (product.quantity || 0) > 0 ? 'status-active' : 'status-sold';
+            <div class="flex flex-wrap gap-2 mb-3">
+                <span class="text-xs px-2 py-1 bg-gray-100 rounded-full">${genderIcon} ${product.gender || 'N/A'}</span>
+                <span class="text-xs px-2 py-1 bg-gray-100 rounded-full">📅 ${product.purchaseDate ? new Date(product.purchaseDate).toLocaleDateString() : 'N/A'}</span>
+                <span class="text-xs px-2 py-1 bg-gray-100 rounded-full">${refundableText}</span>
+            </div>
             
-            div.innerHTML = `
-                <div class="relative">
-                    <div class="h-48 bg-gray-200 flex items-center justify-center">
-                        ${product.imageUrl ? 
-                            `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-cover">` :
-                            `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`
-                        }
-                    </div>
-                    <span class="absolute top-2 right-2 px-3 py-1 text-xs font-bold rounded ${statusClass}">
-                        ${status}
-                    </span>
+            ${product.location ? `
+                <div class="text-xs text-gray-500 mb-3 flex items-start">
+                    <i data-feather="map-pin" class="w-3 h-3 mr-1 mt-0.5 flex-shrink-0"></i>
+                    <span class="truncate">${product.location.address || 'Location not specified'}</span>
                 </div>
-                <div class="p-4">
-                    <h3 class="font-bold text-lg mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
-                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description || 'No description'}</p>
-                    
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="text-xl font-bold text-green-700">Rs. ${parseFloat(product.price || 0).toFixed(2)}</div>
-                        <div class="text-sm text-gray-500">Qty: ${product.quantity || 0}</div>
-                    </div>
-                    
-                    <div class="flex space-x-2">
-                        <button onclick="showEditModal(${product.id})" class="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-sm">
-                            Edit
-                        </button>
-                        <button onclick="deleteProduct(${product.id})" class="flex-1 px-3 py-2 border border-red-300 text-red-600 rounded hover:bg-red-50 text-sm">
-                            Delete
-                        </button>
-                    </div>
-                </div>
-            `;
+            ` : ''}
             
-            return div;
-        }
+            <div class="flex justify-between items-center mb-3">
+                <div class="text-xl font-bold text-green-700">Rs. ${parseFloat(product.price || 0).toFixed(2)}</div>
+                <div class="text-sm text-gray-500">Qty: ${product.quantity || 0}</div>
+            </div>
+            
+            <div class="flex space-x-2">
+                <button onclick="showEditModal(${product.id})" class="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-sm">
+                    Edit
+                </button>
+                <button onclick="deleteProduct(${product.id})" class="flex-1 px-3 py-2 border border-red-300 text-red-600 rounded hover:bg-red-50 text-sm">
+                    Delete
+                </button>
+            </div>
+        </div>
+    `;
+    
+    return div;
+}
         
         // Render seller orders
         function renderSellerOrders(orders) {
@@ -1803,8 +2046,9 @@ itemsHTML += `
 // Hide add product form
 function hideAddProductForm() {
     document.getElementById('add-product-form').classList.add('hidden');
-    // Optionally reset the form
     document.getElementById('new-product-form').reset();
+    document.getElementById('add-image-preview').innerHTML = '';
+    selectedImageFiles = []; // Clear selected images
 }
 
 // Filter buyer orders
@@ -2261,217 +2505,358 @@ function showNotification(message, type = 'success') {
         // The rest of your existing functions (showEditModal, hideEditModal, addNewProduct, updateProduct, deleteProduct, logout) remain the same...
         // [Keep all your existing functions for product management here]
         
-        // Show edit modal (existing function)
-        async function showEditModal(productId) {
-            try {
-                const token = localStorage.getItem('token');
-                
-                // Ensure categories are loaded BEFORE showing the modal
-                if (!allCategories || allCategories.length === 0) {
-                    await loadCategoriesForDropdown();
-                }
-                
-                // First, get the product details
-                const response = await fetch(`${API_URL}/products/getBySeller`, {
-                    method: 'GET',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to load product details');
-                }
-                
-                const result = await response.json();
-                const products = result.data || result;
-                const product = products.find(p => p.id == productId);
-                
-                if (!product) {
-                    throw new Error('Product not found');
-                }
-                
-                // Fill the edit form with product data
-                document.getElementById('edit-product-id').value = product.id;
-                document.getElementById('edit-title').value = product.title || '';
-                document.getElementById('edit-price').value = product.price || 0;
-                document.getElementById('edit-quantity').value = product.quantity || 0;
-                document.getElementById('edit-description').value = product.description || '';
-                document.getElementById('edit-image').value = product.imageUrl || '';
-                
-                // Set the category AFTER dropdown is populated
-                setTimeout(() => {
-                    const categoryId = product.categoryId || product.category?.id || '';
-                    const editCategorySelect = document.getElementById('edit-category');
-                    if (editCategorySelect) {
-                        editCategorySelect.value = categoryId.toString();
-                    }
-                }, 100);
-                
-                // Show the modal
-                document.getElementById('edit-product-modal').classList.remove('hidden');
-                
-            } catch (error) {
-                console.error('Error loading product details:', error);
-                alert('Failed to load product details. Please try again.');
-            }
+   async function showEditModal(productId) {
+    try {
+        const token = localStorage.getItem('token');
+        
+        if (!allCategories || allCategories.length === 0) {
+            await loadCategoriesForDropdown();
         }
         
+        const response = await fetch(`${API_URL}/products/getBySeller`, {
+            method: 'GET',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load product details');
+        }
+        
+        const result = await response.json();
+        const products = result.data || result;
+        const product = products.find(p => p.id == productId);
+        
+        if (!product) {
+            throw new Error('Product not found');
+        }
+        
+        console.log('Product data loaded:', product);
+        
+        // Reset arrays
+        imagesToDelete = [];
+        newEditImageFiles = [];
+        existingImagesList = product.images || [];
+        
+        // Fill the edit form with product data
+        document.getElementById('edit-product-id').value = product.id;
+        document.getElementById('edit-title').value = product.title || '';
+        document.getElementById('edit-price').value = product.price || 0;
+        document.getElementById('edit-quantity').value = product.quantity || 0;
+        document.getElementById('edit-description').value = product.description || '';
+        document.getElementById('edit-purchase-date').value = product.purchaseDate ? product.purchaseDate.split('T')[0] : '';
+        document.getElementById('edit-gender').value = product.gender || '';
+        document.getElementById('edit-refundable').value = product.refundable ? 'true' : 'false';
+        document.getElementById('edit-location').value = product.location?.address || '';
+        document.getElementById('edit-latitude').value = product.location?.lat || '';
+        document.getElementById('edit-longitude').value = product.location?.lng || '';
+        
+        // Clear existing preview container
+        const existingImagesContainer = document.getElementById('edit-image-preview');
+        existingImagesContainer.innerHTML = '';
+        
+        // Show existing images with delete option
+        if (product.images && product.images.length > 0) {
+            product.images.forEach((img, index) => {
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'relative group existing-image';
+                imgContainer.setAttribute('data-image-url', img);
+                imgContainer.innerHTML = `
+                    <img src="${img}" class="w-full h-24 object-cover rounded-lg border border-gray-200">
+                    <button type="button" onclick="markImageForDeletion('${img}')" 
+                            class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition">
+                        <i data-feather="x" class="w-3 h-3"></i>
+                    </button>
+                `;
+                existingImagesContainer.appendChild(imgContainer);
+            });
+        }
+        
+        // Set category
+        setTimeout(() => {
+            const categoryId = product.categoryId || product.category?.id || '';
+            const editCategorySelect = document.getElementById('edit-category');
+            if (editCategorySelect && categoryId) {
+                editCategorySelect.value = categoryId.toString();
+            }
+        }, 100);
+        
+        // Show the modal
+        const modal = document.getElementById('edit-product-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+        
+        // Re-initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+        
+    } catch (error) {
+        console.error('Error loading product details:', error);
+        alert('Failed to load product details. Please try again.');
+    }
+}
+
+
+function markImageForDeletion(imageUrl, index) {
+    imagesToDelete.push(imageUrl);
+    // Remove the image preview
+    const btn = event.target;
+    btn.closest('.relative').remove();
+}
         // Hide edit modal (existing function)
         function hideEditModal() {
             document.getElementById('edit-product-modal').classList.add('hidden');
         }
-        
-        // Add new product (existing function)
-        async function addNewProduct(event) {
-            event.preventDefault();
+
+
+
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
+
+        // Add this helper function to compress images
+async function compressImage(base64String, maxWidth = 800, maxHeight = 800, quality = 0.7) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
             
-            const title = document.getElementById('product-title').value;
-            const price = parseFloat(document.getElementById('product-price').value);
-            const quantity = parseInt(document.getElementById('product-quantity').value);
-            const categoryId = document.getElementById('product-category').value;
-            const description = document.getElementById('product-description').value;
-            const imageUrl = document.getElementById('product-image').value;
-            
-            // Validation
-            if (!title || !price || !quantity) {
-                alert('Please fill in all required fields');
-                return;
-            }
-            
-            if (price <= 0) {
-                alert('Price must be greater than 0');
-                return;
-            }
-            
-            if (quantity <= 0 || quantity >=10) {
-                alert('Quantity must be greater than 0 or less than 10');
-                return;
-            }
-            
-            try {
-                const token = localStorage.getItem('token');
-                
-                // Prepare product data according to your API
-                const productData = {
-                    title: title,
-                    price: price,
-                    quantity: quantity,
-                    description: description || undefined,
-                    imageUrl: imageUrl || undefined,
-                    categoryId: categoryId ? parseInt(categoryId) : undefined
-                };
-                
-                console.log('Sending product data:', productData);
-                
-                // Call your insertProducts API
-                const response = await fetch(`${API_URL}/products/insertProducts`, {
-                    method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(productData)
-                });
-                
-                const result = await response.json();
-                console.log('API Response:', result);
-                
-                if (response.ok) {
-                    alert('Product added successfully!');
-                    hideAddProductForm();
-                    // Reload products
-                    loadSellerProducts();
-                } else {
-                    // Handle validation errors
-                    let errorMessage = 'Failed to add product';
-                    if (result.errors) {
-                        errorMessage += ': ' + Object.values(result.errors).join(', ');
-                    } else if (result.message) {
-                        errorMessage = result.message;
-                    }
-                    alert(errorMessage);
+            if (width > height) {
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
                 }
-                
-            } catch (error) {
-                console.error('Error adding product:', error);
-                alert('Failed to add product. Please try again.');
+            } else {
+                if (height > maxHeight) {
+                    width = (width * maxHeight) / height;
+                    height = maxHeight;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = base64String;
+    });
+}
+
+async function addNewProduct(event) {
+    event.preventDefault();
+    
+    const title = document.getElementById('product-title').value;
+    const price = parseFloat(document.getElementById('product-price').value);
+    const quantity = parseInt(document.getElementById('product-quantity').value);
+    const categoryId = document.getElementById('product-category').value;
+    const description = document.getElementById('product-description').value;
+    const purchaseDate = document.getElementById('product-purchase-date').value;
+    const gender = document.getElementById('product-gender').value;
+    const refundable = document.getElementById('product-refundable').value === 'true';
+    const location = document.getElementById('product-location').value;
+    const latitude = parseFloat(document.getElementById('product-latitude').value);
+    const longitude = parseFloat(document.getElementById('product-longitude').value);
+    
+    // Validation
+    if (!title || !price || !quantity || !purchaseDate || !gender || !location) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    if (selectedImageFiles.length === 0) {
+        alert('Please upload at least one product image');
+        return;
+    }
+    
+    // Validate coordinates
+    if (isNaN(latitude) || isNaN(longitude)) {
+        alert('Please select a valid location from the map');
+        return;
+    }
+    
+    // Show loading indicator
+    const submitBtn = event.submitter;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 mr-2 animate-spin"></i> Adding...';
+    submitBtn.disabled = true;
+    
+    try {
+        const token = localStorage.getItem('token');
+        
+        // Create FormData instead of JSON
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('price', price.toString());
+        formData.append('quantity', quantity.toString());
+        formData.append('description', description || '');
+        if (categoryId) formData.append('categoryId', categoryId);
+        formData.append('purchaseDate', purchaseDate);
+        formData.append('gender', gender);
+        formData.append('refundable', refundable ? 'true' : 'false');
+        
+        // Add location as JSON string
+        const locationData = {
+            address: location,
+            lat: latitude,
+            lng: longitude
+        };
+        formData.append('location', JSON.stringify(locationData));
+        
+        // Append image files (NOT base64)
+        for (let i = 0; i < selectedImageFiles.length; i++) {
+            formData.append('images', selectedImageFiles[i]);
+        }
+        
+        console.log('Sending product with FormData');
+        console.log('Number of images:', selectedImageFiles.length);
+        
+        const response = await fetch(`${API_URL}/products/insertProducts`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`
+                // DO NOT set Content-Type header - let browser set it with boundary
+            },
+            body: formData
+        });
+        
+        const result = await response.json();
+        console.log('Server response:', result);
+        
+        if (response.ok) {
+            alert('Product added successfully!');
+            hideAddProductForm();
+            selectedImageFiles = [];
+            document.getElementById('add-image-preview').innerHTML = '';
+            loadSellerProducts();
+        } else {
+            alert(result.message || result.error || 'Failed to add product');
+        }
+        
+    } catch (error) {
+        console.error('Error adding product:', error);
+        alert(`Failed to add product: ${error.message}`);
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+}
+
+async function updateProduct(event) {
+    event.preventDefault();
+    
+    const productId = document.getElementById('edit-product-id').value;
+    const title = document.getElementById('edit-title').value;
+    const price = parseFloat(document.getElementById('edit-price').value);
+    const quantity = parseInt(document.getElementById('edit-quantity').value);
+    const categoryId = document.getElementById('edit-category').value;
+    const description = document.getElementById('edit-description').value;
+    const purchaseDate = document.getElementById('edit-purchase-date').value;
+    const gender = document.getElementById('edit-gender').value;
+    const refundable = document.getElementById('edit-refundable').value === 'true';
+    const location = document.getElementById('edit-location').value;
+    const latitude = parseFloat(document.getElementById('edit-latitude').value);
+    const longitude = parseFloat(document.getElementById('edit-longitude').value);
+    
+    if (!title || !price || quantity < 0 || !purchaseDate || !gender || !location) {
+        alert('Please fill in all required fields correctly');
+        return;
+    }
+    
+    if (price <= 0) {
+        alert('Price must be greater than 0');
+        return;
+    }
+    
+    // Show loading indicator
+    const submitBtn = event.submitter;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 mr-2 animate-spin"></i> Updating...';
+    submitBtn.disabled = true;
+    
+    try {
+        const token = localStorage.getItem('token');
+        
+        // Create FormData
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('price', price.toString());
+        formData.append('quantity', quantity.toString());
+        formData.append('description', description || '');
+        if (categoryId) formData.append('categoryId', categoryId);
+        formData.append('purchaseDate', purchaseDate);
+        formData.append('gender', gender);
+        formData.append('refundable', refundable ? 'true' : 'false');
+        
+        // Add location as JSON string
+        const locationData = {
+            address: location,
+            lat: latitude,
+            lng: longitude
+        };
+        formData.append('location', JSON.stringify(locationData));
+        
+        // Add images to delete
+        if (imagesToDelete && imagesToDelete.length > 0) {
+            formData.append('imagesToDelete', JSON.stringify(imagesToDelete));
+            console.log('Images to delete:', imagesToDelete);
+        }
+        
+        // Append new image files
+        if (newEditImageFiles && newEditImageFiles.length > 0) {
+            for (let i = 0; i < newEditImageFiles.length; i++) {
+                formData.append('newImages', newEditImageFiles[i]);
+                console.log('Appending new image:', newEditImageFiles[i].name);
             }
         }
         
-        // Update product (existing function)
-        async function updateProduct(event) {
-            event.preventDefault();
-            
-            const productId = document.getElementById('edit-product-id').value;
-            const title = document.getElementById('edit-title').value;
-            const price = parseFloat(document.getElementById('edit-price').value);
-            const quantity = parseInt(document.getElementById('edit-quantity').value);
-            const categoryId = document.getElementById('edit-category').value;
-            const description = document.getElementById('edit-description').value;
-            const imageUrl = document.getElementById('edit-image').value;
-            
-            // Validation
-            if (!title || !price || quantity < 0) {
-                alert('Please fill in all required fields correctly');
-                return;
-            }
-            
-            if (price <= 0) {
-                alert('Price must be greater than 0');
-                return;
-            }
-            
-            try {
-                const token = localStorage.getItem('token');
-                
-                // Prepare update data
-                const updateData = {};
-                if (title) updateData.title = title;
-                if (price) updateData.price = price;
-                if (quantity >= 0) updateData.quantity = quantity;
-                if (description !== undefined) updateData.description = description || null;
-                if (imageUrl !== undefined) updateData.imageUrl = imageUrl || null;
-                if (categoryId !== undefined) updateData.categoryId = categoryId ? parseInt(categoryId) : null;
-                
-                console.log('Updating product:', productId, updateData);
-                
-                // Call your updateProducts API
-                const response = await fetch(`${API_URL}/products/updateProducts/${productId}`, {
-                    method: 'PATCH', // or 'PUT' depending on your route
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(updateData)
-                });
-                
-                const result = await response.json();
-                console.log('Update Response:', result);
-                
-                if (response.ok) {
-                    alert('Product updated successfully!');
-                    hideEditModal();
-                    // Reload products
-                    loadSellerProducts();
-                } else {
-                    // Handle validation errors
-                    let errorMessage = 'Failed to update product';
-                    if (result.errors) {
-                        errorMessage += ': ' + Object.values(result.errors).join(', ');
-                    } else if (result.message) {
-                        errorMessage = result.message;
-                    }
-                    alert(errorMessage);
-                }
-                
-            } catch (error) {
-                console.error('Error updating product:', error);
-                alert('Failed to update product. Please try again.');
-            }
+        console.log('Updating product with FormData');
+        console.log('New images count:', newEditImageFiles.length);
+        console.log('Images to delete count:', imagesToDelete.length);
+        
+        const response = await fetch(`${API_URL}/products/updateProducts/${productId}`, {
+            method: 'PATCH',
+            headers: { 
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        
+        const result = await response.json();
+        console.log('Update response:', result);
+        
+        if (response.ok) {
+            alert('Product updated successfully!');
+            hideEditModal();
+            // Reset arrays
+            imagesToDelete = [];
+            newEditImageFiles = [];
+            loadSellerProducts();
+        } else {
+            alert(result.message || 'Failed to update product');
         }
         
+    } catch (error) {
+        console.error('Error updating product:', error);
+        alert(`Failed to update product: ${error.message}`);
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+}
         // Delete product (existing function)
         async function deleteProduct(productId) {
             if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
@@ -3101,7 +3486,659 @@ function initializeChatSocket() {
     });
     
     return chatSocket;
+};
+// ============================================
+// LOCATION PICKER FUNCTIONS
+// ============================================
+
+
+
+function initGoogleMapsCallback() {
+    console.log('Google Maps API loaded successfully');
+    googleMapsLoaded = true;
+    
+    // Execute any pending callbacks
+    while (pendingMapCallbacks.length > 0) {
+        const callback = pendingMapCallbacks.shift();
+        callback();
+    }
 }
+
+function waitForGoogleMaps(callback) {
+    if (googleMapsLoaded && typeof google !== 'undefined' && google.maps) {
+        callback();
+    } else {
+        pendingMapCallbacks.push(callback);
+    }
+}
+
+// Open location picker modal
+function openLocationPicker(context) {
+    console.log('Opening location picker for:', context);
+    currentLocationContext = context;
+    
+    const modal = document.getElementById('location-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+    
+    // Clear previous selection
+    window.selectedLat = null;
+    window.selectedLng = null;
+    window.selectedAddress = null;
+    
+    // Reset search input
+    const searchInput = document.getElementById('location-search');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    // Clear previous map container content
+    const mapContainer = document.getElementById('map');
+    if (mapContainer) {
+        mapContainer.innerHTML = '';
+    }
+    
+    // Clean up previous map
+    if (googleMarker) {
+        googleMarker.setMap(null);
+        googleMarker = null;
+    }
+    if (googleMap) {
+        googleMap = null;
+    }
+    
+    // Wait for Google Maps to be loaded before initializing
+    waitForGoogleMaps(function() {
+        console.log('Google Maps ready, initializing...');
+        setTimeout(function() {
+            initGoogleMap();
+        }, 100);
+    });
+}
+// Initialize Google Map
+function initGoogleMap() {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+        console.error('Map container not found');
+        return;
+    }
+    
+    // Double-check Google Maps is loaded
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        console.error('Google Maps still not loaded');
+        document.getElementById('selected-location-info').innerHTML = 
+            '<span class="text-red-500">Error: Google Maps failed to load. Please refresh the page.</span>';
+        return;
+    }
+    
+    // Default center (Kathmandu, Nepal)
+    const defaultCenter = { lat: 27.7172, lng: 85.3240 };
+    
+    try {
+        googleMap = new google.maps.Map(mapContainer, {
+            center: defaultCenter,
+            zoom: 13,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            mapTypeControl: true,
+            streetViewControl: true,
+            zoomControl: true
+        });
+        
+        geocoder = new google.maps.Geocoder();
+        
+        // Add click listener to map - THIS WILL AUTO-SELECT THE LOCATION
+        // In initGoogleMap function, update the click listener:
+googleMap.addListener('click', function(event) {
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    // This automatically places marker and sets the location
+    placeGoogleMarkerAndGeocode({ lat: lat, lng: lng });
+    // Auto-select the location without needing to click Confirm button
+    setTimeout(autoSelectLocation, 500);
+});
+        // Setup autocomplete for search input
+        const searchInput = document.getElementById('location-search');
+        if (searchInput && google.maps.places) {
+            autocomplete = new google.maps.places.Autocomplete(searchInput);
+            autocomplete.bindTo('bounds', googleMap);
+            
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    console.error("No geometry data for place:", place);
+                    return;
+                }
+                
+                if (place.geometry.viewport) {
+                    googleMap.fitBounds(place.geometry.viewport);
+                } else {
+                    googleMap.setCenter(place.geometry.location);
+                    googleMap.setZoom(15);
+                }
+                
+                placeGoogleMarkerAndGeocode(place.geometry.location);
+                // Auto-select the location when searching
+                autoSelectLocation();
+            });
+        }
+        
+        // Try to get user's current location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    googleMap.setCenter(userLocation);
+                    googleMap.setZoom(14);
+                    placeGoogleMarkerAndGeocode(userLocation);
+                    // Auto-select user's current location
+                    autoSelectLocation();
+                },
+                function(error) {
+                    console.log("Geolocation failed or denied:", error.message);
+                    document.getElementById('selected-location-info').innerHTML = 
+                        '<i data-feather="map-pin" class="w-4 h-4 inline"></i> Click on the map to select a location';
+                    if (typeof feather !== 'undefined') feather.replace();
+                }
+            );
+        }
+        
+        document.getElementById('selected-location-info').innerHTML = 
+            '<i data-feather="map-pin" class="w-4 h-4 inline"></i> Click on the map to automatically select a location';
+        
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+        
+        // Force a resize to ensure the map displays correctly
+        google.maps.event.trigger(googleMap, 'resize');
+        
+    } catch (error) {
+        console.error('Error initializing Google Map:', error);
+        document.getElementById('selected-location-info').innerHTML = 
+            '<span class="text-red-500">Error loading map. Please check your internet connection.</span>';
+    }
+}
+
+// New function to auto-select location without needing Confirm button
+// Auto-select location function
+function autoSelectLocation() {
+    if (window.selectedLat && window.selectedLng && window.selectedAddress) {
+        if (currentLocationContext === 'add') {
+            const locationInput = document.getElementById('product-location');
+            const latInput = document.getElementById('product-latitude');
+            const lngInput = document.getElementById('product-longitude');
+            
+            if (locationInput) locationInput.value = window.selectedAddress;
+            if (latInput) latInput.value = window.selectedLat;
+            if (lngInput) lngInput.value = window.selectedLng;
+            
+            console.log('Auto-set location for add form:', window.selectedAddress);
+            
+            // Show brief success indicator
+            const infoDiv = document.getElementById('selected-location-info');
+            const originalText = infoDiv.innerHTML;
+            infoDiv.innerHTML = '<i data-feather="check-circle" class="w-4 h-4 inline text-green-500"></i> Location automatically selected!';
+            if (typeof feather !== 'undefined') feather.replace();
+            
+            setTimeout(() => {
+                infoDiv.innerHTML = originalText;
+                if (typeof feather !== 'undefined') feather.replace();
+            }, 2000);
+            
+        } else if (currentLocationContext === 'edit') {
+            const locationInput = document.getElementById('edit-location');
+            const latInput = document.getElementById('edit-latitude');
+            const lngInput = document.getElementById('edit-longitude');
+            
+            if (locationInput) locationInput.value = window.selectedAddress;
+            if (latInput) latInput.value = window.selectedLat;
+            if (lngInput) lngInput.value = window.selectedLng;
+            
+            console.log('Auto-set location for edit form:', window.selectedAddress);
+            
+            // Show brief success indicator
+            const infoDiv = document.getElementById('selected-location-info');
+            const originalText = infoDiv.innerHTML;
+            infoDiv.innerHTML = '<i data-feather="check-circle" class="w-4 h-4 inline text-green-500"></i> Location automatically selected!';
+            if (typeof feather !== 'undefined') feather.replace();
+            
+            setTimeout(() => {
+                infoDiv.innerHTML = originalText;
+                if (typeof feather !== 'undefined') feather.replace();
+            }, 2000);
+        }
+    }
+}
+
+function placeGoogleMarkerAndGeocode(location) {
+    if (googleMarker) {
+        googleMarker.setMap(null);
+    }
+    
+    // Handle both Google Maps LatLng object and plain object
+    let lat, lng;
+    if (typeof location.lat === 'function') {
+        lat = location.lat();
+        lng = location.lng();
+    } else {
+        lat = location.lat;
+        lng = location.lng;
+    }
+    
+    const position = { lat: lat, lng: lng };
+    
+    googleMarker = new google.maps.Marker({
+        position: position,
+        map: googleMap,
+        draggable: true,
+        animation: google.maps.Animation.DROP
+    });
+    
+    googleMarker.addListener('dragend', function() {
+        const newPos = googleMarker.getPosition();
+        geocodeGoogleLatLng(newPos);
+        // Auto-select when marker is dragged
+        setTimeout(autoSelectLocation, 500);
+    });
+    
+    geocodeGoogleLatLng(position);
+}
+
+function geocodeGoogleLatLng(location) {
+    // Handle both Google Maps LatLng object and plain object
+    let lat, lng;
+    if (typeof location.lat === 'function') {
+        lat = location.lat();
+        lng = location.lng();
+    } else {
+        lat = location.lat;
+        lng = location.lng;
+    }
+    
+    const position = { lat: lat, lng: lng };
+    
+    geocoder.geocode({ location: position }, (results, status) => {
+        if (status === 'OK' && results && results[0]) {
+            const address = results[0].formatted_address;
+            document.getElementById('selected-location-info').innerHTML = 
+                `<i data-feather="map-pin" class="w-4 h-4 inline"></i> Selected: ${address}`;
+            
+            window.selectedLat = lat;
+            window.selectedLng = lng;
+            window.selectedAddress = address;
+        } else {
+            document.getElementById('selected-location-info').innerHTML = 
+                `<i data-feather="map-pin" class="w-4 h-4 inline"></i> Selected: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            window.selectedLat = lat;
+            window.selectedLng = lng;
+            window.selectedAddress = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        }
+        
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    });
+}
+
+function confirmLocation() {
+    console.log('Confirming location...', window.selectedLat, window.selectedLng);
+    if (window.selectedLat && window.selectedLng && window.selectedAddress) {
+        if (currentLocationContext === 'add') {
+            const locationInput = document.getElementById('product-location');
+            const latInput = document.getElementById('product-latitude');
+            const lngInput = document.getElementById('product-longitude');
+            
+            if (locationInput) locationInput.value = window.selectedAddress;
+            if (latInput) latInput.value = window.selectedLat;
+            if (lngInput) lngInput.value = window.selectedLng;
+            
+            console.log('Location set for add form:', window.selectedAddress);
+            console.log('Lat/Lng:', window.selectedLat, window.selectedLng);
+        } else if (currentLocationContext === 'edit') {
+            const locationInput = document.getElementById('edit-location');
+            const latInput = document.getElementById('edit-latitude');
+            const lngInput = document.getElementById('edit-longitude');
+            
+            if (locationInput) locationInput.value = window.selectedAddress;
+            if (latInput) latInput.value = window.selectedLat;
+            if (lngInput) lngInput.value = window.selectedLng;
+            
+            console.log('Location set for edit form:', window.selectedAddress);
+            console.log('Lat/Lng:', window.selectedLat, window.selectedLng);
+        }
+        alert('Location selected successfully!');
+        closeLocationModal();
+    } else {
+        alert('Please select a location on the map first');
+    }
+}
+
+function closeLocationModal() {
+    console.log('Closing location modal');
+    const modal = document.getElementById('location-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    
+    // Clean up map
+    if (googleMarker) {
+        googleMarker.setMap(null);
+        googleMarker = null;
+    }
+    if (googleMap) {
+        googleMap = null;
+    }
+}
+
+// ============================================
+// IMAGE PREVIEW FUNCTIONS
+// ============================================
+
+// Image preview function for add form
+function previewImages(files, context) {
+    if (!files || files.length === 0) return;
+    
+    const previewContainer = document.getElementById(`${context}-image-preview`);
+    if (!previewContainer) return;
+    
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.match('image.*')) continue;
+        
+        // Store file for later upload
+        if (context === 'add') {
+            selectedImageFiles.push(file);
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'relative group';
+            imgContainer.setAttribute('data-filename', file.name);
+            imgContainer.innerHTML = `
+                <img src="${e.target.result}" class="w-full h-24 object-cover rounded-lg border border-gray-200">
+                <button type="button" onclick="removePreviewImage(this, '${context}')" 
+                        class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition">
+                    <i data-feather="x" class="w-3 h-3"></i>
+                </button>
+            `;
+            previewContainer.appendChild(imgContainer);
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // Reset file input
+    const fileInput = document.getElementById(context === 'add' ? 'product-images' : 'edit-product-images');
+    if (fileInput) fileInput.value = '';
+    
+    setTimeout(() => { 
+        if (typeof feather !== 'undefined') feather.replace(); 
+    }, 100);
+}
+
+// Store new image files for edit form
+window.newEditImageFiles = [];
+// Edit image preview function - stores files for upload
+function previewEditImages(files) {
+    console.log('previewEditImages called with', files.length, 'files');
+    
+    if (!files || files.length === 0) return;
+    
+    const previewContainer = document.getElementById('edit-image-preview');
+    if (!previewContainer) {
+        console.error('Edit image preview container not found');
+        return;
+    }
+    
+    // Check total images limit (existing + new)
+    const existingCount = document.querySelectorAll('#edit-image-preview .existing-image').length;
+    const newCount = newEditImageFiles.length;
+    const totalAfterAdd = existingCount + newCount + files.length;
+    
+    if (totalAfterAdd > 5) {
+        alert(`You can only have up to 5 images total. Current: ${existingCount + newCount}, Trying to add: ${files.length}`);
+        return;
+    }
+    
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.match('image.*')) {
+            console.warn('Skipping non-image file:', file.name);
+            continue;
+        }
+        
+        // Store the actual file object for later upload
+        newEditImageFiles.push(file);
+        console.log('Added file:', file.name, 'Total new files:', newEditImageFiles.length);
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'relative group new-image';
+            imgContainer.setAttribute('data-filename', file.name);
+            imgContainer.innerHTML = `
+                <img src="${e.target.result}" class="w-full h-24 object-cover rounded-lg border-2 border-green-400">
+                <button type="button" onclick="removeNewEditImage(this, '${file.name}')" 
+                        class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition">
+                    <i data-feather="x" class="w-3 h-3"></i>
+                </button>
+                <span class="absolute bottom-1 left-1 text-xs bg-green-500 text-white px-1 rounded">New</span>
+            `;
+            previewContainer.appendChild(imgContainer);
+            
+            // Re-initialize feather icons for the new button
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // Reset file input
+    const fileInput = document.getElementById('edit-product-images');
+    if (fileInput) fileInput.value = '';
+    
+    console.log('Total new images stored:', newEditImageFiles.length);
+}
+
+
+// Remove newly added image from edit form (not existing ones)
+function removeNewEditImage(btn, filename) {
+    const container = btn.closest('.relative');
+    container.remove();
+    
+    // Remove from stored files array
+    if (filename && newEditImageFiles) {
+        const index = newEditImageFiles.findIndex(f => f.name === filename);
+        if (index !== -1) {
+            newEditImageFiles.splice(index, 1);
+            console.log('Removed file:', filename, 'Remaining new files:', newEditImageFiles.length);
+        }
+    }
+}
+
+// Update removeEditPreviewImage to remove from stored files
+function removeEditPreviewImage(btn, filename) {
+    const container = btn.closest('.relative');
+    container.remove();
+    
+    // Remove from stored files array
+    if (filename && window.newEditImageFiles) {
+        const index = window.newEditImageFiles.findIndex(f => f.name === filename);
+        if (index !== -1) {
+            window.newEditImageFiles.splice(index, 1);
+        }
+    }
+}
+// Remove from selected files array
+function removeFromSelectedFiles(filename) {
+    const index = selectedImageFiles.findIndex(f => f.name === filename);
+    if (index !== -1) {
+        selectedImageFiles.splice(index, 1);
+    }
+}
+
+// Mark existing image for deletion
+function markImageForDeletion(imageUrl) {
+    if (!imagesToDelete.includes(imageUrl)) {
+        imagesToDelete.push(imageUrl);
+        console.log('Marked for deletion:', imageUrl);
+        console.log('Images to delete:', imagesToDelete);
+    }
+    
+    // Remove the image preview visually
+    const btn = event.target;
+    const container = btn.closest('.relative');
+    if (container) {
+        container.style.opacity = '0.5';
+        container.style.pointerEvents = 'none';
+        // Add a visual indicator
+        const deleteBadge = document.createElement('span');
+        deleteBadge.className = 'absolute top-1 left-1 text-xs bg-red-500 text-white px-1 rounded';
+        deleteBadge.innerText = 'Will be deleted';
+        container.appendChild(deleteBadge);
+    }
+}
+
+// ============================================
+// SETUP IMAGE UPLOAD AREAS
+// ============================================
+
+function setupImageUploadAreas() {
+    const addUploadArea = document.getElementById('image-upload-area');
+    const editUploadArea = document.getElementById('edit-image-upload-area');
+    
+    if (addUploadArea) {
+        addUploadArea.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('product-images').click();
+        });
+        
+        addUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            addUploadArea.classList.add('border-green-500', 'bg-green-50');
+        });
+        
+        addUploadArea.addEventListener('dragleave', () => {
+            addUploadArea.classList.remove('border-green-500', 'bg-green-50');
+        });
+        
+        addUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            addUploadArea.classList.remove('border-green-500', 'bg-green-50');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const fileInput = document.getElementById('product-images');
+                fileInput.files = files;
+                previewImages(files, 'add');
+            }
+        });
+    }
+    
+  if (editUploadArea) {
+    editUploadArea.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('edit-product-images').click();
+    });
+    
+    editUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        editUploadArea.classList.add('border-green-500', 'bg-green-50');
+    });
+    
+    editUploadArea.addEventListener('dragleave', () => {
+        editUploadArea.classList.remove('border-green-500', 'bg-green-50');
+    });
+    
+    editUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        editUploadArea.classList.remove('border-green-500', 'bg-green-50');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            previewEditImages(files);
+        }
+    });
+}
+}
+
+// Call this after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    setupImageUploadAreas();
+});
+function removeFromSelectedFiles(filename) {
+    const index = selectedImageFiles.findIndex(f => f.name === filename);
+    if (index !== -1) {
+        selectedImageFiles.splice(index, 1);
+    }
+}
+
+
+function removePreviewImage(btn, context) {
+    btn.closest('.relative').remove();
+}
+
+// Image upload area click handlers
+document.addEventListener('DOMContentLoaded', function() {
+    const addUploadArea = document.getElementById('image-upload-area');
+    const editUploadArea = document.getElementById('edit-image-upload-area');
+    
+    if (addUploadArea) {
+        addUploadArea.addEventListener('click', () => {
+            document.getElementById('product-images').click();
+        });
+        
+        // Drag and drop for add form
+        addUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            addUploadArea.classList.add('border-green-500', 'bg-green-50');
+        });
+        
+        addUploadArea.addEventListener('dragleave', () => {
+            addUploadArea.classList.remove('border-green-500', 'bg-green-50');
+        });
+        
+        addUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            addUploadArea.classList.remove('border-green-500', 'bg-green-50');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('product-images').files = files;
+                previewImages(files, 'add');
+            }
+        });
+    }
+    
+    if (editUploadArea) {
+        editUploadArea.addEventListener('click', () => {
+            document.getElementById('edit-product-images').click();
+        });
+        
+        editUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            editUploadArea.classList.add('border-green-500', 'bg-green-50');
+        });
+        
+        editUploadArea.addEventListener('dragleave', () => {
+            editUploadArea.classList.remove('border-green-500', 'bg-green-50');
+        });
+        
+       editUploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    editUploadArea.classList.remove('border-green-500', 'bg-green-50');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        document.getElementById('edit-product-images').files = files;
+        previewEditImages(files);  // <- USE previewEditImages
+    }
+});
+    }
+});
+
+
 
         // Make functions available globally
 window.showAddProductForm = showAddProductForm;
@@ -3148,6 +4185,17 @@ window.closePhotoViewModal = closePhotoViewModal;
 window.goToInbox = goToInbox;
 window.fetchUnreadCount = fetchUnreadCount;
 window.initializeChatSocket = initializeChatSocket;
+
+// Make sure all location picker functions are globally available
+window.openLocationPicker = openLocationPicker;
+window.confirmLocation = confirmLocation;
+window.closeLocationModal = closeLocationModal;
+window.previewEditImages = previewEditImages;
+window.previewImages = previewImages;
+window.removePreviewImage = removePreviewImage;
+window.removeFromSelectedFiles = removeFromSelectedFiles;
+window.markImageForDeletion = markImageForDeletion;
+window.removeNewEditImage = removeNewEditImage;
     </script>
 </body>
 </html>

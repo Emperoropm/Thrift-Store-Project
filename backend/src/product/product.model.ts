@@ -5,20 +5,38 @@ import {
   IsPositive,
   IsInt,
   Min,
-  IsUrl
+  IsUrl,
+  IsBoolean,
+  IsDateString,
+  IsObject,
+  IsArray,
+  ValidateNested
 } from "class-validator";
+import { Type } from "class-transformer";
+
+export class LocationModel {
+  @IsString()
+  address!: string;
+
+  @IsNumber()
+  lat!: number;
+
+  @IsNumber()
+  lng!: number;
+}
 
 export class ProductModel {
 
   @IsInt()
   @IsPositive()
-  @IsOptional() // Because id is auto-generated (SERIAL)
+  @IsOptional()
   id?: number;
 
   @IsString()
   title: string;
 
   @IsString()
+  @IsOptional()
   description?: string;
 
   @IsNumber()
@@ -29,8 +47,37 @@ export class ProductModel {
   @Min(1)
   quantity: number;
 
+  @IsOptional()
   @IsUrl()
   imageUrl?: string;
+
+  // NEW: Multiple images support
+  @IsOptional()
+  @IsArray()
+  @IsUrl({}, { each: true })
+  images?: string[];
+
+  // NEW: Purchase date
+  @IsOptional()
+  @IsDateString()
+  purchaseDate?: string;
+
+  // NEW: Gender
+  @IsOptional()
+  @IsString()
+  gender?: string; // MEN, WOMEN, UNISEX, KIDS
+
+  // NEW: Refundable
+  @IsOptional()
+  @IsBoolean()
+  refundable?: boolean;
+
+  // NEW: Location
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => LocationModel)
+  location?: LocationModel;
 
   @IsInt()
   categoryId?: number;
@@ -41,8 +88,10 @@ export class ProductModel {
 
   @IsOptional()
   createdAt?: Date;
- status?: string; // Add this
+  
+  status?: string;
   rejectionReason?: string;
+
   constructor(
     title: string,
     price: number,
@@ -52,7 +101,14 @@ export class ProductModel {
     imageUrl?: string,
     categoryId?: number,
     id?: number,
-    createdAt?: Date,status?:string,rejectionReason?:string
+    createdAt?: Date,
+    status?: string,
+    rejectionReason?: string,
+    images?: string[],
+    purchaseDate?: string,
+    gender?: string,
+    refundable?: boolean,
+    location?: LocationModel
   ) {
     this.id = id!;
     this.title = title;
@@ -63,7 +119,12 @@ export class ProductModel {
     this.categoryId = categoryId!;
     this.sellerId = sellerId;
     this.createdAt = createdAt!;
-    this.status=status!;
-    this.rejectionReason = rejectionReason!
+    this.status = status!;
+    this.rejectionReason = rejectionReason!;
+    this.images = images!;
+    this.purchaseDate = purchaseDate!;
+    this.gender = gender!;
+    this.refundable = refundable!;
+    this.location = location!;
   }
 }

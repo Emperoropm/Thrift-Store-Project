@@ -2,31 +2,39 @@ import { authMiddleware } from "../middleware/auth.middleware";
 import { allowRoles } from "../middleware/role.middleware";
 import { ProductController } from "./product.controller";
 import { Router, Request, Response, NextFunction } from "express";
+import upload, { uploadProductImages } from "../middleware/upload.middleware";
 
 const router = Router();
 const productController = new ProductController();
 
-// ========== PUBLIC ROUTES ==========
+// ========== PUBLIC ROUTES (No authentication required) ==========
 router.get("/getAllProducts", productController.getProducts);
 router.get("/getByCategory/:categoryId", productController.getProductsByCategory);
+router.get("/getProductById/:id", productController.getProductById);
+router.get("/getBySeller/:sellerId", productController.getProductsBySellerIdPublic);
 
-// ========== SELLER ROUTES ==========
+// ========== SELLER ROUTES (Authentication required) ==========
+// Insert new product with image upload support
 router.post(
   "/insertProducts",
   authMiddleware,
-  allowRoles("USER","ADMIN"),
+  allowRoles("USER", "ADMIN"),
+  uploadProductImages, // Use the named export for multiple images
   (request: Request, response: Response, next: NextFunction) => {
     productController.insertProduct(request, response, next);
   }
 );
 
+// Update product with image upload support
 router.patch(
   "/updateProducts/:id",
   authMiddleware,
   allowRoles("USER", "ADMIN"),
+  uploadProductImages, // Use the same for updates
   productController.updateProduct
 );
 
+// Delete product
 router.delete(
   "/deleteProducts/:id",
   authMiddleware,
@@ -34,10 +42,11 @@ router.delete(
   productController.deleteProduct
 );
 
+// Get seller's own products
 router.get(
   "/getBySeller",
   authMiddleware,
-  allowRoles("USER","ADMIN"),
+  allowRoles("USER", "ADMIN"),
   productController.getProductsBySellerId
 );
 
@@ -46,46 +55,28 @@ router.get(
   "/admin/pending",
   authMiddleware,
   allowRoles("ADMIN"),
-  (req: Request, res: Response, next: NextFunction) => {
-    productController.getPendingProducts(req, res, next);
-  }
-);
-
-router.get(
-  "/getProductById/:id",
-  (req: Request, res: Response, next: NextFunction) => {
-    productController.getProductById(req, res, next);
-  }
+  productController.getPendingProducts
 );
 
 router.put(
   "/admin/approve/:id",
   authMiddleware,
   allowRoles("ADMIN"),
-  (req: Request, res: Response, next: NextFunction) => {
-    productController.approveProduct(req, res, next);
-  }
+  productController.approveProduct
 );
 
 router.put(
   "/admin/reject/:id",
   authMiddleware,
   allowRoles("ADMIN"),
-  (req: Request, res: Response, next: NextFunction) => {
-    productController.rejectProduct(req, res, next);
-  }
+  productController.rejectProduct
 );
 
 router.put(
   "/admin/status/:id",
   authMiddleware,
   allowRoles("ADMIN"),
-  (req: Request, res: Response, next: NextFunction) => {
-    productController.updateProductStatus(req, res, next);
-  }
+  productController.updateProductStatus
 );
-
-// Add this route - PUBLIC (no auth required)
-router.get("/getBySeller/:sellerId", productController.getProductsBySellerIdPublic);
 
 export default router;
