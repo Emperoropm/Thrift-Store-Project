@@ -160,6 +160,35 @@
     font-size: 0.75rem;
     color: #6b7280;
 }
+
+/* Top Rated section specific styles */
+.top-rated-badge {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.rating-gold {
+    color: #f59e0b;
+}
+
+.scroll-container {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #2a9d8f #e5e7eb;
+}
+
+.scroll-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+    background: #e5e7eb;
+    border-radius: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: #2a9d8f;
+    border-radius: 10px;
+}
     </style>
 </head>
 <body class="bg-gray-50">
@@ -173,7 +202,7 @@
         <div class="hidden md:flex space-x-8">
             <a href="#featured" class="text-gray-700 hover:text-green-600 font-medium">Featured</a>
             <a href="#categories" class="text-gray-700 hover:text-green-600 font-medium">Categories</a>
-            <a href="#products" class="text-gray-700 hover:text-green-600 font-medium">All Items</a>
+            <a href="all-items.html" class="text-gray-700 hover:text-green-600 font-medium">All Items</a>
             <a href="#about" class="text-gray-700 hover:text-green-600 font-medium">About</a>
         </div>
         
@@ -293,6 +322,55 @@
             </div>
         </div>
     </section>
+
+<!-- NEW: Top Rated Sellers Section - Algorithm based on highest average rating -->
+<section id="top-rated" class="py-12 bg-gradient-to-r from-amber-50 to-yellow-50">
+    <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="heading-font text-3xl font-bold flex items-center gap-2">
+                    <i data-feather="award" class="w-8 h-8 text-yellow-500"></i>
+                    Top Rated Sellers
+                </h2>
+                <p class="text-gray-600 mt-1">Curated from highest-rated sellers on our platform</p>
+            </div>
+            <!-- <div class="hidden md:block text-sm text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+                Based on average rating algorithm
+            </div> -->
+        </div>
+        
+        <!-- Loading State -->
+        <div id="top-rated-loading" class="flex justify-center items-center py-12">
+            <div class="loader"></div>
+            <span class="ml-3 text-gray-600">Finding top-rated treasures...</span>
+        </div>
+        
+        <!-- Top Rated Products Container (Horizontal Scroll) -->
+        <div id="top-rated-container" class="hidden">
+            <div class="scroll-container overflow-x-auto pb-4">
+                <div id="top-rated-grid" class="flex gap-6" style="min-width: min-content;">
+                    <!-- Products will be dynamically inserted here -->
+                </div>
+            </div>
+            <div class="text-center mt-6">
+                <a href="browse-products.html" class="inline-flex items-center text-green-600 hover:text-green-700 font-medium">
+                    Browse all products
+                    <i data-feather="arrow-right" class="ml-1 w-4 h-4"></i>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Error Message for Top Rated -->
+        <div id="top-rated-error" class="text-center py-12 hidden">
+            <i data-feather="alert-circle" class="w-12 h-12 mx-auto text-yellow-300 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Unable to load top-rated items</h3>
+            <p class="text-gray-500 mb-4">We're having trouble fetching the best-rated products.</p>
+            <button onclick="loadTopRatedProducts()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                Try Again
+            </button>
+        </div>
+    </div>
+</section>
 
     <!-- Featured Section -->
     <section id="featured" class="py-12 bg-gradient-to-r from-green-50 to-blue-50">
@@ -1342,7 +1420,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load products
     loadProducts();
-    
+    loadTopRatedProducts();
     // Note: Category chips event listeners are now added dynamically in createCategoryCard function
 });
 
@@ -1399,7 +1477,157 @@ function initializeChatSocket() {
     });
 }
 
+// Core function: Load top rated products based on seller rating algorithm
+async function loadTopRatedProducts() {
+    const loadingEl = document.getElementById('top-rated-loading');
+    const containerEl = document.getElementById('top-rated-container');
+    const errorEl = document.getElementById('top-rated-error');
+    const gridEl = document.getElementById('top-rated-grid');
+    
+    if(loadingEl) loadingEl.classList.remove('hidden');
+    if(containerEl) containerEl.classList.add('hidden');
+    if(errorEl) errorEl.classList.add('hidden');
+    
+    try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        // Fetch all products
+        const productsRes = await fetch(`${API_URL}/products/getAllProducts`, { headers });
+        if(!productsRes.ok) throw new Error('Failed to fetch products');
+        let productsData = await productsRes.json();
+        let products = productsData.data || productsData;
+        if(!Array.isArray(products)) products = [];
+        
+        if(products.length === 0) throw new Error('No products found');
+        
+        // Get unique seller IDs
+        const sellerIds = [...new Set(products.map(p => p.seller?.id || p.sellerId).filter(id => id))];
+        
+        // Fetch ratings for each seller
+        const ratingsMap = {};
+        await Promise.all(sellerIds.map(async (sellerId) => {
+            try {
+                const ratingRes = await fetch(`${API_URL}/ratings/seller/${sellerId}`, { headers });
+                if(ratingRes.ok) {
+                    const ratingData = await ratingRes.json();
+                    ratingsMap[sellerId] = ratingData.data?.summary || { averageRating: 0, totalReviews: 0 };
+                } else {
+                    ratingsMap[sellerId] = { averageRating: 0, totalReviews: 0 };
+                }
+            } catch(e) { ratingsMap[sellerId] = { averageRating: 0, totalReviews: 0 }; }
+        }));
+        
+        // Attach rating info to each product
+        const productsWithRatings = products.map(product => {
+            const sellerId = product.seller?.id || product.sellerId;
+            const ratingInfo = ratingsMap[sellerId] || { averageRating: 0, totalReviews: 0 };
+            return { ...product, sellerRating: ratingInfo.averageRating, reviewCount: ratingInfo.totalReviews };
+        });
+        
+        // Algorithm: Sort by highest average rating, then by review count
+        const sortedByRating = productsWithRatings
+            .filter(p => p.sellerRating > 0 && p.quantity > 0)
+            .sort((a, b) => {
+                if(b.sellerRating !== a.sellerRating) return b.sellerRating - a.sellerRating;
+                return b.reviewCount - a.reviewCount;
+            });
+        
+        // Take top 8 products
+        const topRatedProducts = sortedByRating.slice(0, 8);
+        
+        if(topRatedProducts.length === 0) {
+            if(loadingEl) loadingEl.classList.add('hidden');
+            if(errorEl) errorEl.classList.remove('hidden');
+            document.getElementById('top-rated-error').querySelector('h3').textContent = 'No rated products yet';
+            return;
+        }
+        
+        // Render top rated products
+        if(gridEl) {
+            gridEl.innerHTML = '';
+            topRatedProducts.forEach(product => {
+                const card = createTopRatedCard(product);
+                gridEl.appendChild(card);
+            });
+        }
+        
+        if(loadingEl) loadingEl.classList.add('hidden');
+        if(containerEl) containerEl.classList.remove('hidden');
+        
+        setTimeout(() => { if(typeof feather !== 'undefined') feather.replace(); }, 100);
+        
+    } catch(error) {
+        console.error('Error loading top rated products:', error);
+        if(loadingEl) loadingEl.classList.add('hidden');
+        if(errorEl) errorEl.classList.remove('hidden');
+    }
+}
 
+// Create card for top rated section
+function createTopRatedCard(product) {
+    const div = document.createElement('div');
+    div.className = 'product-card w-72 flex-shrink-0 cursor-pointer transition-all hover:shadow-xl';
+    div.onclick = (e) => { if(!e.target.closest('button')) showProductDetails(product.id || product._id); };
+    
+    const price = product.price ? `Rs.${parseFloat(product.price).toFixed(2)}` : 'Rs.0.00';
+    const sellerName = product.seller?.name || 'Unknown Seller';
+    const avgRating = product.sellerRating || 0;
+    const totalReviews = product.reviewCount || 0;
+    
+    // Helper function for stars (add this inside the function or reuse existing)
+    const getStars = (rating) => {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        let stars = '';
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                stars += '<i data-feather="star" class="w-3 h-3 fill-current text-yellow-400 inline"></i>';
+            } else if (i === fullStars && hasHalfStar) {
+                stars += '<i data-feather="star" class="w-3 h-3 fill-current text-yellow-400 inline" style="clip-path: inset(0 50% 0 0);"></i>';
+            } else {
+                stars += '<i data-feather="star" class="w-3 h-3 text-gray-300 inline"></i>';
+            }
+        }
+        return stars;
+    };
+    
+    div.innerHTML = `
+        <div class="relative">
+            <div class="h-48 bg-gray-200 flex items-center justify-center">
+                ${product.imageUrl ? `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-cover">` : `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`}
+            </div>
+            <div class="absolute top-2 left-2 flex gap-1">
+                <span class="top-rated-badge text-white text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1 shadow-md">
+                    <i data-feather="star" class="w-3 h-3 fill-current"></i> ${avgRating.toFixed(1)}
+                </span>
+            </div>
+            ${product.quantity <= 0 ? '<div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center"><span class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">SOLD OUT</span></div>' : ''}
+        </div>
+        <div class="p-4">
+            <h3 class="font-bold text-lg mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
+            <div class="flex items-center mb-2 text-sm">
+                <span class="text-gray-500">by</span>
+                <span class="font-medium text-gray-700 ml-1 truncate">${sellerName}</span>
+            </div>
+            <div class="mb-3 flex items-center text-xs">
+                <span class="flex mr-1">${getStars(avgRating)}</span>
+                <span class="text-gray-600 font-medium">${avgRating.toFixed(1)}</span>
+                <span class="text-gray-400 mx-1">•</span>
+                <span class="text-gray-500">${totalReviews} review${totalReviews !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <div class="price-tag px-3 py-1 rounded-lg font-bold text-gray-900">${price}</div>
+                <button onclick="buyProduct('${product.id || product._id}', ${product.price}, '${product.title.replace(/'/g, "\\'")}')" 
+                    class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition ${product.quantity <= 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                    ${product.quantity <= 0 ? 'disabled' : ''}>
+                    ${product.quantity <= 0 ? 'Out of Stock' : 'Buy Now'}
+                </button>
+            </div>
+        </div>
+    `;
+    return div;
+}
 
 // Request notification permission
 if ('Notification' in window && Notification.permission === 'default') {
