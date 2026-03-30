@@ -118,6 +118,11 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        @keyframes slideIn {
+    from { transform: translateX(-100%); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+}
     </style>
 </head>
 <body>
@@ -306,82 +311,124 @@
         window.location.href = 'index.html';
     }
 
-    // Initialize Socket.IO
-    function initializeSocket() {
-        const token = localStorage.getItem('token');
-        
-        socket = io(SOCKET_URL, {
-            auth: {
-                token: token
-            }
-        });
+   function initializeSocket() {
+    const token = localStorage.getItem('token');
 
-        socket.on('connect', () => {
-            console.log('Connected to chat server');
-        });
+    socket = io(SOCKET_URL, { auth: { token } });
 
-        socket.on('connect_error', (error) => {
-            console.error('Socket connection error:', error);
-            if (error.message === 'Invalid token') {
-                alert('Session expired. Please login again.');
-                logout();
-            }
-        });
+    socket.on('connect', () => {
+        console.log('Connected to chat server');
 
-        socket.on('newMessage', (message) => {
-            if (message.conversationId === currentConversationId) {
-                displayMessage(message);
-                markMessageAsRead(message.id);
+        // ✅ Join personal user room so you receive notifications for ALL conversations
+        if (currentUser?.id) {
+            socket.emit('joinUserRoom', currentUser.id);
+            console.log('Joined user room:', currentUser.id);
+        }
+
+        // Re-join all known conversation rooms
+        conversations.forEach(conv => {
+    if (conv.id) socket.emit('joinChat', conv.id);
+});
+
+// ✅ Also re-join personal user room in case of reconnect
+if (currentUser?.id) {
+    socket.emit('joinUserRoom', currentUser.id);
+}
+    });
+
+    socket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+        if (error.message === 'Invalid token') {
+            alert('Session expired. Please login again.');
+            logout();
+        }
+    });
+
+    // ✅ New message in any conversation
+    socket.on('newMessage', (message) => {
+        console.log('New message received:', message);
+
+        if (message.conversationId === currentConversationId) {
+            // Show in current chat
+            displayMessage(message);
+            // Mark as read since user is looking at it
+            markConversationAsRead(currentConversationId);
+        } else {
+            // ✅ Increment unread badge for the other conversation
+            const convIndex = conversations.findIndex(c => c.id === message.conversationId);
+            if (convIndex !== -1) {
+                conversations[convIndex].unreadCount = (conversations[convIndex].unreadCount || 0) + 1;
             }
-            
-            // Update conversation list with latest message
-            updateConversationWithLatestMessage(message);
-            
-            // Play notification sound if not current conversation
-            if (message.senderId !== currentUser.id && message.conversationId !== currentConversationId) {
+            // Play sound for messages in other conversations
+            if (message.senderId !== currentUser?.id) {
                 playNotificationSound();
+                showToastNotification(message);
             }
-        });
+        }
 
-        socket.on('newMessageNotification', (data) => {
-            // Update conversation list to show unread badge
-            loadConversations(); // Reload conversations to update unread counts
-            
-            // Show browser notification if supported and page is not focused
-            if (document.hidden && Notification.permission === 'granted') {
-                const otherUser = data.message.sender;
-                new Notification(`New message from ${otherUser?.name || 'Unknown'}`, {
-                    body: data.message.content.substring(0, 50),
-                    icon: otherUser?.photo || '/assets/images/logo.png'
-                });
+        // Always update conversation list with latest message + move to top
+        updateConversationWithLatestMessage(message);
+    });
+
+    // ✅ Notification for brand new conversations (first message from someone new)
+    socket.on('newMessageNotification', (data) => {
+        console.log('New message notification:', data);
+
+        const message = data.message;
+        if (!message) return;
+
+        // Check if this conversation already exists in our list
+        const exists = conversations.find(c => c.id === message.conversationId);
+
+        if (!exists) {
+            // Brand new conversation — reload the full list
+            loadConversations();
+        } else {
+            // Already tracked — just update unread if not current
+            if (message.conversationId !== currentConversationId) {
+                const convIndex = conversations.findIndex(c => c.id === message.conversationId);
+                if (convIndex !== -1) {
+                    conversations[convIndex].unreadCount = (conversations[convIndex].unreadCount || 0) + 1;
+                    renderConversations(conversations);
+                }
             }
-        });
+        }
 
-        socket.on('userTyping', (data) => {
-            if (data.conversationId === currentConversationId) {
-                showTypingIndicator(data.userName);
-            }
-        });
+        // Browser notification when tab is hidden
+        if (document.hidden && Notification.permission === 'granted') {
+            const sender = message.sender;
+            new Notification(`New message from ${sender?.name || 'Someone'}`, {
+                body: message.content?.substring(0, 60) || '',
+                icon: '/assets/images/logo.png',
+                tag: `msg-${message.id}`
+            });
+        }
+    });
 
-        socket.on('userStoppedTyping', (data) => {
-            if (data.conversationId === currentConversationId) {
-                hideTypingIndicator();
-            }
-        });
+    socket.on('userTyping', (data) => {
+        if (data.conversationId === currentConversationId) {
+            showTypingIndicator(data.userName);
+        }
+    });
 
-        socket.on('messageRead', (data) => {
-            updateMessageReadStatus(data.messageIds);
-        });
+    socket.on('userStoppedTyping', (data) => {
+        if (data.conversationId === currentConversationId) {
+            hideTypingIndicator();
+        }
+    });
 
-        socket.on('error', (error) => {
-            console.error('Socket error:', error);
-        });
+    socket.on('messageRead', (data) => {
+        updateMessageReadStatus(data.messageIds);
+    });
 
-        socket.on('disconnect', () => {
-            console.log('Disconnected from chat server');
-        });
-    }
+    socket.on('error', (error) => {
+        console.error('Socket error:', error);
+    });
 
+    socket.on('disconnect', () => {
+        console.log('Disconnected from chat server');
+    });
+}
     // Load conversations
     async function loadConversations() {
         const loadingEl = document.getElementById('conversationsLoading');
@@ -548,8 +595,52 @@
         updateChatHeader(conversationId);
         
         // Join conversation room if not already joined
-        socket.emit('joinChat', conversationId);
+        // Join conversation room
+socket.emit('joinChat', conversationId);
+
+// ✅ Reset unread count locally immediately
+const convIndex = conversations.findIndex(c => c.id === conversationId);
+if (convIndex !== -1) {
+    conversations[convIndex].unreadCount = 0;
+    renderConversations(conversations);
+}
     }
+
+
+    function showToastNotification(message) {
+    // Remove existing toast
+    const existing = document.getElementById('chat-toast');
+    if (existing) existing.remove();
+
+    const conv = conversations.find(c => c.id === message.conversationId);
+    const senderName = message.sender?.name || conv?.otherUser?.name || 'Someone';
+
+    const toast = document.createElement('div');
+    toast.id = 'chat-toast';
+    toast.className = 'fixed bottom-6 left-6 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-4 flex items-center gap-3 cursor-pointer';
+    toast.style.animation = 'slideIn 0.3s ease';
+    toast.onclick = () => {
+        selectConversation(message.conversationId);
+        toast.remove();
+    };
+    toast.innerHTML = `
+        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm">${senderName}</p>
+            <p class="text-gray-500 text-xs truncate">${(message.content || '').substring(0, 50)}</p>
+        </div>
+        <button onclick="event.stopPropagation(); this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 ml-2">✕</button>
+    `;
+
+    document.body.appendChild(toast);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => { if (toast.parentElement) toast.remove(); }, 5000);
+}
 
     // Load messages for a conversation
     async function loadMessages(conversationId) {
