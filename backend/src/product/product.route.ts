@@ -79,4 +79,7 @@ router.put(
   productController.updateProductStatus
 );
 
+// Add under public routes section
+router.get("/nearby", productController.getNearbyProducts);
+
 export default router;

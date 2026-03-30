@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Items Near Me | Thrift Treasure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap');
+
+        :root {
+            --vintage-green: #2a9d8f;
+            --vintage-gold: #e9c46a;
+            --vintage-coral: #e76f51;
+            --vintage-navy: #264653;
+        }
+
+        body { font-family: 'Poppins', sans-serif; background: #f9fafb; }
+        .heading-font { font-family: 'Playfair Display', serif; }
+
+        /* Hero */
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(42,157,143,0.92) 0%, rgba(38,70,83,0.95) 100%),
+                        url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Loader */
+        .loader {
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #2a9d8f;
+            border-radius: 50%;
+            width: 44px; height: 44px;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Card */
+        .product-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .product-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 20px 30px -8px rgba(0,0,0,0.12);
+        }
+
+        .price-tag {
+            background: linear-gradient(135deg, #e9c46a 0%, #f4a261 100%);
+        }
+
+        /* Radius pill buttons */
+        .radius-btn {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 2px solid #d1d5db;
+            background: white;
+            color: #374151;
+            border-radius: 999px;
+            padding: 6px 18px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .radius-btn:hover { border-color: #2a9d8f; color: #2a9d8f; }
+        .radius-btn.active {
+            background: #2a9d8f;
+            border-color: #2a9d8f;
+            color: white;
+        }
+
+        /* Pulse animation for location dot */
+        .pulse-dot {
+            display: inline-block;
+            width: 10px; height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse-ring 1.5s ease-out infinite;
+        }
+        @keyframes pulse-ring {
+            0%   { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+            70%  { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+            100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+        }
+
+        /* Footer */
+        .footer-gradient { background: linear-gradient(135deg, #264653 0%, #2a9d8f 100%); }
+
+        /* Scroll */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #e5e7eb; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #2a9d8f; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="index.html">
+            <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+        </a>
+        <div class="hidden md:flex space-x-8">
+            <a href="index.html#featured"    class="text-gray-700 hover:text-green-600 font-medium">Featured</a>
+            <a href="index.html#categories"  class="text-gray-700 hover:text-green-600 font-medium">Categories</a>
+            <a href="all-items.html"         class="text-gray-700 hover:text-green-600 font-medium">All Items</a>
+            <a href="near-me.html"           class="text-green-600 font-semibold border-b-2 border-green-500 pb-0.5">Near Me</a>
+        </div>
+        <div id="auth-container"></div>
+    </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────── -->
+<section class="hero-gradient text-white py-16">
+    <div class="container mx-auto px-4 text-center">
+        <div class="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5 text-sm mb-5">
+            <span class="pulse-dot"></span>
+            <span>Using your location</span>
+        </div>
+        <h1 class="heading-font text-4xl md:text-5xl font-bold mb-4">Items Near You</h1>
+        <p class="text-lg opacity-85 max-w-xl mx-auto mb-8">
+            Discover second-hand treasures from sellers in your neighbourhood. Less travel, more thrift.
+        </p>
+
+        <!-- Radius selector -->
+        <div class="flex flex-wrap justify-center gap-3" id="radius-controls">
+            <button class="radius-btn" data-km="5"  onclick="setRadius(5)">5 km</button>
+            <button class="radius-btn active" data-km="10" onclick="setRadius(10)">10 km</button>
+            <button class="radius-btn" data-km="25" onclick="setRadius(25)">25 km</button>
+            <button class="radius-btn" data-km="50" onclick="setRadius(50)">50 km</button>
+            <button class="radius-btn" data-km="100" onclick="setRadius(100)">100 km</button>
+        </div>
+    </div>
+</section>
+
+<!-- ── Stats bar ──────────────────────────────────────────── -->
+<div class="bg-white border-b" id="stats-bar" style="display:none;">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <p class="text-gray-600 text-sm" id="stats-text"></p>
+            <div class="flex items-center gap-2 text-sm text-green-700 font-medium">
+                <span class="pulse-dot"></span>
+                <span id="location-label">Locating…</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Main Content ───────────────────────────────────────── -->
+<section class="py-12">
+    <div class="container mx-auto px-4">
+
+        <!-- Loading: detecting location -->
+        <div id="state-locating" class="flex flex-col items-center justify-center py-24 gap-4">
+            <div class="loader"></div>
+            <p class="text-gray-500 font-medium">Detecting your location…</p>
+        </div>
+
+        <!-- Loading: fetching products -->
+        <div id="state-fetching" class="flex flex-col items-center justify-center py-24 gap-4 hidden">
+            <div class="loader"></div>
+            <p class="text-gray-500 font-medium" id="fetching-text">Finding items nearby…</p>
+        </div>
+
+        <!-- Location denied -->
+        <div id="state-denied" class="hidden flex flex-col items-center justify-center py-24 text-center gap-4">
+            <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-2">
+                <i data-feather="map-off" class="w-10 h-10 text-red-400"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-700">Location Access Denied</h3>
+            <p class="text-gray-500 max-w-sm">Please allow location access in your browser settings, then try again.</p>
+            <button onclick="initLocation()"
+                class="mt-2 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2">
+                <i data-feather="navigation" class="w-4 h-4"></i> Try Again
+            </button>
+        </div>
+
+        <!-- Empty -->
+        <div id="state-empty" class="hidden flex flex-col items-center justify-center py-24 text-center gap-4">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                <i data-feather="map-pin" class="w-10 h-10 text-gray-300"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-700">No Items Found Nearby</h3>
+            <p class="text-gray-500 max-w-sm">Try increasing the search radius using the buttons above.</p>
+        </div>
+
+        <!-- Products grid -->
+        <div id="state-results" class="hidden">
+            <div id="products-grid"
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────────── -->
+<footer class="footer-gradient text-white mt-12">
+    <div class="container mx-auto px-4 py-10">
+        <div class="grid md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="heading-font text-xl font-bold mb-3">Thrift Treasure</h3>
+                <p class="text-gray-300 text-sm">Sustainable fashion for conscious shoppers.</p>
+            </div>
+            <div>
+                <h4 class="font-bold mb-3">Quick Links</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="index.html" class="text-gray-300 hover:text-white">Home</a></li>
+                    <li><a href="all-items.html" class="text-gray-300 hover:text-white">All Items</a></li>
+                    <li><a href="near-me.html" class="text-gray-300 hover:text-white">Near Me</a></li>
+                </ul>
+            </div>
+            
+        </div>
+        <div class="border-t border-white/20 mt-8 pt-6 text-center text-gray-400 text-sm">
+            &copy; 2024 Thrift Treasure. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+<!-- ── Floating Chat ──────────────────────────────────────── -->
+<div class="fixed bottom-6 right-6 z-40">
+    <button onclick="goToInbox()"
+        class="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-all hover:scale-110 flex items-center justify-center relative group">
+        <i data-feather="message-circle" class="w-6 h-6"></i>
+        <span class="absolute right-full mr-3 bg-gray-800 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            Chat Inbox
+        </span>
+        <span id="chat-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 items-center justify-center hidden">0</span>
+    </button>
+</div>
+
+<script>
+const API_URL = 'http://localhost:3000/api';
+let userCoords  = null;
+let currentRadius = 10;
+
+// ── Auth ────────────────────────────────────────────────────
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    const user  = localStorage.getItem('user');
+    const container = document.getElementById('auth-container');
+    if (!container) return;
+
+    if (token && user) {
+        try {
+            const u = JSON.parse(user);
+            const adminLink = u.role === 'ADMIN'
+                ? `<a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">Admin</a>`
+                : '';
+            container.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <span class="font-medium text-gray-700 hidden md:inline">Hi, ${u.name || 'User'}</span>
+                    </div>
+                    <!-- Chat link with unread badge -->
+                    <a href="chat-inbox.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium flex items-center relative">
+                        <i data-feather="message-circle" class="w-4 h-4 mr-1"></i>
+                        Chat
+                        <span id="nav-unread-badge" class="ml-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
+                    </a>
+                    ${adminLink}
+                    <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">Profile</a>
+                    <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">Logout</button>
+                </div>`;
+
+            // Fetch unread count after rendering
+            fetchUnreadCount();
+
+        } catch(e) { showLoginButtons(); }
+    } else {
+        showLoginButtons();
+    }
+}
+
+async function fetchUnreadCount() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${API_URL}/chat/conversations`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            const conversations = result.data || [];
+
+            let totalUnread = 0;
+            conversations.forEach(conv => {
+                totalUnread += (conv.unreadCount || 0);
+            });
+
+            // Update nav badge
+            const navBadge = document.getElementById('nav-unread-badge');
+            if (navBadge) {
+                if (totalUnread > 0) {
+                    navBadge.classList.remove('hidden');
+                    navBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+                } else {
+                    navBadge.classList.add('hidden');
+                }
+            }
+
+            // Update floating chat badge
+            const floatingBadge = document.getElementById('chat-badge');
+            if (floatingBadge) {
+                if (totalUnread > 0) {
+                    floatingBadge.classList.remove('hidden');
+                    floatingBadge.style.display = 'flex';
+                    floatingBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+                } else {
+                    floatingBadge.classList.add('hidden');
+                    floatingBadge.style.display = 'none';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching unread count:', error);
+    }
+}
+
+// Re-check when tab becomes visible or gets focus
+window.addEventListener('focus', () => fetchUnreadCount());
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) fetchUnreadCount();
+});
+
+function showLoginButtons() {
+    const c = document.getElementById('auth-container');
+    if (c) c.innerHTML = `
+        <div class="flex items-center space-x-3">
+            <a href="login.html"    class="px-4 py-2 text-gray-700 hover:text-green-600 font-medium">Login</a>
+            <a href="register.html" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Sign Up</a>
+        </div>`;
+}
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = 'index.html';
+}
+function goToInbox() {
+    if (!localStorage.getItem('token')) {
+        alert('Please login to access chat');
+        window.location.href = 'login.html';
+        return;
+    }
+    window.location.href = 'chat-inbox.html';
+}
+
+// ── States ──────────────────────────────────────────────────
+const STATES = ['locating','fetching','denied','empty','results'];
+function showState(s) {
+    STATES.forEach(id => {
+        const el = document.getElementById(`state-${id}`);
+        if (el) el.classList.toggle('hidden', id !== s);
+    });
+}
+
+// ── Radius ──────────────────────────────────────────────────
+function setRadius(km) {
+    currentRadius = km;
+    document.querySelectorAll('.radius-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.km) === km);
+    });
+    if (userCoords) fetchNearby(userCoords.lat, userCoords.lng, km);
+}
+
+// ── Location init ────────────────────────────────────────────
+function initLocation() {
+    showState('locating');
+    if (!navigator.geolocation) {
+        showState('denied');
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            fetchNearby(userCoords.lat, userCoords.lng, currentRadius);
+        },
+        () => showState('denied'),
+        { enableHighAccuracy: true, timeout: 12000 }
+    );
+}
+
+// ── Haversine (client-side fallback if needed) ───────────────
+function haversine(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── Fetch nearby from backend ────────────────────────────────
+async function fetchNearby(lat, lng, radius) {
+    showState('fetching');
+    document.getElementById('fetching-text').textContent = `Searching within ${radius} km…`;
+
+    try {
+        const token   = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        const res = await fetch(`${API_URL}/products/nearby?lat=${lat}&lng=${lng}&radius=${radius}`, { headers });
+        if (!res.ok) throw new Error('API error');
+
+        const result   = await res.json();
+        const products = result.data || [];
+
+        // Update stats bar
+        const statsBar  = document.getElementById('stats-bar');
+        const statsText = document.getElementById('stats-text');
+        const locLabel  = document.getElementById('location-label');
+        statsBar.style.display = 'block';
+        statsText.textContent  = `${products.length} item${products.length !== 1 ? 's' : ''} found within ${radius} km`;
+        locLabel.textContent   = `Within ${radius} km`;
+
+        if (products.length === 0) { showState('empty'); return; }
+
+        await renderProducts(products);
+        showState('results');
+
+    } catch(err) {
+        console.error(err);
+        showState('denied');
+    }
+}
+
+// ── Reverse geocode (Nominatim) ──────────────────────────────
+async function reverseGeocode(lat, lng) {
+    try {
+        const r = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+            { headers: { 'Accept-Language': 'en' } }
+        );
+        const d = await r.json();
+        if (d?.address) {
+            const a = d.address;
+            const parts = [
+                a.neighbourhood || a.suburb || a.village || a.town || a.city_district,
+                a.city || a.town || a.county,
+                a.state
+            ].filter(Boolean);
+            return parts.length ? parts.join(', ') : d.display_name.split(',').slice(0,3).join(', ');
+        }
+    } catch(e) { /* silent */ }
+    return '';
+}
+
+// ── Render ───────────────────────────────────────────────────
+async function renderProducts(products) {
+    const grid = document.getElementById('products-grid');
+    grid.innerHTML = '';
+
+    for (const product of products) {
+        const card = await buildCard(product);
+        grid.appendChild(card);
+    }
+    if (typeof feather !== 'undefined') feather.replace();
+}
+
+async function buildCard(product) {
+    const div = document.createElement('div');
+    div.className = 'product-card cursor-pointer';
+    div.onclick = e => { if (!e.target.closest('button')) goToDetails(product); };
+
+    const price      = product.price ? `Rs.${parseFloat(product.price).toFixed(2)}` : 'Rs.0.00';
+    const sellerName = product.seller?.name || 'Unknown Seller';
+    const firstImage = (product.images || [])[0] || product.imageUrl || null;
+    const isInStock  = (product.quantity || 0) > 0;
+    const distance   = product.distance !== undefined ? `${product.distance} km away` : '';
+
+    // Resolve address
+    const loc = product.location;
+    let address = '';
+    if (loc?.address && loc.address.trim()) {
+        address = loc.address.trim();
+    } else if (loc?.lat && loc?.lng) {
+        address = await reverseGeocode(loc.lat, loc.lng);
+    }
+
+    // Gender display
+    const genderIcon = { MEN:'👨', WOMEN:'👩', UNISEX:'👥', KIDS:'👶' };
+    const genderTag  = product.gender
+        ? `<span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">${genderIcon[product.gender] || '👤'} ${product.gender}</span>`
+        : '';
+    const refundTag  = `<span class="text-xs px-2 py-1 rounded-full ${product.refundable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${product.refundable ? '✅ Refundable' : '❌ Non-refundable'}</span>`;
+
+    div.innerHTML = `
+        <div class="relative">
+            <div class="h-52 bg-gray-100 flex items-center justify-center overflow-hidden">
+                ${firstImage
+                    ? `<img src="${firstImage}" alt="${product.title}" class="w-full h-full object-cover">`
+                    : `<i data-feather="image" class="w-14 h-14 text-gray-300"></i>`}
+            </div>
+            <!-- Distance badge -->
+            <span class="absolute top-3 left-3 bg-green-600 text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow flex items-center gap-1">
+                <i data-feather="map-pin" class="w-3 h-3"></i>${distance}
+            </span>
+            ${!isInStock ? `
+            <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <span class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm">SOLD OUT</span>
+            </div>` : ''}
+        </div>
+        <div class="p-4">
+            <h3 class="font-bold text-base mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
+            <p class="text-gray-500 text-sm mb-3 line-clamp-2">${product.description || 'No description'}</p>
+
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-1 mb-3">
+                ${genderTag}${refundTag}
+            </div>
+
+            <!-- Address -->
+            ${address ? `
+            <div class="flex items-center gap-1 text-xs text-gray-400 mb-3">
+                <i data-feather="map-pin" class="w-3 h-3 text-green-500 flex-shrink-0"></i>
+                <span class="truncate">${address}</span>
+            </div>` : ''}
+
+            <!-- Seller + stock -->
+            <div class="flex items-center justify-between text-sm mb-4">
+                <span class="text-gray-500">by <span class="font-medium text-gray-700">${sellerName}</span></span>
+                <span class="text-xs text-gray-400">Stock: ${product.quantity}</span>
+            </div>
+
+            <!-- Price + CTA -->
+            <div class="flex items-center justify-between">
+                <span class="price-tag px-3 py-1.5 rounded-lg font-bold text-gray-900 text-sm">${price}</span>
+                <button
+                    onclick="event.stopPropagation(); buyNow('${product.id}', ${product.price}, '${(product.title||'').replace(/'/g,"\\'")}')"
+                    class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition font-medium ${!isInStock ? 'opacity-50 cursor-not-allowed' : ''}"
+                    ${!isInStock ? 'disabled' : ''}>
+                    ${!isInStock ? 'Out of Stock' : 'Buy Now'}
+                </button>
+            </div>
+        </div>
+    `;
+    return div;
+}
+
+// ── Navigation helpers ───────────────────────────────────────
+function goToDetails(product) {
+    sessionStorage.setItem('selectedProduct', JSON.stringify(product));
+    window.location.href = `product-details.html?id=${product.id || product._id}`;
+}
+
+async function buyNow(productId, price, title) {
+    const token = localStorage.getItem('token');
+    if (!token) { alert('Please login to purchase'); window.location.href = 'login.html'; return; }
+
+    try {
+        const headers = { 'Authorization': `Bearer ${token}` };
+        const res  = await fetch(`${API_URL}/products/getProductById/${productId}`, { headers });
+        const data = await res.json();
+        const p    = data.data || data;
+
+        if (p.quantity <= 0) { alert('Sorry, this product is out of stock'); return; }
+
+        localStorage.setItem('singleProductCheckout', JSON.stringify({
+            id: productId, title: p.title || title,
+            price, quantity: 1, maxQuantity: p.quantity,
+            image: (p.images||[])[0] || p.imageUrl || null
+        }));
+        window.location.href = 'checkout.html';
+    } catch(e) {
+        alert('Error: ' + e.message);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof feather !== 'undefined') feather.replace();
+    checkAuth(); // already calls fetchUnreadCount internally
+    initLocation();
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+});
+</script>
+</body>
+</html>

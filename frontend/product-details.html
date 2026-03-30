@@ -79,6 +79,25 @@
         .distance-badge {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
+
+        .similar-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+.similar-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+.price-tag {
+    background: linear-gradient(135deg, #e9c46a 0%, #f4a261 100%);
+}
+.match-badge {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
     </style>
 </head>
 <body class="bg-gray-50">
@@ -235,6 +254,28 @@
                     </div>
                 </div>
             </div>
+
+<!-- Similar Products Section -->
+<div class="mt-12" id="similar-section">
+    <h2 class="text-2xl font-bold heading-font mb-2">Similar Products</h2>
+    <p class="text-gray-500 text-sm mb-6">Based on category and gender match</p>
+
+    <!-- Loading -->
+    <div id="similar-loading" class="flex justify-center items-center py-8">
+        <div class="loader"></div>
+        <span class="ml-3 text-gray-600">Finding similar products...</span>
+    </div>
+
+    <!-- Grid -->
+    <div id="similar-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+
+    <!-- Empty -->
+    <div id="similar-empty" class="text-center py-8 hidden">
+        <i data-feather="package" class="w-12 h-12 mx-auto text-gray-300 mb-3"></i>
+        <p class="text-gray-500">No similar products found.</p>
+    </div>
+</div>
+
 
             <!-- Error Message -->
             <div id="error-message" class="text-center py-12 hidden">
@@ -479,6 +520,7 @@
                 
                 if (product) {
                     displayProductDetails(product);
+                    loadSimilarProducts(product);
                     detailsEl.classList.remove('hidden');
                     
                     if (currentSellerId) {
@@ -793,6 +835,161 @@ function displayProductDetails(product) {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('error-message').classList.remove('hidden');
         }
+
+        // ── Content-Based Filtering Algorithm ─────────────────────────
+
+// Calculate similarity score between current product and a candidate
+function calculateSimilarityScore(current, candidate) {
+    let score = 0;
+
+    // +2 if same category
+    const currentCategoryId = current.category?.id || current.categoryId;
+    const candidateCategoryId = candidate.category?.id || candidate.categoryId;
+    if (currentCategoryId && candidateCategoryId && currentCategoryId === candidateCategoryId) {
+        score += 2;
+    }
+
+    // +1 if same gender
+    if (current.gender && candidate.gender && current.gender === candidate.gender) {
+        score += 1;
+    }
+
+    return score;
+}
+
+// Main function: fetch all products, score, sort, render
+async function loadSimilarProducts(currentProduct) {
+    const loadingEl = document.getElementById('similar-loading');
+    const gridEl    = document.getElementById('similar-grid');
+    const emptyEl   = document.getElementById('similar-empty');
+
+    try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        const res = await fetch(`${API_URL}/products/getAllProducts`, { headers });
+        if (!res.ok) throw new Error('Failed to fetch products');
+
+        const result = await res.json();
+        let allProducts = result.data || result;
+        if (!Array.isArray(allProducts)) allProducts = [];
+
+        // Exclude current product and out-of-stock items
+        const candidates = allProducts.filter(p =>
+            (p.id || p._id) !== (currentProduct.id || currentProduct._id) &&
+            p.quantity > 0 &&
+            p.status === 'APPROVED'
+        );
+
+        // Score every candidate
+        const scored = candidates
+            .map(p => ({ ...p, _score: calculateSimilarityScore(currentProduct, p) }))
+            .filter(p => p._score > 0)           // must have at least one match
+            .sort((a, b) => b._score - a._score) // highest score first
+            .slice(0, 6);                         // top 6 only
+
+        loadingEl.classList.add('hidden');
+
+        if (scored.length === 0) {
+            emptyEl.classList.remove('hidden');
+            return;
+        }
+
+        // Render cards
+        gridEl.innerHTML = '';
+        scored.forEach(product => {
+            const card = createSimilarCard(product, currentProduct);
+            gridEl.appendChild(card);
+        });
+
+        gridEl.classList.remove('hidden');
+        if (typeof feather !== 'undefined') feather.replace();
+
+    } catch (err) {
+        console.error('Similar products error:', err);
+        loadingEl.classList.add('hidden');
+        emptyEl.classList.remove('hidden');
+    }
+}
+
+function createSimilarCard(product, currentProduct) {
+    const div = document.createElement('div');
+    div.className = 'similar-card';
+    div.onclick = () => {
+        sessionStorage.setItem('selectedProduct', JSON.stringify(product));
+        window.location.href = `product-details.html?id=${product.id || product._id}`;
+    };
+
+    const price      = product.price ? `Rs.${parseFloat(product.price).toFixed(2)}` : 'Rs.0.00';
+    const sellerName = product.seller?.name || 'Unknown Seller';
+    const firstImage = (product.images || [])[0] || product.imageUrl || null;
+    const score      = product._score;
+
+    // Build match reason tags
+    const matchTags = [];
+    const currentCategoryId = currentProduct.category?.id || currentProduct.categoryId;
+    const candidateCategoryId = product.category?.id || product.categoryId;
+    if (currentCategoryId && candidateCategoryId && currentCategoryId === candidateCategoryId) {
+        matchTags.push({ text: `📂 ${product.category?.name || 'Same Category'}`, cls: 'bg-blue-100 text-blue-700' });
+    }
+    if (currentProduct.gender && product.gender && currentProduct.gender === product.gender) {
+        const genderIcon = { MEN: '👨', WOMEN: '👩', UNISEX: '👥', KIDS: '👶' };
+        matchTags.push({ text: `${genderIcon[product.gender] || '👤'} ${product.gender}`, cls: 'bg-purple-100 text-purple-700' });
+    }
+
+    div.innerHTML = `
+        <div class="relative">
+            <div class="h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
+                ${firstImage
+                    ? `<img src="${firstImage}" alt="${product.title}" class="w-full h-full object-cover">`
+                    : `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`}
+            </div>
+            <!-- Match score badge -->
+            <span class="match-badge absolute top-2 right-2 text-white text-xs px-2 py-1 rounded-full font-bold shadow">
+                ${score === 3 ? '🔥 Best Match' : score === 2 ? '✨ Good Match' : '🔗 Similar'}
+            </span>
+        </div>
+        <div class="p-4">
+            <h3 class="font-bold text-base mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
+            <p class="text-gray-500 text-sm mb-3 line-clamp-2">${product.description || 'No description'}</p>
+
+            <!-- Match reason tags -->
+            <div class="flex flex-wrap gap-1 mb-3">
+                ${matchTags.map(t => `<span class="text-xs px-2 py-1 rounded-full ${t.cls}">${t.text}</span>`).join('')}
+            </div>
+
+            <div class="flex items-center justify-between mb-3 text-sm text-gray-500">
+                <span>by <span class="font-medium text-gray-700">${sellerName}</span></span>
+                <span>Stock: ${product.quantity}</span>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <span class="price-tag px-3 py-1 rounded-lg font-bold text-gray-900 text-sm">${price}</span>
+                <button
+                    onclick="event.stopPropagation(); goToBuy('${product.id || product._id}', ${product.price}, '${(product.title || '').replace(/'/g, "\\'")}')"
+                    class="px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">
+                    Buy Now
+                </button>
+            </div>
+        </div>
+    `;
+    return div;
+}
+
+function goToBuy(productId, price, title) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Please login to purchase products');
+        window.location.href = 'login.html';
+        return;
+    }
+    const productToBuy = { id: productId, title, price, quantity: 1 };
+    localStorage.setItem('singleProductCheckout', JSON.stringify(productToBuy));
+    window.location.href = 'checkout.html';
+}
+// ─────────────────────────────────────────────────────────────
+
+
     </script>
 </body>
 </html>

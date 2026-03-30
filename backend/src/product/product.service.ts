@@ -355,4 +355,71 @@ export class ProductService {
       data: updateData
     });
   }
+
+  async getNearbyProducts(
+  userLat: number,
+  userLng: number,
+  radiusKm: number = 10,
+  userId?: number,
+  userRole?: string
+): Promise<any[]> {
+  
+  // Reuse same visibility logic as getProducts
+  let whereClause: any = {};
+  if (userRole === 'ADMIN') {
+    whereClause = {};
+  } else if (userId && userRole === 'USER') {
+    whereClause = {
+      OR: [
+        { sellerId: userId },
+        { status: 'APPROVED', quantity: { gt: 0 } }
+      ]
+    };
+  } else {
+    whereClause = { status: 'APPROVED', quantity: { gt: 0 } };
+  }
+
+  // Only fetch products that have location data
+  whereClause.location = { not: null };
+
+  const products = await prisma.product.findMany({
+    where: whereClause,
+    include: {
+      category: true,
+      seller: { select: { id: true, name: true, email: true } }
+    }
+  });
+
+  // Apply Haversine formula and filter by radius
+  const nearbyProducts = products
+    .map(product => {
+      const loc = product.location as any;
+      if (!loc?.lat || !loc?.lng) return null;
+
+      const distance = this.haversine(userLat, userLng, loc.lat, loc.lng);
+      return { ...product, distance: parseFloat(distance.toFixed(2)) };
+    })
+    .filter((p): p is NonNullable<typeof p> => p !== null && p.distance <= radiusKm)
+    .sort((a, b) => a.distance - b.distance); // closest first
+
+  return nearbyProducts;
+}
+
+private haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // Earth radius in km
+  const dLat = this.toRad(lat2 - lat1);
+  const dLng = this.toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+private toRad(deg: number): number {
+  return deg * (Math.PI / 180);
+}
+
+
 }

@@ -23,6 +23,7 @@ export class ProductController {
     this.rejectProduct = this.rejectProduct.bind(this);
     this.updateProductStatus = this.updateProductStatus.bind(this);
     this.getProductsBySellerIdPublic = this.getProductsBySellerIdPublic.bind(this);
+    this.getNearbyProducts = this.getNearbyProducts.bind(this);
   }
 async insertProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -379,4 +380,30 @@ async updateProduct(req: Request, res: Response, next: NextFunction): Promise<vo
       next(error);
     }
   };
+
+  async getNearbyProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const lat = parseFloat(req.query.lat as string);
+    const lng = parseFloat(req.query.lng as string);
+    const radius = req.query.radius ? parseFloat(req.query.radius as string) : 10;
+
+    if (isNaN(lat) || isNaN(lng)) {
+      throw new AppError("Valid lat and lng query params are required", 400, {});
+    }
+
+    const userId = (req as any).user?.id;
+    const userRole = (req as any).user?.role;
+
+    const products = await this.productService.getNearbyProducts(lat, lng, radius, userId, userRole);
+
+    res.status(200).json({
+      message: "Nearby products fetched successfully",
+      data: products,
+      count: products.length
+    });
+
+  } catch (error) {
+    next(error);
+  }
+}
 }
