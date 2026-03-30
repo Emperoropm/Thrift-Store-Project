@@ -81,90 +81,146 @@
             font-size: 12px;
             font-weight: bold;
         }
-        /* Add to your existing styles */
-.status-pending {
-    background: #fef3c7;
-    color: #92400e;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.status-approved {
-    background: #d1fae5;
-    color: #065f46;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.status-rejected {
-    background: #fee2e2;
-    color: #991b1b;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.btn-approve {
-    background: #10b981;
-    color: white;
-    padding: 6px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.btn-approve:hover {
-    background: #059669;
-}
-
-.btn-reject {
-    background: #ef4444;
-    color: white;
-    padding: 6px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.btn-reject:hover {
-    background: #dc2626;
-}
-
-.rejection-form {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 8px;
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    max-width: 500px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-}
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .btn-approve {
+            background: #10b981;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn-approve:hover {
+            background: #059669;
+        }
+        
+        .btn-reject {
+            background: #ef4444;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn-reject:hover {
+            background: #dc2626;
+        }
+        
+        .rejection-form {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .product-image:hover {
+            transform: scale(1.1);
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .badge-men { background: #3b82f6; color: white; }
+        .badge-women { background: #ec489a; color: white; }
+        .badge-unisex { background: #8b5cf6; color: white; }
+        .badge-kids { background: #f59e0b; color: white; }
+        .badge-refundable { background: #10b981; color: white; }
+        .badge-non-refundable { background: #ef4444; color: white; }
+        
+        .product-detail-modal {
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .image-gallery {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 8px;
+        }
+        
+        .gallery-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .gallery-image:hover {
+            border-color: #10b981;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -172,8 +228,8 @@
     <nav class="bg-white shadow-md">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <a href="index.html">
-    <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
-</a>
+                <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+            </a>
             
             <div id="auth-container">
                 <!-- Will be filled by JavaScript -->
@@ -227,7 +283,7 @@
         
         <!-- Tabs -->
         <div class="mb-6">
-            <div class="flex space-x-2 border-b">
+            <div class="flex space-x-2 border-b flex-wrap">
                 <div class="tab-button active" data-tab="users" onclick="switchTab('users')">
                     <i data-feather="users" class="w-4 h-4 inline mr-2"></i>
                     Users
@@ -240,13 +296,11 @@
                     <i data-feather="grid" class="w-4 h-4 inline mr-2"></i>
                     Categories
                 </div>
-                <!-- In the tabs section -->
-<div class="tab-button" data-tab="pending" onclick="switchTab('pending')">
-    <i data-feather="clock" class="w-4 h-4 inline mr-2"></i>
-    Pending Products
-    <span id="pending-count" class="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">0</span>
-</div>
-                
+                <div class="tab-button" data-tab="pending" onclick="switchTab('pending')">
+                    <i data-feather="clock" class="w-4 h-4 inline mr-2"></i>
+                    Pending Products
+                    <span id="pending-count" class="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">0</span>
+                </div>
             </div>
         </div>
 
@@ -273,21 +327,12 @@
                                 <th class="text-left py-3 px-4">Email</th>
                                 <th class="text-left py-3 px-4">Role</th>
                                 <th class="text-left py-3 px-4">Joined</th>
-                                <!-- <th class="text-left py-3 px-4">Actions</th>
-                                <td class="py-3 px-4">
-                        <button onclick="deleteUser(${user.id})" class="px-2 py-1 text-red-600 hover:text-red-800 text-sm ml-2">
-                            Delete
-                        </button>
-                    </td> -->
                             </tr>
                         </thead>
-                        <tbody id="users-table">
-                            <!-- Users will be loaded here -->
-                        </tbody>
+                        <tbody id="users-table"></tbody>
                     </table>
                 </div>
                 
-                <!-- No Users Message -->
                 <div id="no-users" class="text-center py-8 hidden">
                     <i data-feather="users" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
                     <h3 class="text-lg font-medium text-gray-700 mb-2">No users found</h3>
@@ -305,25 +350,24 @@
                 
                 <div class="overflow-x-auto">
                     <table class="w-full">
-                        <!-- In the pending-tab section, update the table header -->
-<thead>
-    <tr class="border-b">
-        <th class="text-left py-3 px-4">ID</th>
-        <th class="text-left py-3 px-4">Title</th>
-        <th class="text-left py-3 px-4">Price</th>
-        <th class="text-left py-3 px-4">Seller</th>
-        <th class="text-left py-3 px-4">Submitted</th>
-        <th class="text-left py-3 px-4">Status</th>
-        <th class="text-left py-3 px-4">Actions</th>
-    </tr>
-</thead>
-                        <tbody id="products-table">
-                            <!-- Products will be loaded here -->
-                        </tbody>
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left py-3 px-4">Image</th>
+                                <th class="text-left py-3 px-4">ID</th>
+                                <th class="text-left py-3 px-4">Title</th>
+                                <th class="text-left py-3 px-4">Price</th>
+                                <th class="text-left py-3 px-4">Stock</th>
+                                <th class="text-left py-3 px-4">Gender</th>
+                                <th class="text-left py-3 px-4">Refundable</th>
+                                <th class="text-left py-3 px-4">Seller</th>
+                                <th class="text-left py-3 px-4">Status</th>
+                                <th class="text-left py-3 px-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table"></tbody>
                     </table>
                 </div>
                 
-                <!-- No Products Message -->
                 <div id="no-products" class="text-center py-8 hidden">
                     <i data-feather="package" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
                     <h3 class="text-lg font-medium text-gray-700 mb-2">No products found</h3>
@@ -342,7 +386,6 @@
                     </button>
                 </div>
                 
-                <!-- Add Category Form -->
                 <div id="add-category-form" class="mb-6 p-4 border border-gray-200 rounded-lg hidden">
                     <h4 class="font-bold text-gray-700 mb-3">Add New Category</h4>
                     <form id="new-category-form" onsubmit="addCategory(event)">
@@ -351,7 +394,6 @@
                                 <label class="block text-gray-700 mb-2">Category Name *</label>
                                 <input type="text" id="category-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
                             </div>
-                           
                         </div>
                         <div class="flex justify-end space-x-3 mt-4">
                             <button type="button" onclick="hideAddCategoryForm()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
@@ -364,11 +406,8 @@
                     </form>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="categories-grid">
-                    <!-- Categories will be loaded here -->
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="categories-grid"></div>
                 
-                <!-- No Categories Message -->
                 <div id="no-categories" class="text-center py-8 hidden">
                     <i data-feather="grid" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
                     <h3 class="text-lg font-medium text-gray-700 mb-2">No categories found</h3>
@@ -376,74 +415,43 @@
             </div>
         </div>
         
-        <!-- Edit Category Modal -->
-<div id="edit-category-modal" class="modal-overlay hidden">
-    <div class="modal-content p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-gray-800">Edit Category</h3>
-            <button onclick="closeEditCategoryModal()" class="text-gray-500 hover:text-gray-700">
-                <i data-feather="x" class="w-5 h-5"></i>
-            </button>
-        </div>
-        
-        <form id="edit-category-form" onsubmit="updateCategory(event)">
-            <input type="hidden" id="edit-category-id">
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Category Name *</label>
-                <input type="text" id="edit-category-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="closeEditCategoryModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
-                    Cancel
-                </button>
-                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                    Update Category
-                </button>
-            </div>
-        </form>
-        
-        <div id="edit-category-message" class="mt-3 text-sm hidden"></div>
-    </div>
-</div>
-
         <!-- Pending Products Tab -->
-<div id="pending-tab" class="tab-content hidden">
-    <div class="admin-card p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-gray-800">Products Pending Approval</h3>
-            <div class="text-sm text-gray-500" id="pending-products-count">0 products waiting</div>
+        <div id="pending-tab" class="tab-content hidden">
+            <div class="admin-card p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Products Pending Approval</h3>
+                    <div class="text-sm text-gray-500" id="pending-products-count">0 products waiting</div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left py-3 px-4">Image</th>
+                                <th class="text-left py-3 px-4">ID</th>
+                                <th class="text-left py-3 px-4">Title</th>
+                                <th class="text-left py-3 px-4">Price</th>
+                                <th class="text-left py-3 px-4">Stock</th>
+                                <th class="text-left py-3 px-4">Gender</th>
+                                <th class="text-left py-3 px-4">Purchase Date</th>
+                                <th class="text-left py-3 px-4">Refundable</th>
+                                <th class="text-left py-3 px-4">Seller</th>
+                                <th class="text-left py-3 px-4">Submitted</th>
+                                <th class="text-left py-3 px-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-products-table"></tbody>
+                    </table>
+                </div>
+                
+                <div id="no-pending-products" class="text-center py-8 hidden">
+                    <i data-feather="check-circle" class="w-16 h-16 mx-auto text-green-300 mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">No pending products</h3>
+                    <p class="text-gray-500">All products have been reviewed.</p>
+                </div>
+            </div>
         </div>
         
-        <div class="overflow-x-auto">
-            <table class="w-full">
-               <thead>
-    <tr class="border-b">
-        <th class="text-left py-3 px-4">ID</th>
-        <th class="text-left py-3 px-4">Image</th>
-        <th class="text-left py-3 px-4">Title</th>
-                        <th class="text-left py-3 px-4">Price</th>
-                        <th class="text-left py-3 px-4">Seller</th>
-                        <th class="text-left py-3 px-4">Submitted</th>
-                        <th class="text-left py-3 px-4">Status</th>
-                        <th class="text-left py-3 px-4">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="pending-products-table">
-                    <!-- Pending products will be loaded here -->
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- No Pending Products Message -->
-        <div id="no-pending-products" class="text-center py-8 hidden">
-            <i data-feather="check-circle" class="w-16 h-16 mx-auto text-green-300 mb-4"></i>
-            <h3 class="text-lg font-medium text-gray-700 mb-2">No pending products</h3>
-            <p class="text-gray-500">All products have been reviewed.</p>
-        </div>
-    </div>
-</div>
         <!-- Error Message -->
         <div id="error-message" class="text-center py-12 hidden">
             <i data-feather="alert-circle" class="w-16 h-16 mx-auto text-red-300 mb-4"></i>
@@ -453,79 +461,110 @@
         </div>
     </div>
 
+    <!-- Edit Category Modal -->
+    <div id="edit-category-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Edit Category</h3>
+                <button onclick="closeEditCategoryModal()" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="edit-category-form" onsubmit="updateCategory(event)">
+                <input type="hidden" id="edit-category-id">
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Category Name *</label>
+                    <input type="text" id="edit-category-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeEditCategoryModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        Update Category
+                    </button>
+                </div>
+            </form>
+            
+            <div id="edit-category-message" class="mt-3 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div id="product-detail-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-gray-800">Product Details</h3>
+                <button onclick="closeProductDetailModal()" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="product-detail-content" class="p-6">
+                <!-- Product details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-50 flex items-center justify-center">
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white text-3xl font-bold hover:text-gray-300 z-10">
+            &times;
+        </button>
+        <img id="modal-image" class="max-w-full max-h-full object-contain" alt="Product Image">
+    </div>
 
     <script>
         const API_URL = 'http://localhost:3000/api';
         
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize feather icons
             if (typeof feather !== 'undefined') {
                 feather.replace();
             }
-            
-            // Check auth and load admin dashboard
             checkAdminAuth();
         });
         
-        // Check admin authentication
         function checkAdminAuth() {
             const token = localStorage.getItem('token');
             const user = localStorage.getItem('user');
             
             if (!token || !user) {
-                // Not logged in, redirect to login
                 window.location.href = 'login.html';
                 return;
             }
             
             try {
                 const userData = JSON.parse(user);
-                
-                // Check if user is admin
                 if (userData.role !== 'ADMIN') {
-                    // Not admin, redirect to home
                     alert('Access denied. Admin only.');
                     window.location.href = 'index.html';
                     return;
                 }
-                
-                // Update auth UI
                 updateAuthUI(userData);
-                
-                // Load admin dashboard
                 loadAdminDashboard();
-                
             } catch(e) {
                 console.error('Error parsing user data:', e);
                 window.location.href = 'login.html';
             }
         }
         
-        // Update auth UI in navigation
         function updateAuthUI(userData) {
             const authContainer = document.getElementById('auth-container');
-            
             if (authContainer) {
                 authContainer.innerHTML = `
                     <div class="flex items-center space-x-4">
                         <span class="font-medium text-gray-700">${userData.name || 'Admin'}</span>
-                        <a href="index.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
-                            Shop
-                        </a>
-                        <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
-                            Logout
-                        </button>
+                        <a href="index.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">Shop</a>
+                        <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">Logout</button>
                     </div>
                 `;
             }
-            
-            // Update admin info
             document.getElementById('admin-name').textContent = userData.name || 'Admin';
             document.getElementById('admin-email').textContent = userData.email || '';
         }
         
-        // Load admin dashboard
         async function loadAdminDashboard() {
             const loadingEl = document.getElementById('loading');
             const errorEl = document.getElementById('error-message');
@@ -534,22 +573,15 @@
             if (errorEl) errorEl.classList.add('hidden');
             
             try {
-                const token = localStorage.getItem('token');
+                await Promise.all([
+                    loadAdminStats(),
+                    loadAllUsers(),
+                    loadPendingProducts()
+                ]);
                 
-                if (!token) {
-                    throw new Error('Not authenticated');
-                }
-                
-                // Load stats and users
-                await loadAdminStats();
-                await loadAllUsers();
-                
-                // Show users tab by default
                 switchTab('users');
                 
-                // Hide loading
                 if (loadingEl) loadingEl.classList.add('hidden');
-                
             } catch (error) {
                 console.error('Error loading admin dashboard:', error);
                 if (loadingEl) loadingEl.classList.add('hidden');
@@ -560,21 +592,11 @@
             }
         }
         
-        // Load admin stats
         async function loadAdminStats() {
             try {
                 const token = localStorage.getItem('token');
-                
-                // Note: You'll need to create these endpoints in your backend
-                // For now, we'll use dummy data
-                
-                // Fetch all users
-                const usersResponse = await fetch(`${API_URL}/admin/users`, {
-                    method: 'GET',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                const usersResponse = await fetch(`${API_URL}/auth/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 if (usersResponse.ok) {
@@ -583,13 +605,8 @@
                     document.getElementById('total-users').textContent = users.length || 0;
                 }
                 
-                // Fetch all products
                 const productsResponse = await fetch(`${API_URL}/products/getAllProducts`, {
-                    method: 'GET',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 if (productsResponse.ok) {
@@ -598,58 +615,35 @@
                     document.getElementById('total-products').textContent = products.length || 0;
                 }
                 
-                // Orders - placeholder (you need to create this endpoint)
                 document.getElementById('total-orders').textContent = '0';
-                
             } catch (error) {
                 console.error('Error loading admin stats:', error);
-                // Use dummy data if API fails
-                document.getElementById('total-users').textContent = '42';
-                document.getElementById('total-products').textContent = '156';
-                document.getElementById('total-orders').textContent = '89';
             }
         }
         
-        // Load all users
         async function loadAllUsers() {
             try {
                 const token = localStorage.getItem('token');
-                
                 const response = await fetch(`${API_URL}/auth/users`, {
-                    method: 'GET',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch users: ${response.status}`);
-                }
+                if (!response.ok) throw new Error('Failed to fetch users');
                 
                 const result = await response.json();
                 const users = result.data || result;
-                
-                // Update count
                 document.getElementById('users-count').textContent = `${users.length} user${users.length !== 1 ? 's' : ''}`;
-                
-                // Render users table
                 renderUsersTable(users);
-                
             } catch (error) {
                 console.error('Error loading users:', error);
-                // Show dummy data for demo
-                renderDummyUsers();
             }
         }
         
-        // Render users table
         function renderUsersTable(users) {
             const usersTable = document.getElementById('users-table');
             const noUsersEl = document.getElementById('no-users');
             
             if (!usersTable) return;
-            
             usersTable.innerHTML = '';
             
             if (!users || users.length === 0) {
@@ -662,7 +656,6 @@
             users.forEach(user => {
                 const row = document.createElement('tr');
                 row.className = 'user-row border-b';
-                
                 const createdAt = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
                 const roleClass = user.role === 'ADMIN' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
                 
@@ -670,246 +663,423 @@
                     <td class="py-3 px-4">${user.id || 'N/A'}</td>
                     <td class="py-3 px-4 font-medium">${user.name || 'N/A'}</td>
                     <td class="py-3 px-4">${user.email || 'N/A'}</td>
-                    <td class="py-3 px-4">
-                        <span class="px-2 py-1 rounded text-xs font-bold ${roleClass}">
-                            ${user.role || 'USER'}
-                        </span>
-                    </td>
+                    <td class="py-3 px-4"><span class="px-2 py-1 rounded text-xs font-bold ${roleClass}">${user.role || 'USER'}</span></td>
                     <td class="py-3 px-4">${createdAt}</td>
-                    
                 `;
-                
                 usersTable.appendChild(row);
             });
         }
         
-        // Dummy users for demo
-        function renderDummyUsers() {
-            const dummyUsers = [
-                { id: 1, name: 'John Doe', email: 'john@example.com', role: 'USER', createdAt: '2024-01-15' },
-                { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'SELLER', createdAt: '2024-01-20' },
-                { id: 3, name: 'Admin User', email: 'admin@example.com', role: 'ADMIN', createdAt: '2024-01-10' },
-                { id: 4, name: 'Bob Wilson', email: 'bob@example.com', role: 'USER', createdAt: '2024-01-25' }
-            ];
-            
-            document.getElementById('users-count').textContent = `${dummyUsers.length} users`;
-            renderUsersTable(dummyUsers);
-        }
-        
-        // Switch tabs
-        function switchTab(tabName) {
-            // Update tab buttons
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                if (btn.getAttribute('data-tab') === tabName) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-            
-            // Show/hide tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
-            
-            // Load content for the tab if needed
-            if (tabName === 'products') {
-                loadAllProducts();
-            } else if (tabName === 'categories') {
-                loadAllCategories();
-            } else if (tabName === 'orders') {
-                loadAllOrders();
-            }
-        }
-        
-        // Load all products for admin
-async function loadAllProducts() {
-    try {
-        const token = localStorage.getItem('token');
-        
-        console.log('Fetching all products...');
-        const response = await fetch(`${API_URL}/products/getAllProducts`, {
-            method: 'GET',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        console.log('Response status:', response.status);
-        
-        if (response.ok) {
-            const result = await response.json();
-            console.log('Products API response:', result);
-            
-            // Check the structure
-            let products = result;
-            
-            // Handle different response structures
-            if (result.data && Array.isArray(result.data)) {
-                products = result.data;
-                console.log('Using products.data array');
-            } else if (result.products && Array.isArray(result.products)) {
-                products = result.products;
-                console.log('Using products.products array');
-            }
-            
-            console.log('Products array:', products);
-            console.log('Number of products:', products.length);
-            
-            if (Array.isArray(products)) {
-                document.getElementById('products-count').textContent = `${products.length} product${products.length !== 1 ? 's' : ''}`;
+        async function loadAllProducts() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/products/getAllProducts`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 
-                // Render products table
-                renderProductsTable(products);
-            } else {
-                console.error('Products is not an array:', products);
-                document.getElementById('products-count').textContent = '0 products';
-                document.getElementById('no-products').classList.remove('hidden');
+                if (response.ok) {
+                    const result = await response.json();
+                    let products = result.data || result;
+                    
+                    if (Array.isArray(products)) {
+                        document.getElementById('products-count').textContent = `${products.length} product${products.length !== 1 ? 's' : ''}`;
+                        renderProductsTable(products);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+        
+        function renderProductsTable(products) {
+            const productsTable = document.getElementById('products-table');
+            const noProductsEl = document.getElementById('no-products');
+            
+            if (!productsTable) return;
+            productsTable.innerHTML = '';
+            
+            if (!products || !Array.isArray(products) || products.length === 0) {
+                if (noProductsEl) noProductsEl.classList.remove('hidden');
+                return;
             }
             
-        } else {
-            console.error('Failed to fetch products:', response.status);
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
+            if (noProductsEl) noProductsEl.classList.add('hidden');
+            
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.className = 'user-row border-b';
+                
+                const productImages = product.images || [];
+                const firstImage = productImages.length > 0 ? productImages[0] : (product.imageUrl || null);
+                const genderIcon = { 'MEN': '👨', 'WOMEN': '👩', 'UNISEX': '👥', 'KIDS': '👶' };
+                const genderDisplay = product.gender ? `${genderIcon[product.gender]} ${product.gender}` : '—';
+                const refundableDisplay = product.refundable ? 
+                    '<span class="badge-refundable badge">✅ Refundable</span>' : 
+                    '<span class="badge-non-refundable badge">❌ Non-refundable</span>';
+                const statusClass = product.status === 'APPROVED' ? 'status-approved' : 
+                                   (product.status === 'REJECTED' ? 'status-rejected' : 'status-pending');
+                
+                row.innerHTML = `
+                    <td class="py-3 px-4">
+                        ${firstImage ? 
+                            `<img src="${firstImage}" alt="${product.title}" class="product-image" onclick="viewImage('${firstImage}')">` : 
+                            '<div class="w-15 h-15 bg-gray-100 rounded flex items-center justify-center"><i data-feather="image" class="w-6 h-6 text-gray-400"></i></div>'
+                        }
+                    </td>
+                    <td class="py-3 px-4">${product.id || 'N/A'}</td>
+                    <td class="py-3 px-4 font-medium">${product.title || 'No Title'}</td>
+                    <td class="py-3 px-4">Rs. ${parseFloat(product.price || 0).toFixed(2)}</td>
+                    <td class="py-3 px-4">${product.quantity || 0}</td>
+                    <td class="py-3 px-4">${genderDisplay}</td>
+                    <td class="py-3 px-4">${refundableDisplay}</td>
+                    <td class="py-3 px-4">${product.seller?.name || product.sellerId || 'N/A'}</td>
+                    <td class="py-3 px-4"><span class="${statusClass}">${product.status || 'PENDING'}</span></td>
+                    <td class="py-3 px-4">
+                        <button onclick="viewProductDetails(${product.id})" class="text-blue-600 hover:text-blue-800 text-sm">View</button>
+                        <button onclick="deleteProductAdmin(${product.id})" class="text-red-600 hover:text-red-800 text-sm ml-2">Delete</button>
+                    </td>
+                `;
+                productsTable.appendChild(row);
+            });
+            
+            if (typeof feather !== 'undefined') feather.replace();
         }
         
-    } catch (error) {
-        console.error('Error loading products:', error);
-        document.getElementById('products-count').textContent = 'Error loading';
-    }
-}
-// Render products table
-function renderProductsTable(products) {
-    const productsTable = document.getElementById('products-table');
-    const noProductsEl = document.getElementById('no-products');
-    
-    if (!productsTable) {
-        console.error('products-table element not found');
-        return;
-    }
-    
-    productsTable.innerHTML = '';
-    
-    if (!products || !Array.isArray(products) || products.length === 0) {
-        console.log('No products to display');
-        if (noProductsEl) noProductsEl.classList.remove('hidden');
-        return;
-    }
-    
-    if (noProductsEl) noProductsEl.classList.add('hidden');
-    
-    console.log(`Rendering ${products.length} products`);
-    
-    // Show first 3 products in console to check structure
-    products.slice(0, 3).forEach((product, index) => {
-        console.log(`Product ${index + 1}:`, product);
-    });
-    
-    products.forEach(product => {
-        const row = document.createElement('tr');
-        row.className = 'user-row border-b';
-        
-        // Use correct property names based on your product model
-        const productId = product.id || product.productId || 'N/A';
-        const title = product.title || product.name || 'No Title';
-        const price = product.price ? `Rs. ${parseFloat(product.price).toFixed(2)}` : 'Rs. 0.00';
-        const quantity = product.quantity || product.stock || 0;
-        const sellerId = product.sellerId || 'N/A';
-        const categoryId = product.categoryId || 'N/A';
-        
-        row.innerHTML = `
-            <td class="py-3 px-4">${productId}</td>
-            <td class="py-3 px-4 font-medium">${title}</td>
-            <td class="py-3 px-4">${price}</td>
-            <td class="py-3 px-4">${quantity}</td>
-            <td class="py-3 px-4">${sellerId}</td>
-            <td class="py-3 px-4">${categoryId}</td>
-            <td class="py-3 px-4">
-                <button onclick="viewProduct(${productId})" class="px-2 py-1 text-blue-600 hover:text-blue-800 text-sm">
-                    View
-                </button>
-                <button onclick="deleteProductAdmin(${productId})" class="px-2 py-1 text-red-600 hover:text-red-800 text-sm ml-2">
-                    Delete
-                </button>
-            </td>
-        `;
-        
-        productsTable.appendChild(row);
-    });
-}
-
-// View product details
-function viewProduct(productId) {
-    alert(`View product ${productId} - Coming soon!`);
-    // You could fetch and display product details in a modal
-}
-
-// Delete product (admin version)
-async function deleteProductAdmin(productId) {
-    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-        return;
-    }
-    
-    try {
-        const token = localStorage.getItem('token');
-        
-        const response = await fetch(`${API_URL}/products/deleteProducts/${productId}`, {
-            method: 'DELETE',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+        async function loadPendingProducts() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/products/admin/pending`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    let pendingProducts = result.data || result;
+                    
+                    if (Array.isArray(pendingProducts)) {
+                        const pendingCount = pendingProducts.length;
+                        document.getElementById('pending-products-count').textContent = `${pendingCount} product${pendingCount !== 1 ? 's' : ''} waiting`;
+                        
+                        const pendingBadge = document.getElementById('pending-count');
+                        if (pendingBadge) {
+                            pendingBadge.textContent = pendingCount;
+                            pendingBadge.classList.toggle('hidden', pendingCount === 0);
+                        }
+                        
+                        renderPendingProductsTable(pendingProducts);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading pending products:', error);
             }
-        });
-        
-        if (response.ok) {
-            alert('Product deleted successfully!');
-            loadAllProducts(); // Reload the table
-        } else {
-            const error = await response.json();
-            alert(`Error: ${error.message || 'Failed to delete product'}`);
         }
         
-    } catch (error) {
-        console.error('Error deleting product:', error);
-        alert('Failed to delete product. Please try again.');
-    }
-}
+        function renderPendingProductsTable(products) {
+            const pendingTable = document.getElementById('pending-products-table');
+            const noPendingEl = document.getElementById('no-pending-products');
+            
+            if (!pendingTable) return;
+            pendingTable.innerHTML = '';
+            
+            if (!products || !Array.isArray(products) || products.length === 0) {
+                if (noPendingEl) noPendingEl.classList.remove('hidden');
+                return;
+            }
+            
+            if (noPendingEl) noPendingEl.classList.add('hidden');
+            
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.className = 'user-row border-b';
+                
+                const productImages = product.images || [];
+                const firstImage = productImages.length > 0 ? productImages[0] : (product.imageUrl || null);
+                const hasMultipleImages = productImages.length > 1;
+                const genderIcon = { 'MEN': '👨', 'WOMEN': '👩', 'UNISEX': '👥', 'KIDS': '👶' };
+                const genderDisplay = product.gender ? `${genderIcon[product.gender]} ${product.gender}` : '—';
+                const refundableDisplay = product.refundable ? 
+                    '<span class="badge-refundable badge">✅ Refundable</span>' : 
+                    '<span class="badge-non-refundable badge">❌ Non-refundable</span>';
+                const purchaseDate = product.purchaseDate ? new Date(product.purchaseDate).toLocaleDateString() : '—';
+                const createdAt = product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A';
+                const sellerName = product.seller ? (product.seller.name || product.seller.email) : 'Unknown Seller';
+                
+                let imageHtml = '';
+                if (firstImage) {
+                    imageHtml = `
+                        <div class="relative group">
+                            <img src="${firstImage}" 
+                                 alt="${product.title}" 
+                                 class="product-image cursor-pointer"
+                                 onclick="viewImage('${firstImage}')">
+                            ${hasMultipleImages ? `
+                                <span class="absolute -top-1 -right-1 bg-black bg-opacity-70 text-white text-xs px-1 rounded-full">
+                                    +${productImages.length - 1}
+                                </span>
+                            ` : ''}
+                        </div>
+                    `;
+                } else {
+                    imageHtml = '<div class="w-15 h-15 bg-gray-100 rounded flex items-center justify-center"><i data-feather="image" class="w-6 h-6 text-gray-400"></i></div>';
+                }
+                
+                row.innerHTML = `
+                    <td class="py-3 px-4">${imageHtml}</td>
+                    <td class="py-3 px-4">${product.id || 'N/A'}</td>
+                    <td class="py-3 px-4">
+                        <div class="font-semibold">${product.title || 'No Title'}</div>
+                        ${product.description ? `<div class="text-sm text-gray-500 mt-1 max-w-xs truncate">${product.description.substring(0, 60)}${product.description.length > 60 ? '...' : ''}</div>` : ''}
+                    </td>
+                    <td class="py-3 px-4">Rs. ${parseFloat(product.price || 0).toFixed(2)}</td>
+                    <td class="py-3 px-4">${product.quantity || 0}
+                    <td class="py-3 px-4">${genderDisplay}
+                    <td class="py-3 px-4">${purchaseDate}
+                    <td class="py-3 px-4">${refundableDisplay}
+                    <td class="py-3 px-4">
+                        <div class="font-medium">${sellerName}</div>
+                        <div class="text-xs text-gray-500">ID: ${product.sellerId}</div>
+                    
+                    <td class="py-3 px-4">${createdAt}
+                    <td class="py-3 px-4">
+                        <div class="flex flex-col space-y-2">
+                            <div class="flex space-x-2">
+                                <button onclick="approveProduct(${product.id})" class="btn-approve flex-1">
+                                    <i data-feather="check" class="w-4 h-4 inline mr-1"></i> Approve
+                                </button>
+                                <button onclick="showRejectForm(${product.id})" class="btn-reject flex-1">
+                                    <i data-feather="x" class="w-4 h-4 inline mr-1"></i> Reject
+                                </button>
+                            </div>
+                            <button onclick="viewProductDetails(${product.id})" class="text-blue-600 hover:text-blue-800 text-sm">
+                                <i data-feather="eye" class="w-4 h-4 inline mr-1"></i> View Details
+                            </button>
+                        </div>
+                        <div id="reject-form-${product.id}" class="rejection-form hidden mt-2">
+                            <textarea id="reason-${product.id}" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded mb-2" 
+                                rows="2" 
+                                placeholder="Reason for rejection (required)"></textarea>
+                            <div class="flex justify-end space-x-2">
+                                <button onclick="hideRejectForm(${product.id})" class="px-3 py-1 text-gray-600 text-sm">Cancel</button>
+                                <button onclick="rejectProduct(${product.id})" class="px-3 py-1 bg-red-600 text-white rounded text-sm">Submit</button>
+                            </div>
+                        </div>
+                    
+                `;
+                pendingTable.appendChild(row);
+            });
+            
+            if (typeof feather !== 'undefined') feather.replace();
+        }
         
-        // Load all categories for admin
+        function showRejectForm(productId) {
+            const form = document.getElementById(`reject-form-${productId}`);
+            if (form) form.classList.remove('hidden');
+        }
+        
+        function hideRejectForm(productId) {
+            const form = document.getElementById(`reject-form-${productId}`);
+            if (form) {
+                form.classList.add('hidden');
+                document.getElementById(`reason-${productId}`).value = '';
+            }
+        }
+        
+        async function approveProduct(productId) {
+            if (!confirm('Are you sure you want to approve this product?')) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/products/admin/approve/${productId}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    alert('Product approved successfully!');
+                    loadPendingProducts();
+                    if (!document.getElementById('products-tab').classList.contains('hidden')) loadAllProducts();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message || 'Failed to approve product'}`);
+                }
+            } catch (error) {
+                console.error('Error approving product:', error);
+                alert('Failed to approve product.');
+            }
+        }
+        
+        async function rejectProduct(productId) {
+            const reason = document.getElementById(`reason-${productId}`).value.trim();
+            if (!reason) {
+                alert('Please provide a reason for rejection.');
+                return;
+            }
+            if (!confirm('Are you sure you want to reject this product?')) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/products/admin/reject/${productId}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                
+                if (response.ok) {
+                    alert('Product rejected successfully!');
+                    hideRejectForm(productId);
+                    loadPendingProducts();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message || 'Failed to reject product'}`);
+                }
+            } catch (error) {
+                console.error('Error rejecting product:', error);
+                alert('Failed to reject product.');
+            }
+        }
+        
+        async function viewProductDetails(productId) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/products/getProductById/${productId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    const product = result.data || result;
+                    showProductDetailModal(product);
+                }
+            } catch (error) {
+                console.error('Error loading product details:', error);
+                alert('Failed to load product details.');
+            }
+        }
+        
+        function showProductDetailModal(product) {
+            const modal = document.getElementById('product-detail-modal');
+            const content = document.getElementById('product-detail-content');
+            
+            const productImages = product.images || [];
+            const genderIcon = { 'MEN': '👨', 'WOMEN': '👩', 'UNISEX': '👥', 'KIDS': '👶' };
+            
+            let imagesHtml = '';
+            if (productImages.length > 0) {
+                imagesHtml = `
+                    <div class="mb-4">
+                        <h4 class="font-semibold text-gray-700 mb-2">Product Images</h4>
+                        <div class="image-gallery">
+                            ${productImages.map(img => `
+                                <img src="${img}" class="gallery-image" onclick="viewImage('${img}')">
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        ${productImages.length > 0 ? 
+                            `<img src="${productImages[0]}" class="w-full h-64 object-cover rounded-lg cursor-pointer" onclick="viewImage('${productImages[0]}')">` : 
+                            '<div class="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center"><i data-feather="image" class="w-16 h-16 text-gray-400"></i></div>'
+                        }
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">${product.title || 'No Title'}</h3>
+                        <p class="text-3xl font-bold text-green-600 mb-4">Rs. ${parseFloat(product.price || 0).toFixed(2)}</p>
+                        <div class="space-y-2 text-gray-600">
+                            <p><span class="font-semibold">Status:</span> <span class="${product.status === 'APPROVED' ? 'status-approved' : product.status === 'REJECTED' ? 'status-rejected' : 'status-pending'}">${product.status || 'PENDING'}</span></p>
+                            <p><span class="font-semibold">Stock:</span> ${product.quantity || 0} units</p>
+                            <p><span class="font-semibold">Gender:</span> ${product.gender ? `${genderIcon[product.gender]} ${product.gender}` : '—'}</p>
+                            <p><span class="font-semibold">Refundable:</span> ${product.refundable ? '✅ Yes' : '❌ No'}</p>
+                            <p><span class="font-semibold">Purchase Date:</span> ${product.purchaseDate ? new Date(product.purchaseDate).toLocaleDateString() : '—'}</p>
+                            ${product.location ? `<p><span class="font-semibold">Location:</span> ${product.location.address || '—'}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <h4 class="font-semibold text-gray-700 mb-2">Description</h4>
+                    <p class="text-gray-600">${product.description || 'No description available'}</p>
+                </div>
+                ${imagesHtml}
+                <div class="mt-6 pt-4 border-t">
+                    <h4 class="font-semibold text-gray-700 mb-2">Seller Information</h4>
+                    <p><span class="font-semibold">Name:</span> ${product.seller?.name || 'Unknown'}</p>
+                    <p><span class="font-semibold">Email:</span> ${product.seller?.email || 'N/A'}</p>
+                    <p><span class="font-semibold">Seller ID:</span> ${product.sellerId || 'N/A'}</p>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+        
+        function closeProductDetailModal() {
+            document.getElementById('product-detail-modal').classList.add('hidden');
+        }
+        
+        function viewImage(imageUrl) {
+            const modal = document.getElementById('image-modal');
+            const img = document.getElementById('modal-image');
+            img.src = imageUrl;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeImageModal() {
+            const modal = document.getElementById('image-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        }
+        
+        async function deleteProductAdmin(productId) {
+            if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/products/deleteProducts/${productId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    alert('Product deleted successfully!');
+                    loadAllProducts();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message || 'Failed to delete product'}`);
+                }
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                alert('Failed to delete product.');
+            }
+        }
+        
         async function loadAllCategories() {
             try {
                 const token = localStorage.getItem('token');
-                
                 const response = await fetch(`${API_URL}/category/getAllCategory`, {
-                    method: 'GET',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 if (response.ok) {
                     const categories = await response.json();
                     renderCategoriesGrid(categories);
                 }
-                
             } catch (error) {
                 console.error('Error loading categories:', error);
-                // Show dummy categories for demo
-                renderDummyCategories();
             }
         }
         
-        // Render categories grid
         function renderCategoriesGrid(categories) {
             const categoriesGrid = document.getElementById('categories-grid');
             const noCategoriesEl = document.getElementById('no-categories');
             
             if (!categoriesGrid) return;
-            
             categoriesGrid.innerHTML = '';
             
             if (!categories || categories.length === 0) {
@@ -922,72 +1092,39 @@ async function deleteProductAdmin(productId) {
             categories.forEach(category => {
                 const div = document.createElement('div');
                 div.className = 'admin-card p-4';
-                
                 div.innerHTML = `
                     <h4 class="font-bold text-gray-800 mb-1">${category.name}</h4>
-                    <p class="text-gray-600 text-sm mb-3">${category.description || 'No description'}</p>
-                    <div class="flex justify-between items-center">
+                    <div class="flex justify-between items-center mt-2">
                         <span class="text-sm text-gray-500">ID: ${category.id}</span>
                         <div class="space-x-2">
-                            <button onclick="editCategory(${category.id})" class="text-blue-600 hover:text-blue-800 text-sm">
-                                Edit
-                            </button>
-                            <button onclick="deleteCategory(${category.id})" class="text-red-600 hover:text-red-800 text-sm">
-                                Delete
-                            </button>
+                            <button onclick="editCategory(${category.id})" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
+                            <button onclick="deleteCategory(${category.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
                         </div>
                     </div>
                 `;
-                
                 categoriesGrid.appendChild(div);
             });
         }
         
-        // Dummy categories for demo
-        function renderDummyCategories() {
-            const dummyCategories = [
-                { id: 1, name: 'Jacket', description: 'Winter jackets and coats' },
-                { id: 2, name: 'Tshirt', description: 'Casual t-shirts' },
-                { id: 3, name: 'Pant', description: 'Jeans and trousers' },
-                { id: 4, name: 'Shoes', description: 'Footwear' }
-            ];
-            
-            renderCategoriesGrid(dummyCategories);
-        }
-        
-        // // Load all orders
-        // async function loadAllOrders() {
-        //     // You'll need to create an orders API endpoint
-        //     console.log('Loading orders...');
-        // }
-        
-        // Show add category form
         function showAddCategoryForm() {
             document.getElementById('add-category-form').classList.remove('hidden');
         }
         
-        // Hide add category form
         function hideAddCategoryForm() {
             document.getElementById('add-category-form').classList.add('hidden');
             document.getElementById('new-category-form').reset();
         }
         
-        // Add new category
         async function addCategory(event) {
             event.preventDefault();
-            
             const name = document.getElementById('category-name').value;
             
             try {
                 const token = localStorage.getItem('token');
-                
                 const response = await fetch(`${API_URL}/category/insertCategory`, {
                     method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ name})
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
                 });
                 
                 if (response.ok) {
@@ -998,192 +1135,76 @@ async function deleteProductAdmin(productId) {
                     const error = await response.json();
                     alert(`Error: ${error.message || 'Failed to add category'}`);
                 }
-                
             } catch (error) {
                 console.error('Error adding category:', error);
-                alert('Failed to add category. Please try again.');
+                alert('Failed to add category.');
             }
         }
         
-        
-        // Delete user
-        async function deleteUser(userId) {
-            if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-                return;
-            }
-            
+        async function editCategory(categoryId) {
             try {
                 const token = localStorage.getItem('token');
-                
-                const response = await fetch(`${API_URL}/auth/users/${userId}`, {
-                    method: 'DELETE',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                const response = await fetch(`${API_URL}/category/getCategoryById/${categoryId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 if (response.ok) {
-                    alert('User deleted successfully!');
-                    loadAllUsers();
-                } else {
-                    const error = await response.json();
-                    alert(`Error: ${error.message || 'Failed to delete user'}`);
+                    const category = await response.json();
+                    document.getElementById('edit-category-id').value = category.id;
+                    document.getElementById('edit-category-name').value = category.name;
+                    document.getElementById('edit-category-modal').classList.remove('hidden');
                 }
-                
             } catch (error) {
-                console.error('Error deleting user:', error);
-                alert('Failed to delete user. Please try again.');
+                console.error('Error loading category:', error);
+                alert('Failed to load category.');
             }
         }
         
-      // Edit category - opens modal with category data
-async function editCategory(categoryId) {
-    try {
-        const token = localStorage.getItem('token');
-        
-        // Fetch category details from your existing API
-        const response = await fetch(`${API_URL}/category/getCategoryById${categoryId}`, {
-            method: 'GET',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Category not found');
-        }
-        
-        const category = await response.json();
-        console.log('Category data:', category);
-        
-        // Fill the form with category data
-        document.getElementById('edit-category-id').value = category.id;
-        document.getElementById('edit-category-name').value = category.name || '';
-        
-        // Show the modal
-        document.getElementById('edit-category-modal').classList.remove('hidden');
-        
-        // Initialize feather icons in modal
-        if (typeof feather !== 'undefined') {
-            feather.replace();
-        }
-        
-    } catch (error) {
-        console.error('Error loading category:', error);
-        alert('Failed to load category details. Please try again.');
-    }
-}
-// Update category with debugging
-async function updateCategory(event) {
-    event.preventDefault();
-    
-    const categoryId = document.getElementById('edit-category-id').value;
-    const name = document.getElementById('edit-category-name').value.trim();
-    
-    if (!name) {
-        showEditCategoryMessage('Category name is required', 'error');
-        return;
-    }
-    
-    try {
-        const token = localStorage.getItem('token');
-        
-        // Log the request details
-        const url = `${API_URL}/category/updateCategory${categoryId}`;
-        console.log('Update URL:', url);
-        console.log('Request body:', { name });
-        
-        const response = await fetch(url, {
-            method: 'PUT',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name })
-        });
-        
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        // Get the response as text first to see what's being returned
-        const responseText = await response.text();
-        console.log('Raw response (first 200 chars):', responseText.substring(0, 200));
-        
-        if (!response.ok) {
-            if (responseText.includes('<!DOCTYPE')) {
-                throw new Error('Server returned HTML page - URL might be wrong or server error');
-            } else {
-                throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-            }
-        }
-        
-        // Try to parse as JSON
-        let result;
-        try {
-            result = JSON.parse(responseText);
-        } catch (e) {
-            console.error('Failed to parse JSON:', responseText);
-            throw new Error('Server returned invalid JSON');
-        }
-        
-        if (response.ok) {
-            showEditCategoryMessage('Category updated successfully!', 'success');
+        async function updateCategory(event) {
+            event.preventDefault();
+            const categoryId = document.getElementById('edit-category-id').value;
+            const name = document.getElementById('edit-category-name').value.trim();
             
-            setTimeout(() => {
-                closeEditCategoryModal();
-                if (typeof loadAllCategories === 'function') {
-                    loadAllCategories();
-                }
-            }, 1500);
-            
-        } else {
-            throw new Error(result.message || 'Failed to update category');
-        }
-        
-    } catch (error) {
-        console.error('Error updating category:', error);
-        showEditCategoryMessage(error.message, 'error');
-    }
-}
-// Close edit category modal
-function closeEditCategoryModal() {
-    document.getElementById('edit-category-modal').classList.add('hidden');
-    document.getElementById('edit-category-form').reset();
-    document.getElementById('edit-category-message').classList.add('hidden');
-}
-
-// Show message in edit category modal
-function showEditCategoryMessage(message, type) {
-    const messageEl = document.getElementById('edit-category-message');
-    messageEl.textContent = message;
-    messageEl.className = `mt-3 text-sm p-2 rounded ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
-    messageEl.classList.remove('hidden');
-    
-    // Auto hide after 3 seconds
-    setTimeout(() => {
-        messageEl.classList.add('hidden');
-    }, 3000);
-}
-
-
-        
-        // Delete category
-        async function deleteCategory(categoryId) {
-            if (!confirm('Are you sure you want to delete this category? All products in this category will be affected.')) {
+            if (!name) {
+                alert('Category name is required');
                 return;
             }
             
             try {
                 const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/category/updateCategory/${categoryId}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
                 
-                const response = await fetch(`${API_URL}/category/deleteCategory${categoryId}`, {
+                if (response.ok) {
+                    alert('Category updated successfully!');
+                    closeEditCategoryModal();
+                    loadAllCategories();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message || 'Failed to update category'}`);
+                }
+            } catch (error) {
+                console.error('Error updating category:', error);
+                alert('Failed to update category.');
+            }
+        }
+        
+        function closeEditCategoryModal() {
+            document.getElementById('edit-category-modal').classList.add('hidden');
+            document.getElementById('edit-category-form').reset();
+        }
+        
+        async function deleteCategory(categoryId) {
+            if (!confirm('Are you sure you want to delete this category?')) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/category/deleteCategory/${categoryId}`, {
                     method: 'DELETE',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 if (response.ok) {
@@ -1193,435 +1214,64 @@ function showEditCategoryMessage(message, type) {
                     const error = await response.json();
                     alert(`Error: ${error.message || 'Failed to delete category'}`);
                 }
-                
             } catch (error) {
                 console.error('Error deleting category:', error);
-                alert('Failed to delete category. Please try again.');
+                alert('Failed to delete category.');
             }
         }
-        // Load pending products for admin
-async function loadPendingProducts() {
-    try {
-        const token = localStorage.getItem('token');
         
-        console.log('Fetching pending products...');
-        const response = await fetch(`${API_URL}/products/admin/pending`, {
-            method: 'GET',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        console.log('Response status:', response.status);
-        
-        if (response.ok) {
-            const result = await response.json();
-            console.log('Pending products response:', result);
-            
-            // Check the structure
-            let pendingProducts = result;
-            
-            if (result.data && Array.isArray(result.data)) {
-                pendingProducts = result.data;
-            }
-            
-            if (Array.isArray(pendingProducts)) {
-                const pendingCount = pendingProducts.length;
-                document.getElementById('pending-products-count').textContent = 
-                    `${pendingCount} product${pendingCount !== 1 ? 's' : ''} waiting`;
-                
-                // Update pending count badge
-                const pendingBadge = document.getElementById('pending-count');
-                if (pendingBadge) {
-                    pendingBadge.textContent = pendingCount;
-                    if (pendingCount > 0) {
-                        pendingBadge.classList.remove('hidden');
-                    } else {
-                        pendingBadge.classList.add('hidden');
-                    }
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabName) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
                 }
-                
-                // Render pending products table
-                renderPendingProductsTable(pendingProducts);
-                
-                // Update stats
-                document.getElementById('total-products').textContent = 
-                    (parseInt(document.getElementById('total-products').textContent) || 0) + pendingCount;
-                
-            } else {
-                console.error('Pending products is not an array:', pendingProducts);
-                document.getElementById('no-pending-products').classList.remove('hidden');
-            }
+            });
             
-        } else {
-            console.error('Failed to fetch pending products:', response.status);
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-        }
-        
-    } catch (error) {
-        console.error('Error loading pending products:', error);
-        document.getElementById('pending-products-count').textContent = 'Error loading';
-    }
-}
-
-function renderPendingProductsTable(products) {
-    const pendingTable = document.getElementById('pending-products-table');
-    const noPendingEl = document.getElementById('no-pending-products');
-    
-    if (!pendingTable) {
-        console.error('pending-products-table element not found');
-        return;
-    }
-    
-    pendingTable.innerHTML = '';
-    
-    if (!products || !Array.isArray(products) || products.length === 0) {
-        console.log('No pending products to display');
-        if (noPendingEl) noPendingEl.classList.remove('hidden');
-        return;
-    }
-    
-    if (noPendingEl) noPendingEl.classList.add('hidden');
-    
-    console.log(`Rendering ${products.length} pending products`);
-    
-    products.forEach(product => {
-        const row = document.createElement('tr');
-        row.className = 'user-row border-b';
-        
-        // Use correct property names
-        const productId = product.id || product.productId || 'N/A';
-        const title = product.title || product.name || 'No Title';
-        const price = product.price ? `Rs. ${parseFloat(product.price).toFixed(2)}` : 'Rs. 0.00';
-        const sellerName = product.seller ? (product.seller.name || product.seller.email) : 'Unknown Seller';
-        const createdAt = product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A';
-        const status = product.status || 'PENDING';
-        const imageUrl = product.imageUrl || product.image || null;
-        
-        // Create image HTML
-        let imageHtml = '';
-        if (imageUrl) {
-            imageHtml = `
-                <div class="relative group">
-                    <img src="${imageUrl}" 
-                         alt="${title}" 
-                         class="w-16 h-16 object-cover rounded-lg border border-gray-200 cursor-pointer"
-                         onclick="viewProductImage('${imageUrl}', '${title}')">
-                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 rounded-lg transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <i data-feather="maximize-2" class="w-5 h-5 text-white"></i>
-                    </div>
-                </div>
-            `;
-        } else {
-            imageHtml = `
-                <div class="w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                    <i data-feather="image" class="w-6 h-6 text-gray-400"></i>
-                </div>
-            `;
-        }
-        
-        row.innerHTML = `
-            <td class="py-3 px-4">${productId}</td>
-            <td class="py-3 px-4">${imageHtml}</td>
-            <td class="py-3 px-4 font-medium">
-                <div class="font-semibold">${title}</div>
-                ${product.description ? `<div class="text-sm text-gray-500 mt-1">${product.description.substring(0, 60)}${product.description.length > 60 ? '...' : ''}</div>` : ''}
-            </td>
-            <td class="py-3 px-4">${price}</td>
-            <td class="py-3 px-4">
-                <div class="font-medium">${sellerName}</div>
-                ${product.sellerId ? `<div class="text-xs text-gray-500">ID: ${product.sellerId}</div>` : ''}
-            </td>
-            <td class="py-3 px-4">${createdAt}</td>
-            <td class="py-3 px-4">
-                <span class="status-pending">${status}</span>
-            </td>
-            <td class="py-3 px-4">
-                <div class="flex flex-col space-y-2">
-                    <div class="flex space-x-2">
-                        <button onclick="approveProduct(${productId})" class="btn-approve flex-1">
-                            <i data-feather="check" class="w-4 h-4"></i> Approve
-                        </button>
-                        <button onclick="showRejectForm(${productId})" class="btn-reject flex-1">
-                            <i data-feather="x" class="w-4 h-4"></i> Reject
-                        </button>
-                    </div>
-                   
-                </div>
-                <div id="reject-form-${productId}" class="rejection-form hidden mt-2">
-                    <textarea id="reason-${productId}" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded mb-2" 
-                        rows="2" 
-                        placeholder="Reason for rejection (required)"></textarea>
-                    <div class="flex justify-end space-x-2">
-                        <button onclick="hideRejectForm(${productId})" class="px-3 py-1 text-gray-600 text-sm">
-                            Cancel
-                        </button>
-                        <button onclick="rejectProduct(${productId})" class="px-3 py-1 bg-red-600 text-white rounded text-sm">
-                            Submit Rejection
-                        </button>
-                    </div>
-                </div>
-            </td>
-        `;
-        
-        pendingTable.appendChild(row);
-    });
-    
-    // Refresh feather icons
-    if (typeof feather !== 'undefined') {
-        feather.replace();
-    }
-}
-
-// Show reject form
-function showRejectForm(productId) {
-    const rejectForm = document.getElementById(`reject-form-${productId}`);
-    if (rejectForm) {
-        rejectForm.classList.remove('hidden');
-    }
-}
-
-// Hide reject form
-function hideRejectForm(productId) {
-    const rejectForm = document.getElementById(`reject-form-${productId}`);
-    if (rejectForm) {
-        rejectForm.classList.add('hidden');
-        document.getElementById(`reason-${productId}`).value = '';
-    }
-}
-
-// Approve product
-async function approveProduct(productId) {
-    if (!confirm('Are you sure you want to approve this product?')) {
-        return;
-    }
-    
-    try {
-        const token = localStorage.getItem('token');
-        
-        const response = await fetch(`${API_URL}/products/admin/approve/${productId}`, {
-            method: 'PUT',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            alert('Product approved successfully!');
-            // Reload pending products
-            loadPendingProducts();
-            // Also reload all products if on that tab
-            if (document.getElementById('products-tab') && !document.getElementById('products-tab').classList.contains('hidden')) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            
+            if (tabName === 'products') {
                 loadAllProducts();
+            } else if (tabName === 'categories') {
+                loadAllCategories();
+            } else if (tabName === 'pending') {
+                loadPendingProducts();
             }
-        } else {
-            const error = await response.json();
-            alert(`Error: ${error.message || 'Failed to approve product'}`);
         }
         
-    } catch (error) {
-        console.error('Error approving product:', error);
-        alert('Failed to approve product. Please try again.');
-    }
-}
-
-// Reject product
-async function rejectProduct(productId) {
-    const reason = document.getElementById(`reason-${productId}`).value.trim();
-    
-    if (!reason) {
-        alert('Please provide a reason for rejection.');
-        return;
-    }
-    
-    if (!confirm('Are you sure you want to reject this product? The seller will be notified.')) {
-        return;
-    }
-    
-    try {
-        const token = localStorage.getItem('token');
-        
-        const response = await fetch(`${API_URL}/products/admin/reject/${productId}`, {
-            method: 'PUT',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ reason })
-        });
-        
-        if (response.ok) {
-            alert('Product rejected successfully!');
-            // Hide reject form and reload pending products
-            hideRejectForm(productId);
-            loadPendingProducts();
-        } else {
-            const error = await response.json();
-            alert(`Error: ${error.message || 'Failed to reject product'}`);
-        }
-        
-    } catch (error) {
-        console.error('Error rejecting product:', error);
-        alert('Failed to reject product. Please try again.');
-    }
-}
-
-// View product details modal
-function viewProductDetails(productId) {
-    // You can implement a modal to show full product details
-    alert(`View product details for ID: ${productId} - Coming soon!`);
-}
-
-// Update the switchTab function to handle pending tab
-// Add this to your existing switchTab function:
-function switchTab(tabName) {
-    // Update tab buttons
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        if (btn.getAttribute('data-tab') === tabName) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-    
-    // Show/hide tab content
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.add('hidden');
-    });
-    
-    document.getElementById(`${tabName}-tab`).classList.remove('hidden');
-    
-    // Load content for the tab if needed
-    if (tabName === 'products') {
-        loadAllProducts();
-    } else if (tabName === 'categories') {
-        loadAllCategories();
-    } else if (tabName === 'pending') {
-        loadPendingProducts(); // 👈 Add this
-    }
-}
-
-// ✅ FULLSCREEN IMAGE VIEW
-function viewProductImage(imageUrl, title = '') {
-    const modal = document.getElementById('image-modal');
-    const img = document.getElementById('modal-image');
-
-    if (!modal || !img) {
-        console.error('Image modal elements not found');
-        return;
-    }
-
-    img.src = imageUrl;
-    img.alt = title;
-
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden'; // disable background scroll
-}
-
-// ✅ CLOSE MODAL
-function closeImageModal() {
-    const modal = document.getElementById('image-modal');
-    if (modal) {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-}
-
-// Close modal on outside click
-document.getElementById('image-modal')?.addEventListener('click', function (e) {
-    if (e.target === this) {
-        closeImageModal();
-    }
-});
-
-// Close modal on ESC
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        closeImageModal();
-    }
-});
-
-
-// Update the loadAdminDashboard function to also load pending count
-async function loadAdminDashboard() {
-    const loadingEl = document.getElementById('loading');
-    const errorEl = document.getElementById('error-message');
-    
-    if (loadingEl) loadingEl.classList.remove('hidden');
-    if (errorEl) errorEl.classList.add('hidden');
-    
-    try {
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-            throw new Error('Not authenticated');
-        }
-        
-        // Load stats, users, and pending products
-        await Promise.all([
-            loadAdminStats(),
-            loadAllUsers(),
-            loadPendingProducts() // 👈 Add this
-        ]);
-        
-        // Show users tab by default
-        switchTab('users');
-        
-        // Hide loading
-        if (loadingEl) loadingEl.classList.add('hidden');
-        
-    } catch (error) {
-        console.error('Error loading admin dashboard:', error);
-        if (loadingEl) loadingEl.classList.add('hidden');
-        if (errorEl) {
-            errorEl.classList.remove('hidden');
-            document.getElementById('error-text').textContent = error.message;
-        }
-    }
-}
-        // Logout
         function logout() {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             window.location.href = "index.html";
         }
         
-        // Make functions available globally
+        // Make functions globally available
         window.switchTab = switchTab;
         window.showAddCategoryForm = showAddCategoryForm;
         window.hideAddCategoryForm = hideAddCategoryForm;
         window.addCategory = addCategory;
-        window.editUser = editUser;
-        window.deleteUser = deleteUser;
         window.editCategory = editCategory;
+        window.updateCategory = updateCategory;
         window.deleteCategory = deleteCategory;
+        window.closeEditCategoryModal = closeEditCategoryModal;
         window.logout = logout;
         window.loadAdminDashboard = loadAdminDashboard;
-        
-        // Add to your existing window functions
-window.loadPendingProducts = loadPendingProducts;
-window.showRejectForm = showRejectForm;
-window.hideRejectForm = hideRejectForm;
-window.approveProduct = approveProduct;
-window.rejectProduct = rejectProduct;
-window.viewProductDetails = viewProductDetails;
+        window.loadAllProducts = loadAllProducts;
+        window.loadPendingProducts = loadPendingProducts;
+        window.showRejectForm = showRejectForm;
+        window.hideRejectForm = hideRejectForm;
+        window.approveProduct = approveProduct;
+        window.rejectProduct = rejectProduct;
+        window.viewProductDetails = viewProductDetails;
+        window.deleteProductAdmin = deleteProductAdmin;
+        window.viewImage = viewImage;
+        window.closeImageModal = closeImageModal;
+        window.closeProductDetailModal = closeProductDetailModal;
     </script>
-<div id="image-modal"
-     class="fixed inset-0 bg-black bg-opacity-80 hidden z-50 flex items-center justify-center">
-
-    <button onclick="closeImageModal()"
-            class="absolute top-6 right-6 text-white text-3xl font-bold">
-        &times;
-    </button>
-
-    <img id="modal-image"
-         class="max-w-full max-h-full object-contain rounded-lg shadow-lg"
-         alt="Product Image" />
-</div>
-
 </body>
 </html>
