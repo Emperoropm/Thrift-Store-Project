@@ -533,6 +533,17 @@ const orderData = {
 
                 document.getElementById('debug-signature').textContent = `Signature: ${signature.substring(0, 30)}...`;
 
+                const productData = JSON.parse(localStorage.getItem('singleProductCheckout') || 'null');
+if (productData) {
+    localStorage.setItem('lastPurchased', JSON.stringify({
+        id:       productData.id,
+        title:    productData.title,
+        price:    productData.price,
+        category: productData.category,   // make sure checkout stores this
+        gender:   productData.gender      // and this
+    }));
+}
+
                 // Success and failure URLs
                 const success_url = `${window.location.origin}/payment-success.html`;
                 const failure_url = `${window.location.origin}/payment-failed.html`;

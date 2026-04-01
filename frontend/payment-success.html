@@ -4,6 +4,48 @@
     <title>Payment Successful</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .heading-font { font-family: 'Playfair Display', serif; }
+        body { font-family: 'Inter', sans-serif; }
+
+        .outfit-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+        .outfit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        .pair-badge-strong { background: #EAF3DE; color: #27500A; }
+        .pair-badge-good   { background: #E6F1FB; color: #0C447C; }
+        .pair-badge-weak   { background: #FAEEDA; color: #633806; }
+        .price-tag {
+            background: linear-gradient(135deg, #e9c46a 0%, #f4a261 100%);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #10b981;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body class="bg-gray-100">
     <nav class="bg-white shadow-md">
@@ -14,34 +56,35 @@
         </div>
     </nav>
 
-    <div class="min-h-screen flex items-center justify-center px-4">
+    <!-- Success Card -->
+    <div class="flex items-center justify-center px-4 pt-12 pb-6">
         <div class="bg-white p-8 rounded-lg shadow-lg text-center max-w-md w-full">
             <div class="text-green-500 text-6xl mb-4">
                 <i data-feather="check-circle"></i>
             </div>
             <h1 class="text-2xl font-bold mb-2">Payment Successful!</h1>
             <p class="text-gray-600 mb-6">Your payment was successful. Creating your order...</p>
-            
+
             <div id="loading" class="mb-6">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
                 <p class="text-gray-500 mt-2">Processing your order...</p>
             </div>
-            
+
             <div id="success-message" class="hidden mb-6 p-4 bg-green-50 rounded-lg">
                 <p class="text-green-700">Order created successfully!</p>
                 <p class="text-sm text-green-600 mt-1" id="order-id"></p>
             </div>
-            
+
             <div id="error-message" class="hidden mb-6 p-4 bg-red-50 rounded-lg">
                 <p class="text-red-700" id="error-text"></p>
             </div>
-            
+
             <div class="space-y-3">
-                <a href="profile.html" id="orders-btn" 
+                <a href="profile.html" id="orders-btn"
                    class="hidden block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">
                     View Your Orders
                 </a>
-                <a href="index.html" 
+                <a href="index.html"
                    class="block w-full border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50">
                     Continue Shopping
                 </a>
@@ -49,96 +92,246 @@
         </div>
     </div>
 
+    <!-- Outfit Recommendations — shown only after order success -->
+    <div id="outfit-section" class="hidden pb-16">
+        <div class="container mx-auto px-4">
+
+            <!-- Divider with label -->
+            <div class="flex items-center gap-4 mb-6">
+                <div class="flex-1 h-px bg-gray-200"></div>
+                <div class="text-center">
+                    <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Just for you</p>
+                    <h2 class="text-2xl font-bold heading-font text-gray-800">Complete the Outfit</h2>
+                    <p class="text-sm text-gray-500 mt-1" id="outfit-subtitle"></p>
+                </div>
+                <div class="flex-1 h-px bg-gray-200"></div>
+            </div>
+
+            <!-- Loading -->
+            <div id="outfit-loading" class="flex justify-center items-center py-10">
+                <div class="loader"></div>
+                <span class="ml-3 text-gray-500 text-sm">Finding matching items...</span>
+            </div>
+
+            <!-- Grid -->
+            <div id="outfit-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+            <!-- Empty -->
+            <div id="outfit-empty" class="hidden text-center py-10">
+                <i data-feather="layers" class="w-10 h-10 mx-auto text-gray-300 mb-3"></i>
+                <p class="text-gray-400">No matching items available right now.</p>
+            </div>
+
+        </div>
+    </div>
+
     <script>
         const API_URL = 'http://localhost:3000/api';
 
-        // Create order after successful payment
-   async function createOrderAfterPayment() {
-    try {
-        // Get the pending order data from localStorage
-        const pendingOrderData = localStorage.getItem('pendingOrderData');
-        
-        if (!pendingOrderData) {
-            showError('No order data found. Please contact support.');
-            return;
-        }
-
-        const orderData = JSON.parse(pendingOrderData);
-        const token = localStorage.getItem('token');
-
-        if (!token) {
-            showError('Please login to complete your order.');
-            return;
-        }
-
-        console.log('Original orderData:', orderData);
-
-        // Format the data - CONVERT STRINGS TO NUMBERS
-        const requestData = {
-            products: orderData.products.map(item => ({
-                productId: Number(item.productId),  // Convert "16" to 16
-                quantity: Number(item.quantity)      // Convert quantity to number
-            }))
+        // ── Compatibility Matrix ─────────────────────────────────────
+        const OUTFIT_COMPAT = {
+            'Tops':        { 'Bottoms':3, 'Jackets':2, 'Shoes':2, 'Accessories':1 },
+            'Bottoms':     { 'Tops':3, 'Jackets':2, 'Shoes':3, 'Accessories':1 },
+            'Jackets':     { 'Tops':3, 'Bottoms':3, 'Shoes':2, 'Accessories':1 },
+            'Shoes':       { 'Tops':2, 'Bottoms':3, 'Jackets':1, 'Accessories':2, 'Dresses':2 },
+            'Accessories': { 'Tops':1, 'Bottoms':1, 'Jackets':1, 'Shoes':2, 'Dresses':1 },
+            'Dresses':     { 'Jackets':1, 'Shoes':3, 'Accessories':2 },
         };
 
-        console.log('Sending to backend:', requestData);
-
-        // Create the actual order on backend
-        const response = await fetch(`${API_URL}/orders/buy`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestData)
-        });
-
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-
-        let result;
-        try {
-            result = JSON.parse(responseText);
-        } catch (e) {
-            console.log('Response is not JSON:', responseText);
+        function getCompatScore(purchasedCat, candidateCat) {
+            return (OUTFIT_COMPAT[purchasedCat] || {})[candidateCat] || 0;
         }
 
-        if (!response.ok) {
-            console.error('Error response:', result);
-            throw new Error(result?.message || 'Failed to create order');
+        function priceProximityBonus(p1, p2) {
+            const ratio = Math.abs(p1 - p2) / Math.max(p1, 1);
+            return parseFloat(Math.max(0, 0.5 * (1 - ratio)).toFixed(2));
         }
 
-        console.log('Order created successfully:', result);
-        
-        // Show success message
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('success-message').classList.remove('hidden');
-        document.getElementById('order-id').textContent = `Order ID: #${result.data?.id || result.id}`;
-        document.getElementById('orders-btn').classList.remove('hidden');
-        
-        // Clear cart and pending order data
-        localStorage.removeItem('checkoutCart');
-        localStorage.removeItem('singleProductCheckout');
-        localStorage.removeItem('pendingOrderData');
-        
-    } catch (error) {
-        console.error('Error creating order:', error);
-        showError('Failed to create order: ' + error.message);
-    }
-}
+        // ── Create Order ─────────────────────────────────────────────
+        async function createOrderAfterPayment() {
+            try {
+                const pendingOrderData = localStorage.getItem('pendingOrderData');
+                if (!pendingOrderData) { showError('No order data found. Please contact support.'); return; }
+
+                const orderData = JSON.parse(pendingOrderData);
+                const token = localStorage.getItem('token');
+                if (!token) { showError('Please login to complete your order.'); return; }
+
+                const requestData = {
+                    products: orderData.products.map(item => ({
+                        productId: Number(item.productId),
+                        quantity:  Number(item.quantity)
+                    }))
+                };
+
+                const response = await fetch(`${API_URL}/orders/buy`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const responseText = await response.text();
+                let result;
+                try { result = JSON.parse(responseText); } catch (e) {}
+
+                if (!response.ok) throw new Error(result?.message || 'Failed to create order');
+
+                // Show success UI
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('success-message').classList.remove('hidden');
+                document.getElementById('order-id').textContent = `Order ID: #${result.data?.id || result.id}`;
+                document.getElementById('orders-btn').classList.remove('hidden');
+
+                // Clear storage
+                localStorage.removeItem('checkoutCart');
+                localStorage.removeItem('singleProductCheckout');
+                localStorage.removeItem('pendingOrderData');
+
+                // ── Trigger outfit recommendations ──
+                const lastPurchased = JSON.parse(localStorage.getItem('lastPurchased') || 'null');
+                if (lastPurchased) {
+                    document.getElementById('outfit-section').classList.remove('hidden');
+                    document.getElementById('outfit-section').classList.add('fade-in-up');
+                    const catName = lastPurchased.category?.name || lastPurchased.category || '';
+                    document.getElementById('outfit-subtitle').textContent =
+                        catName ? `Items that pair perfectly with your new ${catName}` : 'Items that pair perfectly with your purchase';
+                    await loadOutfitRecommendations(lastPurchased);
+                    localStorage.removeItem('lastPurchased');
+                }
+
+            } catch (error) {
+                console.error('Error creating order:', error);
+                showError('Failed to create order: ' + error.message);
+            }
+        }
+
+        // ── Outfit Recommendation Engine ─────────────────────────────
+        async function loadOutfitRecommendations(purchased) {
+            const loadingEl = document.getElementById('outfit-loading');
+            const gridEl    = document.getElementById('outfit-grid');
+            const emptyEl   = document.getElementById('outfit-empty');
+
+            const purchasedCat = purchased.category?.name || purchased.category || '';
+            const compatMap    = OUTFIT_COMPAT[purchasedCat];
+
+            if (!compatMap) {
+                loadingEl.classList.add('hidden');
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch(`${API_URL}/products/getAllProducts`, { headers });
+                const result = await res.json();
+                let allProducts = result.data || result;
+                if (!Array.isArray(allProducts)) allProducts = [];
+
+                const candidates = allProducts.filter(p =>
+                    String(p.id || p._id) !== String(purchased.id) &&
+                    p.quantity > 0 &&
+                    p.status === 'APPROVED'
+                );
+
+                const scored = candidates.map(p => {
+                    const catName     = p.category?.name || p.category || '';
+                    const compatScore = getCompatScore(purchasedCat, catName);
+                    if (compatScore === 0) return null;
+
+                    const genderBonus = (
+                        !purchased.gender ||
+                        p.gender === purchased.gender ||
+                        p.gender === 'UNISEX'
+                    ) ? 1 : 0;
+
+                    const priceBonus = priceProximityBonus(
+                        parseFloat(purchased.price), parseFloat(p.price)
+                    );
+
+                    return { ...p, _compatScore: compatScore, _total: compatScore + genderBonus + priceBonus };
+                })
+                .filter(Boolean)
+                .sort((a, b) => b._total - a._total)
+                .slice(0, 6);
+
+                loadingEl.classList.add('hidden');
+
+                if (!scored.length) { emptyEl.classList.remove('hidden'); return; }
+
+                gridEl.innerHTML = '';
+                scored.forEach((p, i) => {
+                    const card = createOutfitCard(p);
+                    card.style.animationDelay = `${i * 80}ms`;
+                    card.classList.add('fade-in-up');
+                    gridEl.appendChild(card);
+                });
+                gridEl.classList.remove('hidden');
+                if (typeof feather !== 'undefined') feather.replace();
+
+            } catch (err) {
+                console.error('Outfit recommendations error:', err);
+                loadingEl.classList.add('hidden');
+                emptyEl.classList.remove('hidden');
+            }
+        }
+
+        function createOutfitCard(product) {
+            const div = document.createElement('div');
+            div.className = 'outfit-card';
+            div.onclick = () => {
+                sessionStorage.setItem('selectedProduct', JSON.stringify(product));
+                window.location.href = `product-details.html?id=${product.id || product._id}`;
+            };
+
+            const price      = `Rs.${parseFloat(product.price).toFixed(2)}`;
+            const catName    = product.category?.name || product.category || '';
+            const firstImage = (product.images || [])[0] || product.imageUrl || null;
+            const score      = product._compatScore;
+
+            const badgeText = score === 3 ? 'Perfect pair' : score === 2 ? 'Goes well' : 'Can work';
+            const badgeCls  = score === 3 ? 'pair-badge-strong' : score === 2 ? 'pair-badge-good' : 'pair-badge-weak';
+
+            div.innerHTML = `
+                <div class="relative h-52 bg-gray-100 flex items-center justify-center overflow-hidden">
+                    ${firstImage
+                        ? `<img src="${firstImage}" alt="${product.title}" class="w-full h-full object-cover">`
+                        : `<i data-feather="image" class="w-12 h-12 text-gray-300"></i>`}
+                    <span class="absolute top-2 right-2 text-xs font-semibold px-3 py-1 rounded-full ${badgeCls}">
+                        ${badgeText}
+                    </span>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-800 truncate mb-1">${product.title || 'Unnamed Product'}</h3>
+                    <p class="text-xs text-gray-400 mb-3">${catName}${product.gender ? ' · ' + product.gender : ''}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="price-tag px-3 py-1 rounded-lg font-bold text-gray-900 text-sm">${price}</span>
+                        <button
+                            onclick="event.stopPropagation(); viewProduct('${product.id || product._id}')"
+                            class="px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">
+                            View Item
+                        </button>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function viewProduct(productId) {
+            window.location.href = `product-details.html?id=${productId}`;
+        }
+
         function showError(message) {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('error-message').classList.remove('hidden');
             document.getElementById('error-text').textContent = message;
         }
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof feather !== 'undefined') {
-                feather.replace();
-            }
-            
-            // Create order when page loads
+            if (typeof feather !== 'undefined') feather.replace();
             createOrderAfterPayment();
         });
     </script>

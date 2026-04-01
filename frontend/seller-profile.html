@@ -105,17 +105,20 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="bg-white shadow-md">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="index.html">
-                <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
-            </a>
-            
-            <div id="auth-container">
-                <!-- Will be filled by JavaScript -->
-            </div>
+  <nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="index.html">
+            <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+        </a>
+        <div class="hidden md:flex space-x-8">
+            <a href="index.html#featured"   class="text-gray-700 hover:text-green-600 font-medium">Featured</a>
+            <a href="index.html#categories" class="text-gray-700 hover:text-green-600 font-medium">Categories</a>
+            <a href="all-items.html"        class="text-gray-700 hover:text-green-600 font-medium">All Items</a>
+            <a href="near-me.html"          class="text-gray-700 hover:text-green-600 font-medium">Near Me</a>
         </div>
-    </nav>
+        <div id="auth-container"></div>
+    </div>
+</nav>
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
@@ -158,7 +161,10 @@
                     <div class="flex-1 text-center md:text-left">
                         <h1 id="seller-name" class="text-3xl font-bold text-gray-800 mb-2">Loading...</h1>
                         <p id="seller-email" class="text-gray-600 mb-3">Loading...</p>
-                        
+                        <p id="seller-location-line" class="text-xs text-gray-400 flex items-center justify-center md:justify-start gap-1 mb-3 hidden">
+    <i data-feather="map-pin" class="w-3 h-3 text-green-500"></i>
+    <span></span>
+</p>
                         <!-- Join Date -->
                         <p id="seller-join-date" class="text-sm text-gray-500 mb-4 flex items-center justify-center md:justify-start">
                             <i data-feather="calendar" class="w-4 h-4 mr-1"></i>
@@ -173,7 +179,7 @@
 
                     <!-- Add this after the rating summary div -->
 <div id="chat-button-container" class="mt-4 flex justify-center md:justify-start">
-    <button onclick="startChat()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+  <button onclick="startChat(event)" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
         <i data-feather="message-circle" class="w-4 h-4 mr-2"></i>
         Chat with Seller
     </button>
@@ -333,35 +339,59 @@
         });
 
         // Check authentication
-        function checkAuth() {
-            const token = localStorage.getItem('token');
-            const user = localStorage.getItem('user');
-            const authContainer = document.getElementById('auth-container');
-            
-            if (token && user && authContainer) {
-                try {
-                    const userData = JSON.parse(user);
-                    
-                    authContainer.innerHTML = `
-                        <div class="flex items-center space-x-4">
-                            <span class="font-medium text-gray-700">${userData.name || 'User'}</span>
-                            <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
-                                Profile
-                            </a>
-                            <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
-                                Logout
-                            </button>
+       function checkAuth() {
+    const token = localStorage.getItem('token');
+    const user  = localStorage.getItem('user');
+    const authContainer = document.getElementById('auth-container');
+
+    if (token && user && authContainer) {
+        try {
+            const userData = JSON.parse(user);
+            const adminLink = userData.role === 'ADMIN'
+                ? `<a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">Admin</a>`
+                : '';
+
+            authContainer.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
                         </div>
-                    `;
-                    
-                } catch(e) {
-                    console.error('Error parsing user data:', e);
-                    showLoginButtons();
-                }
-            } else {
-                showLoginButtons();
-            }
+                        <span class="font-medium text-gray-700">Hi, ${userData.name || 'User'}</span>
+                    </div>
+                    <a href="chat-inbox.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium flex items-center relative">
+                        <i data-feather="message-circle" class="w-4 h-4 mr-1"></i>
+                        Chat
+                        <span id="nav-unread-badge" class="ml-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
+                    </a>
+                    ${adminLink}
+                    <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">Profile</a>
+                    <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">Logout</button>
+                </div>`;
+
+            fetchUnreadCount();
+
+        } catch(e) {
+            console.error('Error parsing user data:', e);
+            showLoginButtons();
         }
+    } else {
+        showLoginButtons();
+    }
+}
+
+function showLoginButtons() {
+    const authContainer = document.getElementById('auth-container');
+    if (authContainer) {
+        authContainer.innerHTML = `
+            <div class="flex items-center space-x-4">
+                <a href="login.html" class="px-4 py-2 text-gray-700 hover:text-green-600 font-medium">Login</a>
+                <a href="register.html" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Sign Up</a>
+            </div>`;
+    }
+}
 
         function showLoginButtons() {
             const authContainer = document.getElementById('auth-container');
@@ -465,43 +495,52 @@
 function displaySellerProfile(seller) {
     document.getElementById('seller-name').textContent = seller.name || 'Unknown Seller';
     document.getElementById('seller-email').textContent = seller.email || '';
-    
-    // Format join date
+
+    // ── Join date ─────────────────────────────────────────────
     if (seller.createdAt) {
-        const joinDate = new Date(seller.createdAt).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        document.getElementById('join-date').textContent = joinDate;
+        document.getElementById('join-date').textContent =
+            new Date(seller.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
     }
-    
-    // Display seller photo
-    const sellerPhoto = document.getElementById('seller-photo');
-    const sellerPhotoPlaceholder = document.getElementById('seller-photo-placeholder');
-    
+
+    // ── Location (small, below email) ─────────────────────────
+    const locationEl = document.getElementById('seller-location-line');
+    if (locationEl) {
+        if (seller.location?.address || seller.address) {
+            locationEl.textContent = seller.location?.address || seller.address;
+            locationEl.classList.remove('hidden');
+        } else {
+            locationEl.classList.add('hidden');
+        }
+    }
+
+    // ── Photo ─────────────────────────────────────────────────
+    const sellerPhoto       = document.getElementById('seller-photo');
+    const sellerPlaceholder = document.getElementById('seller-photo-placeholder');
+
     if (seller.photo) {
         const baseUrl = API_URL.replace('/api', '');
-        const photoUrl = `${baseUrl}${seller.photo}`;
-        
-        sellerPhoto.src = photoUrl;
+        sellerPhoto.src = `${baseUrl}${seller.photo}`;
         sellerPhoto.classList.remove('hidden');
-        sellerPhotoPlaceholder.classList.add('hidden');
-        
-        sellerPhoto.onerror = function() {
+        sellerPlaceholder.classList.add('hidden');
+        sellerPhoto.onerror = () => {
             sellerPhoto.classList.add('hidden');
-            sellerPhotoPlaceholder.classList.remove('hidden');
+            sellerPlaceholder.classList.remove('hidden');
         };
     }
-    
-    // Display rating summary
+
+    // ── Rating ────────────────────────────────────────────────
     if (seller.rating) {
         displayRatingSummary(seller.rating);
-        document.getElementById('total-reviews').textContent = seller.rating.totalReviews || 0;
+        document.getElementById('total-reviews').textContent =
+            seller.rating.totalReviews || 0;
     } else {
         document.getElementById('total-reviews').textContent = '0';
         displayRatingSummary({ averageRating: 0, totalReviews: 0 });
     }
+
+    if (typeof feather !== 'undefined') feather.replace();
 }
 
         // Display rating summary
@@ -639,48 +678,99 @@ async function loadSellerProducts(sellerId, showSold = false) {
         }
 
         // Create product card
-        function createProductCard(product, showSold = false) {
-            const div = document.createElement('div');
-            div.className = 'product-card bg-white cursor-pointer';
-            
-            const status = showSold ? 'Sold' : 'Available';
-            const statusClass = showSold ? 'status-sold' : 'status-active';
-            
-            div.onclick = () => {
-                window.location.href = `product-details.html?id=${product.id}`;
-            };
-            
-            div.innerHTML = `
-                <div class="relative">
-                    <div class="h-48 bg-gray-200 flex items-center justify-center">
-                        ${product.imageUrl ? 
-                            `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-cover">` :
-                            `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`
-                        }
-                    </div>
-                    <span class="absolute top-2 right-2 px-3 py-1 text-xs font-bold rounded ${statusClass}">
-                        ${status}
-                    </span>
-                </div>
-                <div class="p-4">
-                    <h3 class="font-bold text-lg mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
-                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description || 'No description'}</p>
-                    
-                    <div class="flex justify-between items-center">
-                        <div class="text-xl font-bold text-green-700">Rs. ${parseFloat(product.price || 0).toFixed(2)}</div>
-                        ${!showSold ? `<div class="text-sm text-gray-500">Qty: ${product.quantity || 0}</div>` : ''}
-                    </div>
-                    
-                    <div class="mt-3 text-sm text-gray-500">
-                        <i data-feather="tag" class="w-4 h-4 inline mr-1"></i>
-                        ${product.category?.name || 'Uncategorized'}
-                    </div>
-                </div>
-            `;
-            
-            return div;
-        }
+     function createProductCard(product, showSold = false) {
+    const div = document.createElement('div');
+    div.className = 'product-card bg-white cursor-pointer';
 
+    div.onclick = () => {
+        window.location.href = `product-details.html?id=${product.id}`;
+    };
+
+    const status      = showSold ? 'Sold' : 'Available';
+    const statusClass = showSold ? 'status-sold' : 'status-active';
+
+    // ── Images ───────────────────────────────────────────────
+    const images      = product.images && product.images.length > 0
+                        ? product.images
+                        : (product.imageUrl ? [product.imageUrl] : []);
+    const firstImage  = images[0] || null;
+    const extraImages = images.length > 1 ? images.length - 1 : 0;
+
+    // ── Tags ─────────────────────────────────────────────────
+    const genderIcon = { MEN: '👨', WOMEN: '👩', UNISEX: '👥', KIDS: '👶' };
+    const genderTag  = product.gender
+        ? `<span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+               ${genderIcon[product.gender] || '👤'} ${product.gender}
+           </span>`
+        : '';
+
+    const refundTag = product.refundable !== undefined
+        ? `<span class="text-xs px-2 py-1 rounded-full ${product.refundable
+               ? 'bg-green-100 text-green-700'
+               : 'bg-red-100 text-red-700'}">
+               ${product.refundable ? '✅ Refundable' : '❌ Non-refundable'}
+           </span>`
+        : '';
+
+    const purchaseDateTag = product.purchaseDate
+        ? `<span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+               📅 ${new Date(product.purchaseDate).toLocaleDateString()}
+           </span>`
+        : '';
+
+    const hasTags = genderTag || refundTag || purchaseDateTag;
+
+    div.innerHTML = `
+        <div class="relative">
+            <div class="h-48 bg-gray-200 flex items-center justify-center overflow-hidden">
+                ${firstImage
+                    ? `<img src="${firstImage}" alt="${product.title}"
+                           class="w-full h-full object-cover">`
+                    : `<i data-feather="image" class="w-12 h-12 text-gray-400"></i>`}
+                ${extraImages > 0
+                    ? `<span class="absolute bottom-2 right-2 bg-black bg-opacity-60
+                                   text-white text-xs px-2 py-1 rounded-full">
+                           +${extraImages} more
+                       </span>`
+                    : ''}
+            </div>
+            <span class="absolute top-2 right-2 px-3 py-1 text-xs font-bold
+                         rounded status-badge ${statusClass}">
+                ${status}
+            </span>
+        </div>
+        <div class="p-4">
+            <h3 class="font-bold text-lg mb-1 truncate">
+                ${product.title || 'Unnamed Product'}
+            </h3>
+            <p class="text-gray-600 text-sm mb-3 line-clamp-2">
+                ${product.description || 'No description'}
+            </p>
+
+            <!-- Tags -->
+            ${hasTags ? `
+            <div class="flex flex-wrap gap-1 mb-3">
+                ${genderTag}${refundTag}${purchaseDateTag}
+            </div>` : ''}
+
+            <div class="flex justify-between items-center mb-2">
+                <div class="text-xl font-bold text-green-700">
+                    Rs. ${parseFloat(product.price || 0).toFixed(2)}
+                </div>
+                ${!showSold
+                    ? `<div class="text-sm text-gray-500">Qty: ${product.quantity || 0}</div>`
+                    : ''}
+            </div>
+
+            <div class="text-sm text-gray-500 flex items-center gap-1">
+                <i data-feather="tag" class="w-4 h-4 inline"></i>
+                ${product.category?.name || 'Uncategorized'}
+            </div>
+        </div>
+    `;
+
+    return div;
+}
 
         // Load seller reviews
         async function loadSellerReviews(sellerId) {
@@ -772,7 +862,7 @@ async function loadSellerProducts(sellerId, showSold = false) {
         }
 
         // Add this function to your seller-profile.html JavaScript section
-async function startChat() {
+async function startChat(event) {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     
@@ -837,6 +927,62 @@ window.startChat = startChat;
         // Make functions available globally
         window.showTab = showTab;
         window.logout = logout;
+
+        // ── Unread count + inbox navigation ──────────────────────────
+async function fetchUnreadCount() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${API_URL}/chat/conversations`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const result = await res.json();
+        const conversations = result.data || [];
+        let totalUnread = 0;
+        conversations.forEach(c => { totalUnread += (c.unreadCount || 0); });
+
+        const navBadge      = document.getElementById('nav-unread-badge');
+        const floatingBadge = document.getElementById('chat-unread-badge');
+        [navBadge, floatingBadge].forEach(badge => {
+            if (!badge) return;
+            if (totalUnread > 0) {
+                badge.classList.remove('hidden');
+                badge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+            } else {
+                badge.classList.add('hidden');
+            }
+        });
+    } catch(e) { console.error('fetchUnreadCount error:', e); }
+}
+
+function goToInbox() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Please login to access chat');
+        window.location.href = 'login.html?redirect=seller-profile.html';
+        return;
+    }
+    window.location.href = 'chat-inbox.html';
+}
+
+window.addEventListener('focus', fetchUnreadCount);
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) fetchUnreadCount();
+});
+// ─────────────────────────────────────────────────────────────
     </script>
+
+    <!-- Floating Chat Button -->
+<div class="fixed bottom-6 right-6 z-40">
+    <button onclick="goToInbox()"
+        class="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-all duration-300 hover:scale-110 flex items-center justify-center relative group">
+        <i data-feather="message-circle" class="w-6 h-6"></i>
+        <span class="absolute right-full mr-3 bg-gray-800 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+            Chat Inbox
+        </span>
+        <span id="chat-unread-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+    </button>
+</div>
 </body>
 </html>

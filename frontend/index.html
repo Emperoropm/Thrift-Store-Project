@@ -189,26 +189,63 @@
     background: #2a9d8f;
     border-radius: 10px;
 }
+
+#mobile-menu {
+    animation: slideDown 0.2s ease-out;
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
     </style>
 </head>
 <body class="bg-gray-50">
 <!-- Navigation -->
-<!-- Navigation - Update the auth-container section -->
 <nav class="bg-white shadow-md sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-        <a href="index.html">
-            <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
-        </a>
-        <div class="hidden md:flex space-x-8">
-            <a href="#featured" class="text-gray-700 hover:text-green-600 font-medium">Featured</a>
-            <a href="#categories" class="text-gray-700 hover:text-green-600 font-medium">Categories</a>
-            <a href="all-items.html" class="text-gray-700 hover:text-green-600 font-medium">All Items</a>
-           <a href="near-me.html" class="text-gray-700 hover:text-green-600 font-medium">Near Me</a>
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex justify-between items-center">
+            <!-- Logo -->
+            <a href="index.html">
+                <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <div class="hidden md:flex space-x-8">
+                <a href="index.html#featured"   class="text-gray-700 hover:text-green-600 font-medium">Featured</a>
+                <a href="index.html#categories" class="text-gray-700 hover:text-green-600 font-medium">Categories</a>
+                <a href="all-items.html"        class="text-gray-700 hover:text-green-600 font-medium">All Items</a>
+                <a href="near-me.html"          class="text-gray-700 hover:text-green-600 font-medium">Near Me</a>
+            </div>
+
+            <!-- Desktop Auth -->
+            <div id="auth-container" class="hidden md:block"></div>
+
+            <!-- Mobile: right side (hamburger + chat badge) -->
+            <div class="flex items-center gap-3 md:hidden">
+                <!-- Mobile unread badge shortcut -->
+                <button onclick="goToInbox()" class="relative text-gray-600 hover:text-green-600">
+                    <i data-feather="message-circle" class="w-6 h-6"></i>
+                    <span id="mobile-unread-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 items-center justify-center hidden flex">0</span>
+                </button>
+                <!-- Hamburger -->
+                <button id="hamburger-btn" onclick="toggleMobileMenu()"
+                    class="text-gray-700 hover:text-green-600 focus:outline-none">
+                    <i data-feather="menu" class="w-6 h-6" id="hamburger-icon"></i>
+                </button>
+            </div>
         </div>
-        
-        <!-- Single auth container - will show login/signup OR user info -->
-        <div id="auth-container">
-            <!-- Will be filled by JavaScript -->
+
+        <!-- Mobile Menu (hidden by default) -->
+        <div id="mobile-menu" class="hidden md:hidden mt-3 pb-3 border-t border-gray-100">
+            <!-- Nav links -->
+            <div class="flex flex-col space-y-1 pt-3">
+                <a href="index.html#featured"   class="px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium">Featured</a>
+                <a href="index.html#categories" class="px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium">Categories</a>
+                <a href="all-items.html"        class="px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium">All Items</a>
+                <a href="near-me.html"          class="px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium">Near Me</a>
+            </div>
+            <!-- Mobile auth (filled by JS) -->
+            <div id="mobile-auth-container" class="mt-3 pt-3 border-t border-gray-100"></div>
         </div>
     </div>
 </nav>
@@ -577,61 +614,61 @@ let allProducts = []; // Store all products for filtering
 let currentCategoryId = 0; // 0 means all products
 let allCategories = []; // Store all categories
 
-// Check authentication status and update UI
 function checkAuthStatus() {
     const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    const authContainer = document.getElementById('auth-container');
-    
+    const user  = localStorage.getItem('user');
+    const authContainer       = document.getElementById('auth-container');
+    const mobileAuthContainer = document.getElementById('mobile-auth-container');
+
     if (token && user) {
         try {
             const userData = JSON.parse(user);
-            let adminLink = '';
-            let chatLink = '';
-            
-            // Add Chat link for all logged-in users
-            chatLink = `
-                <a href="chat-inbox.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium flex items-center relative">
-                    <i data-feather="message-circle" class="w-4 h-4 mr-1"></i>
-                    Chat
-                    <span id="nav-unread-badge" class="ml-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
-                </a>
-            `;
-            
-            // Add Admin link if user is ADMIN
-            if (userData.role === 'ADMIN') {
-                adminLink = `
-                    <a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">
-                        Admin
+            const adminLink = userData.role === 'ADMIN'
+                ? `<a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">Admin</a>`
+                : '';
+            const mobileAdminLink = userData.role === 'ADMIN'
+                ? `<a href="admin.html" class="block px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg font-medium">Admin</a>`
+                : '';
+
+            // ── Desktop auth ──────────────────────────────────
+            if (authContainer) {
+                authContainer.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <span class="font-medium text-gray-700">Hi, ${userData.name || 'User'}</span>
+                        </div>
+                        <a href="chat-inbox.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium flex items-center relative">
+                            <i data-feather="message-circle" class="w-4 h-4 mr-1"></i>
+                            Chat
+                            <span id="nav-unread-badge" class="ml-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
+                        </a>
+                        ${adminLink}
+                        <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">Profile</a>
+                        <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">Logout</button>
+                    </div>`;
+            }
+
+            // ── Mobile auth ───────────────────────────────────
+            if (mobileAuthContainer) {
+                mobileAuthContainer.innerHTML = `
+                    <p class="px-3 py-1 text-sm text-gray-500 font-medium">Hi, ${userData.name || 'User'}</p>
+                    <a href="chat-inbox.html" class="flex items-center px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium">
+                        <i data-feather="message-circle" class="w-4 h-4 mr-2"></i> Chat
+                        <span id="mobile-nav-badge" class="ml-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 items-center justify-center hidden flex">0</span>
                     </a>
+                    ${mobileAdminLink}
+                    <a href="profile.html" class="block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium">Profile</a>
+                    <button onclick="logout()" class="w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg font-medium">Logout</button>
                 `;
             }
-            
-            // User is logged in - with chat, profile and admin buttons
-            authContainer.innerHTML = `
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <span class="font-medium text-gray-700">Hi, ${userData.name || 'User'}</span>
-                    </div>
-                    ${chatLink}
-                    ${adminLink}
-                    <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
-                        Profile
-                    </a>
-                    <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
-                        Logout
-                    </button>
-                </div>
-            `;
-            
-            // Fetch unread messages count
+
             fetchUnreadCount();
-            
+
         } catch(e) {
             console.error('Error parsing user data:', e);
             showLoginButtons();
@@ -640,6 +677,38 @@ function checkAuthStatus() {
         showLoginButtons();
     }
 }
+
+
+// ── Mobile menu ───────────────────────────────────────────────
+function toggleMobileMenu() {
+    const menu     = document.getElementById('mobile-menu');
+    const icon     = document.getElementById('hamburger-icon');
+    const isOpen   = !menu.classList.contains('hidden');
+
+    if (isOpen) {
+        menu.classList.add('hidden');
+        icon.setAttribute('data-feather', 'menu');
+    } else {
+        menu.classList.remove('hidden');
+        icon.setAttribute('data-feather', 'x');
+    }
+    if (typeof feather !== 'undefined') feather.replace();
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('mobile-menu');
+    const btn  = document.getElementById('hamburger-btn');
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.add('hidden');
+        const icon = document.getElementById('hamburger-icon');
+        if (icon) {
+            icon.setAttribute('data-feather', 'menu');
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+    }
+});
+// ─────────────────────────────────────────────────────────────
 
 
 // Fetch unread messages count
@@ -670,27 +739,25 @@ async function fetchUnreadCount() {
             
             console.log('Total unread:', totalUnread); // Debug log
             
-            // Update badges
-            const navBadge = document.getElementById('nav-unread-badge');
-            const floatingBadge = document.getElementById('chat-unread-badge');
-            
-            if (navBadge) {
-                if (totalUnread > 0) {
-                    navBadge.classList.remove('hidden');
-                    navBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
-                } else {
-                    navBadge.classList.add('hidden');
-                }
-            }
-            
-            if (floatingBadge) {
-                if (totalUnread > 0) {
-                    floatingBadge.classList.remove('hidden');
-                    floatingBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
-                } else {
-                    floatingBadge.classList.add('hidden');
-                }
-            }
+          // Replace the entire badges update section inside fetchUnreadCount with:
+const badges = [
+    document.getElementById('nav-unread-badge'),
+    document.getElementById('chat-unread-badge'),
+    document.getElementById('mobile-unread-badge'),
+    document.getElementById('mobile-nav-badge')
+];
+
+badges.forEach(badge => {
+    if (!badge) return;
+    if (totalUnread > 0) {
+        badge.classList.remove('hidden');
+        badge.style.display = 'flex';
+        badge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+    } else {
+        badge.classList.add('hidden');
+        badge.style.display = 'none';
+    }
+});
         } else {
             console.error('Failed to fetch conversations:', response.status);
         }
@@ -716,24 +783,23 @@ function goToInbox() {
 // Show login buttons when not logged in
 function showLoginButtons() {
     const authContainer = document.getElementById('auth-container');
-    const authButtons = document.getElementById('auth-buttons');
-    const userMenu = document.getElementById('user-menu');
-    
-    // Update auth-container
+    const mobileAuthContainer = document.getElementById('mobile-auth-container');
+
     if (authContainer) {
         authContainer.innerHTML = `
             <div class="flex items-center space-x-4">
                 <a href="login.html" class="px-4 py-2 text-gray-700 hover:text-green-600 font-medium">Login</a>
                 <a href="register.html" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300">Sign Up</a>
-            </div>
+            </div>`;
+    }
+
+    if (mobileAuthContainer) {
+        mobileAuthContainer.innerHTML = `
+            <a href="login.html"    class="block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium">Login</a>
+            <a href="register.html" class="block px-3 py-2 bg-green-600 text-white rounded-lg font-medium mt-1 text-center">Sign Up</a>
         `;
     }
-    
-    // Update old method elements
-    if (authButtons) authButtons.classList.remove('hidden');
-    if (userMenu) userMenu.classList.add('hidden');
 }
-
 // Logout function
 function logout() {
     localStorage.removeItem("token");
@@ -1918,11 +1984,6 @@ async function createNearbyCard(product) {
       <h3 class="font-bold text-lg mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
       <p class="text-gray-600 text-sm mb-2 line-clamp-2">${product.description || 'No description'}</p>
 
-      ${address ? `
-        <div class="flex items-center text-xs text-gray-500 mb-2 gap-1">
-          <i data-feather="map-pin" class="w-3 h-3 text-green-500 flex-shrink-0"></i>
-          <span class="truncate">${address}</span>
-        </div>` : ''}
 
       <div class="flex items-center justify-between mb-3 text-sm">
         <span class="text-gray-500">by <span class="font-medium text-gray-700">${sellerName}</span></span>
