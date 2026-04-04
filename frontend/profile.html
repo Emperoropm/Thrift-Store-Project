@@ -210,6 +210,57 @@
     max-height: 80vh;
     object-fit: contain;
 }
+
+/* Phone verification modal styles */
+.phone-verification-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+}
+
+#phone-verification-modal .modal-content {
+    background: white;
+    border-radius: 16px;
+    max-width: 450px;
+    width: 90%;
+    padding: 2rem;
+}
+
+.otp-input-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.otp-digit {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.otp-digit:focus {
+    border-color: #10b981;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.timer-text {
+    color: #10b981;
+    font-weight: 500;
+}
     </style>
 </head>
 <body>
@@ -815,6 +866,92 @@
     </div>
 </div>
 
+<!-- Phone Verification Modal -->
+<div id="phone-verification-modal" class="modal-overlay hidden">
+    <div class="modal-content p-6 max-w-md">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-feather="phone" class="w-8 h-8 text-green-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Verify Your Phone Number</h3>
+            <p class="text-gray-600">You need to verify your phone number before adding products</p>
+        </div>
+        
+        <!-- Step 1: Enter Phone Number -->
+        <div id="phone-step">
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Phone Number</label>
+                <div class="flex gap-2">
+                    <select id="country-code" class="px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="+977">🇳🇵 +977 (Nepal)</option>
+                        <option value="+91">🇮🇳 +91 (India)</option>
+                        <option value="+1">🇺🇸 +1 (USA)</option>
+                        <option value="+44">🇬🇧 +44 (UK)</option>
+                        <option value="+61">🇦🇺 +61 (Australia)</option>
+                        <option value="+86">🇨🇳 +86 (China)</option>
+                        <option value="+81">🇯🇵 +81 (Japan)</option>
+                    </select>
+                    <input type="tel" id="phone-number" placeholder="9841234567" 
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Enter phone number without country code</p>
+            </div>
+            <button onclick="sendOTP()" id="send-otp-btn" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+                Send Verification Code
+            </button>
+        </div>
+        
+        <!-- Step 2: Enter OTP -->
+        <div id="otp-step" class="hidden">
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2 text-center">Enter 6-digit OTP</label>
+                <div class="otp-input-group" id="otp-inputs">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="0">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="1">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="2">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="3">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="4">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="5">
+                </div>
+                <div id="timer" class="text-center text-sm text-gray-500 mt-2"></div>
+            </div>
+            <button onclick="verifyOTP()" id="verify-otp-btn" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition mb-2">
+                Verify OTP
+            </button>
+            <button onclick="resendOTP()" id="resend-btn" class="w-full text-green-600 py-2 rounded-lg border border-green-600 hover:bg-green-50 transition hidden">
+                Resend Code
+            </button>
+        </div>
+        
+        <div id="verification-message" class="mt-4 text-center text-sm hidden"></div>
+        <button onclick="closePhoneVerificationModal()" class="w-full mt-4 text-gray-500 hover:text-gray-700 text-sm">
+            Cancel
+        </button>
+    </div>
+</div>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+<script>
+// Your Firebase configuration (REPLACE WITH YOUR ACTUAL CONFIG)
+const firebaseConfig = {
+  apiKey: "AIzaSyAZzGDJRPrjZuJLHsF_1HnE8zvpmkX9Z74",
+  authDomain: "thrift-store-5e6a4.firebaseapp.com",
+  projectId: "thrift-store-5e6a4",
+  storageBucket: "thrift-store-5e6a4.firebasestorage.app",
+  messagingSenderId: "1034046566751",
+  appId: "1:1034046566751:web:6cd208a7219ce81ca646ea",
+  measurementId: "G-HWX70V1BS9"
+};
+
+// Initialize Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+</script>
+
+
 <!-- Load Google Maps API -->
 <script>
     window.initGoogleMapsCallback = function() {
@@ -858,6 +995,13 @@ let geocoder = null;
 let autocomplete = null;
 let googleMapsLoaded = false;
 let pendingMapCallbacks = [];
+
+
+let recaptchaVerifier = null;
+let confirmationResult = null;
+let pendingPhoneNumber = null;
+let verificationTimer = null;
+let timeLeft = 60;
 
 // Add these with your other variables
 let newEditImageFiles = []; // Store new image files for edit
@@ -948,7 +1092,7 @@ document.addEventListener('visibilitychange', function() {
     }
 });
 
-        function checkAuth() {
+     function checkAuth() {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     
@@ -966,6 +1110,9 @@ document.addEventListener('visibilitychange', function() {
     
     // Load seller products by default
     loadSellerProducts();
+    
+    // Check phone verification status and show banner if not verified
+    checkAndShowVerificationBanner();
 }
         // Global variable for categories
         let allCategories = [];
@@ -977,14 +1124,24 @@ document.addEventListener('visibilitychange', function() {
         });
 
         // Update showAddProductForm to ensure categories are loaded
-        function showAddProductForm() {
+        // Update showAddProductForm to check verification first
+function showAddProductForm() {
+    // Check phone verification before showing form
+    checkVerificationBeforeAddProduct().then(canProceed => {
+        if (canProceed) {
+            // Show the add product form
             document.getElementById('add-product-form').classList.remove('hidden');
             
             // Ensure categories are loaded
             if (!allCategories || allCategories.length === 0) {
                 loadCategoriesForDropdown();
             }
+        } else {
+            // Store that we want to add product after verification
+            window.pendingProductAddition = true;
         }
+    });
+}
         
         // Update auth UI in navigation
       // Update auth UI in navigation
@@ -3487,6 +3644,449 @@ function initializeChatSocket() {
     
     return chatSocket;
 };
+
+// Check verification status and show banner if not verified
+async function checkAndShowVerificationBanner() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/phone/can-add-product`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const result = await response.json();
+        
+        if (!result.data.canAddProduct) {
+            // Show verification required banner
+            showVerificationBanner();
+        }
+    } catch (error) {
+        console.error('Error checking verification status:', error);
+    }
+}
+
+// Show verification required banner
+function showVerificationBanner() {
+    // Check if banner already exists
+    if (document.getElementById('verification-banner')) return;
+    
+    const banner = document.createElement('div');
+    banner.id = 'verification-banner';
+    banner.className = 'bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg';
+    banner.innerHTML = `
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i data-feather="alert-circle" class="h-5 w-5 text-yellow-400"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>Phone verification required!</strong> You need to verify your phone number before adding products.
+                    </p>
+                </div>
+            </div>
+            <button onclick="showPhoneVerificationModal()" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm font-medium">
+                Verify Now
+            </button>
+        </div>
+    `;
+    
+    // Insert banner at the top of products section
+    const productsSection = document.getElementById('products-section');
+    if (productsSection) {
+        productsSection.insertBefore(banner, productsSection.firstChild);
+    }
+    
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+
+
+// ============================================
+// PHONE VERIFICATION FUNCTIONS
+// ============================================
+
+// Helper functions
+async function showVerificationMessage(message, type) {
+    const messageDiv = document.getElementById('verification-message');
+    if (!messageDiv) return;
+    messageDiv.textContent = message;
+    messageDiv.className = `mt-4 text-center text-sm p-2 rounded ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+    messageDiv.classList.remove('hidden');
+    
+    setTimeout(() => {
+        messageDiv.classList.add('hidden');
+    }, 5000);
+}
+
+async function startTimer() {
+    timeLeft = 60;
+    const timerDiv = document.getElementById('timer');
+    const resendBtn = document.getElementById('resend-btn');
+    
+    if (verificationTimer) {
+        clearInterval(verificationTimer);
+    }
+    
+    verificationTimer = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(verificationTimer);
+            verificationTimer = null;
+            if (timerDiv) timerDiv.innerHTML = '';
+            if (resendBtn) resendBtn.classList.remove('hidden');
+        } else {
+            if (timerDiv) timerDiv.innerHTML = `Resend code in ${timeLeft} seconds`;
+            timeLeft--;
+        }
+    }, 1000);
+}
+
+async function setupOTPInputs() {
+    const inputs = document.querySelectorAll('.otp-digit');
+    
+    inputs.forEach((input, index) => {
+        input.removeEventListener('input', handleOTPInput);
+        input.addEventListener('input', handleOTPInput);
+        
+        input.removeEventListener('keydown', handleOTPKeydown);
+        input.addEventListener('keydown', handleOTPKeydown);
+    });
+}
+
+async function handleOTPInput(e) {
+    const input = e.target;
+    const value = input.value;
+    const index = parseInt(input.getAttribute('data-index'));
+    
+    if (value && !/^\d+$/.test(value)) {
+        input.value = '';
+        return;
+    }
+    
+    if (value && index < 5) {
+        const nextInput = document.querySelector(`.otp-digit[data-index="${index + 1}"]`);
+        if (nextInput) nextInput.focus();
+    }
+    
+    const allInputs = document.querySelectorAll('.otp-digit');
+    const allFilled = Array.from(allInputs).every(inp => inp.value.length === 1);
+    
+    if (allFilled) {
+        await verifyOTP();
+    }
+}
+
+async function handleOTPKeydown(e) {
+    const input = e.target;
+    const index = parseInt(input.getAttribute('data-index'));
+    
+    if (e.key === 'Backspace' && !input.value && index > 0) {
+        const prevInput = document.querySelector(`.otp-digit[data-index="${index - 1}"]`);
+        if (prevInput) {
+            prevInput.focus();
+            prevInput.value = '';
+        }
+    }
+}
+
+// Main functions
+async function sendOTP() {
+    console.log('sendOTP called');
+    
+    const countryCode = document.getElementById('country-code').value;
+    const phoneNumber = document.getElementById('phone-number').value;
+    
+    if (!phoneNumber || phoneNumber.length < 7) {
+        await showVerificationMessage('Please enter a valid phone number', 'error');
+        return;
+    }
+    
+    const fullPhoneNumber = countryCode + phoneNumber;
+    pendingPhoneNumber = fullPhoneNumber;
+    
+    const sendBtn = document.getElementById('send-otp-btn');
+    const originalText = sendBtn.innerHTML;
+    sendBtn.innerHTML = 'Sending...';
+    sendBtn.disabled = true;
+    
+    try {
+        // Create a fresh reCAPTCHA container each time
+        let container = document.getElementById('recaptcha-container');
+        if (container) {
+            container.remove();
+        }
+        
+        container = document.createElement('div');
+        container.id = 'recaptcha-container';
+        document.body.appendChild(container);
+        
+        // Create reCAPTCHA verifier
+        const recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+            'size': 'invisible'
+        });
+        
+        // Send OTP
+        confirmationResult = await firebase.auth().signInWithPhoneNumber(fullPhoneNumber, recaptchaVerifier);
+        
+        // Switch to OTP step
+        document.getElementById('phone-step').classList.add('hidden');
+        document.getElementById('otp-step').classList.remove('hidden');
+        
+        // Start timer
+        await startTimer();
+        
+        await showVerificationMessage('Verification code sent! Check your phone.', 'success');
+        
+        // Setup OTP inputs
+        await setupOTPInputs();
+        
+        // Focus first input
+        document.querySelector('.otp-digit')?.focus();
+        
+    } catch (error) {
+        console.error('Error sending OTP:', error);
+        let errorMessage = 'Failed to send verification code. ';
+        
+        if (error.code === 'auth/invalid-phone-number') {
+            errorMessage += 'Invalid phone number format.';
+        } else if (error.code === 'auth/too-many-requests') {
+            errorMessage += 'Too many attempts. Please try again later.';
+        } else if (error.code === 'auth/operation-not-allowed') {
+            errorMessage += 'Phone authentication is not enabled in Firebase Console.';
+        } else if (error.code === 'auth/unauthorized-domain') {
+            errorMessage += 'Add localhost to Firebase Console → Authentication → Authorized domains.';
+        } else {
+            errorMessage += error.message;
+        }
+        await showVerificationMessage(errorMessage, 'error');
+    } finally {
+        sendBtn.innerHTML = originalText;
+        sendBtn.disabled = false;
+    }
+}
+
+async function verifyOTP() {
+    console.log('verifyOTP called');
+    
+    const inputs = document.querySelectorAll('.otp-digit');
+    let otpCode = '';
+    inputs.forEach(input => {
+        otpCode += input.value;
+    });
+    
+    if (otpCode.length !== 6) {
+        await showVerificationMessage('Please enter the complete 6-digit code', 'error');
+        return;
+    }
+    
+    const verifyBtn = document.getElementById('verify-otp-btn');
+    const originalText = verifyBtn.innerHTML;
+    verifyBtn.innerHTML = 'Verifying...';
+    verifyBtn.disabled = true;
+    
+    try {
+        // Confirm OTP with Firebase
+        const result = await confirmationResult.confirm(otpCode);
+        const firebaseUser = result.user;
+        
+        // Save to backend
+        const token = localStorage.getItem('token');
+        const saveResponse = await fetch(`${API_URL}/phone/verify-and-save`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                phoneNumber: pendingPhoneNumber,
+                firebaseUid: firebaseUser.uid
+            })
+        });
+        
+        const saveResult = await saveResponse.json();
+        
+        if (saveResponse.ok) {
+            await showVerificationMessage('Phone number verified successfully!', 'success');
+            
+            // Update local storage
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            storedUser.phoneVerified = true;
+            storedUser.phone = pendingPhoneNumber;
+            localStorage.setItem('user', JSON.stringify(storedUser));
+            
+            setTimeout(async () => {
+                await closePhoneVerificationModal();
+                showNotification('Phone verified! You can now add products.', 'success');
+                if (window.pendingProductAddition) {
+                    window.pendingProductAddition = false;
+                    showAddProductForm();
+                }
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            }, 1500);
+        } else {
+            throw new Error(saveResult.message || 'Failed to save verification');
+        }
+        
+    } catch (error) {
+        console.error('Error verifying OTP:', error);
+        let errorMessage = 'Verification failed. ';
+        if (error.code === 'auth/invalid-verification-code') {
+            errorMessage += 'Invalid code. Please try again.';
+        } else {
+            errorMessage += error.message;
+        }
+        await showVerificationMessage(errorMessage, 'error');
+    } finally {
+        verifyBtn.innerHTML = originalText;
+        verifyBtn.disabled = false;
+    }
+}
+
+async function resendOTP() {
+    const resendBtn = document.getElementById('resend-btn');
+    resendBtn.classList.add('hidden');
+    
+    try {
+        // Create fresh container for resend
+        let container = document.getElementById('recaptcha-container');
+        if (container) {
+            container.remove();
+        }
+        
+        container = document.createElement('div');
+        container.id = 'recaptcha-container';
+        document.body.appendChild(container);
+        
+        const recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+            'size': 'invisible'
+        });
+        
+        confirmationResult = await firebase.auth().signInWithPhoneNumber(pendingPhoneNumber, recaptchaVerifier);
+        await startTimer();
+        await showVerificationMessage('New verification code sent!', 'success');
+    } catch (error) {
+        console.error('Error resending OTP:', error);
+        await showVerificationMessage('Failed to resend code. Please try again.', 'error');
+        resendBtn.classList.remove('hidden');
+    }
+}
+
+// Modal functions
+async function showPhoneVerificationModal() {
+    const modal = document.getElementById('phone-verification-modal');
+    if (!modal) return;
+    
+    modal.classList.remove('hidden');
+    
+    document.getElementById('phone-step').classList.remove('hidden');
+    document.getElementById('otp-step').classList.add('hidden');
+    document.getElementById('verification-message').classList.add('hidden');
+    
+    document.getElementById('phone-number').value = '';
+    document.querySelectorAll('.otp-digit').forEach(input => input.value = '');
+    
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+async function closePhoneVerificationModal() {
+    const modal = document.getElementById('phone-verification-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    
+    if (verificationTimer) {
+        clearInterval(verificationTimer);
+        verificationTimer = null;
+    }
+}
+
+async function checkVerificationBeforeAddProduct() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/phone/can-add-product`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const result = await response.json();
+        
+        if (!result.data || !result.data.canAddProduct) {
+            await showPhoneVerificationModal();
+            return false;
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('Error checking verification:', error);
+        await showPhoneVerificationModal();
+        return false;
+    }
+}
+
+async function checkAndShowVerificationBanner() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/phone/can-add-product`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const result = await response.json();
+        
+        if (result.data && !result.data.canAddProduct) {
+            await showVerificationBanner();
+        }
+    } catch (error) {
+        console.error('Error checking verification status:', error);
+    }
+}
+
+async function showVerificationBanner() {
+    if (document.getElementById('verification-banner')) return;
+    
+    const banner = document.createElement('div');
+    banner.id = 'verification-banner';
+    banner.className = 'bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg';
+    banner.innerHTML = `
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i data-feather="alert-circle" class="h-5 w-5 text-yellow-400"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>Phone verification required!</strong> You need to verify your phone number before adding products.
+                    </p>
+                </div>
+            </div>
+            <button onclick="showPhoneVerificationModal()" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm font-medium">
+                Verify Now
+            </button>
+        </div>
+    `;
+    
+    const productsSection = document.getElementById('products-section');
+    if (productsSection) {
+        productsSection.insertBefore(banner, productsSection.firstChild);
+    }
+    
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+// Make functions globally available
+window.sendOTP = sendOTP;
+window.verifyOTP = verifyOTP;
+window.resendOTP = resendOTP;
+window.showPhoneVerificationModal = showPhoneVerificationModal;
+window.closePhoneVerificationModal = closePhoneVerificationModal;
+window.checkVerificationBeforeAddProduct = checkVerificationBeforeAddProduct;
+
 // ============================================
 // LOCATION PICKER FUNCTIONS
 // ============================================

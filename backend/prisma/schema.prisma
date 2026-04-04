@@ -13,7 +13,9 @@ model User {
   password String
   role     Role    @default(USER)
   photo    String? // 👈 Stores local file path (e.g., "/uploads/users/filename.jpg")
-
+phone           String?  @unique   // e.g. "+9779841234567"
+ phoneVerified   Boolean  @default(false)
+ firebaseUid     String?  @unique
   products Product[]
   orders   Order[]   @relation("orders")
 

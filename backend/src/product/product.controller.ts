@@ -5,6 +5,9 @@ import { ProductModel } from "./product.model";
 import { validate } from "class-validator";
 import { AppError } from "../error/app.error";
 import { ProductPatchModel } from "./product.patch.model";
+import { PrismaClient } from '@prisma/client'; // Add this import
+
+const prisma = new PrismaClient(); // Add this
 
 export class ProductController {
   productService: ProductService;
@@ -25,147 +28,176 @@ export class ProductController {
     this.getProductsBySellerIdPublic = this.getProductsBySellerIdPublic.bind(this);
     this.getNearbyProducts = this.getNearbyProducts.bind(this);
   }
-async insertProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const userId = (req as any).user?.id;
-    const userRole = (req as any).user?.role;
-    
-    if (!userId || !userRole) {
-      throw new AppError("User information missing from token", 401, {});
-    }
 
-    // Handle uploaded files
-    const files = req.files as Express.Multer.File[];
-    let imageUrls: string[] = [];
-    
-    if (files && files.length > 0) {
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      imageUrls = files.map(file => `${baseUrl}/uploads/products/${file.filename}`);
-    }
-
-    // Parse location if it's a string
-    let locationData = null;
-    if (req.body.location) {
-      try {
-        locationData = typeof req.body.location === 'string' 
-          ? JSON.parse(req.body.location) 
-          : req.body.location;
-      } catch (e) {
-        console.error('Error parsing location:', e);
+  async insertProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = (req as any).user?.id;
+      const userRole = (req as any).user?.role;
+      
+      if (!userId || !userRole) {
+        throw new AppError("User information missing from token", 401, {});
       }
+
+      // 🔐 CHECK PHONE VERIFICATION BEFORE ALLOWING PRODUCT ADDITION
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { phoneVerified: true }
+      });
+      
+      if (!user?.phoneVerified) {
+        throw new AppError(
+          "Phone number verification required to add products. Please verify your phone number first.",
+          403,
+          { requiresVerification: true }
+        );
+      }
+
+      // Handle uploaded files
+      const files = req.files as Express.Multer.File[];
+      let imageUrls: string[] = [];
+      
+      if (files && files.length > 0) {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        imageUrls = files.map(file => `${baseUrl}/uploads/products/${file.filename}`);
+      }
+
+      // Parse location if it's a string
+      let locationData = null;
+      if (req.body.location) {
+        try {
+          locationData = typeof req.body.location === 'string' 
+            ? JSON.parse(req.body.location) 
+            : req.body.location;
+        } catch (e) {
+          console.error('Error parsing location:', e);
+        }
+      }
+
+      // Prepare product data
+      const productData = {
+        title: req.body.title,
+        price: parseFloat(req.body.price),
+        quantity: parseInt(req.body.quantity),
+        description: req.body.description,
+        categoryId: req.body.categoryId ? parseInt(req.body.categoryId) : null,
+        images: imageUrls,
+        purchaseDate: req.body.purchaseDate,
+        gender: req.body.gender,
+        refundable: req.body.refundable === 'true' || req.body.refundable === true,
+        location: locationData
+      };
+
+      console.log('Product data to insert:', productData);
+
+      const result = await this.productService.insertProduct(productData, userId);
+
+      res.status(201).json({
+        message: "Product submitted for admin approval",
+        data: result
+      });
+
+    } catch (error) {
+      next(error);
     }
-
-    // Prepare product data
-    const productData = {
-      title: req.body.title,
-      price: parseFloat(req.body.price),
-      quantity: parseInt(req.body.quantity),
-      description: req.body.description,
-      categoryId: req.body.categoryId ? parseInt(req.body.categoryId) : null,
-      images: imageUrls,
-      purchaseDate: req.body.purchaseDate,
-      gender: req.body.gender,
-      refundable: req.body.refundable === 'true' || req.body.refundable === true,
-      location: locationData
-    };
-
-    console.log('Product data to insert:', productData);
-
-    const result = await this.productService.insertProduct(productData, userId);
-
-    res.status(201).json({
-      message: "Product submitted for admin approval",
-      data: result
-    });
-
-  } catch (error) {
-    next(error);
   }
-}
 
-async updateProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const id = Number(req.params.id);
-    const userId = (req as any).user?.id;
-    const userRole = (req as any).user?.role;
+  async updateProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = Number(req.params.id);
+      const userId = (req as any).user?.id;
+      const userRole = (req as any).user?.role;
 
-    if (isNaN(id) || id <= 0 || !userId) {
-      throw new AppError("Invalid product ID or user ID", 400, {});
-    }
-
-    // Handle uploaded new images
-    const files = req.files as Express.Multer.File[];
-    let newImageUrls: string[] = [];
-    
-    if (files && files.length > 0) {
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      newImageUrls = files.map(file => `${baseUrl}/uploads/products/${file.filename}`);
-    }
-
-    // Parse imagesToDelete if it's a string
-    let imagesToDelete = req.body.imagesToDelete;
-    if (imagesToDelete && typeof imagesToDelete === 'string') {
-      try {
-        imagesToDelete = JSON.parse(imagesToDelete);
-      } catch (e) {
-        imagesToDelete = imagesToDelete.split(',').filter((s: string) => s.trim());
+      if (isNaN(id) || id <= 0 || !userId) {
+        throw new AppError("Invalid product ID or user ID", 400, {});
       }
-    }
 
-    // Parse location if it's a string
-    let locationData = null;
-    if (req.body.location) {
-      try {
-        locationData = typeof req.body.location === 'string' 
-          ? JSON.parse(req.body.location) 
-          : req.body.location;
-      } catch (e) {
-        console.error('Error parsing location:', e);
+      // 🔐 OPTIONAL: Check phone verification for updates as well
+      // (You can decide if you want to require verification for updates too)
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { phoneVerified: true }
+      });
+      
+      if (!user?.phoneVerified) {
+        throw new AppError(
+          "Phone number verification required to update products. Please verify your phone number first.",
+          403,
+          { requiresVerification: true }
+        );
       }
-    }
 
-    // Prepare update data
-    const updateData: any = {
-      title: req.body.title,
-      price: req.body.price ? parseFloat(req.body.price) : undefined,
-      quantity: req.body.quantity ? parseInt(req.body.quantity) : undefined,
-      description: req.body.description,
-      categoryId: req.body.categoryId ? parseInt(req.body.categoryId) : null,
-      purchaseDate: req.body.purchaseDate,
-      gender: req.body.gender,
-      refundable: req.body.refundable !== undefined ? 
-        (req.body.refundable === 'true' || req.body.refundable === true) : 
-        undefined,
-      location: locationData,
-      newImages: newImageUrls,
-      imagesToDelete: imagesToDelete
-    };
-
-    // Remove undefined values
-    Object.keys(updateData).forEach(key => {
-      if (updateData[key] === undefined) {
-        delete updateData[key];
+      // Handle uploaded new images
+      const files = req.files as Express.Multer.File[];
+      let newImageUrls: string[] = [];
+      
+      if (files && files.length > 0) {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        newImageUrls = files.map(file => `${baseUrl}/uploads/products/${file.filename}`);
       }
-    });
 
-    console.log('Update data:', updateData);
+      // Parse imagesToDelete if it's a string
+      let imagesToDelete = req.body.imagesToDelete;
+      if (imagesToDelete && typeof imagesToDelete === 'string') {
+        try {
+          imagesToDelete = JSON.parse(imagesToDelete);
+        } catch (e) {
+          imagesToDelete = imagesToDelete.split(',').filter((s: string) => s.trim());
+        }
+      }
 
-    const result = await this.productService.updateProduct(id, userId, userRole, updateData);
+      // Parse location if it's a string
+      let locationData = null;
+      if (req.body.location) {
+        try {
+          locationData = typeof req.body.location === 'string' 
+            ? JSON.parse(req.body.location) 
+            : req.body.location;
+        } catch (e) {
+          console.error('Error parsing location:', e);
+        }
+      }
 
-    const message = result.status === 'PENDING' 
-      ? 'Product updated and sent for re-approval'
-      : 'Product updated successfully';
+      // Prepare update data
+      const updateData: any = {
+        title: req.body.title,
+        price: req.body.price ? parseFloat(req.body.price) : undefined,
+        quantity: req.body.quantity ? parseInt(req.body.quantity) : undefined,
+        description: req.body.description,
+        categoryId: req.body.categoryId ? parseInt(req.body.categoryId) : null,
+        purchaseDate: req.body.purchaseDate,
+        gender: req.body.gender,
+        refundable: req.body.refundable !== undefined ? 
+          (req.body.refundable === 'true' || req.body.refundable === true) : 
+          undefined,
+        location: locationData,
+        newImages: newImageUrls,
+        imagesToDelete: imagesToDelete
+      };
 
-    res.status(200).json({
-      message,
-      data: result
-    });
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
+      });
 
-  } catch (error) {
-    next(error);
+      console.log('Update data:', updateData);
+
+      const result = await this.productService.updateProduct(id, userId, userRole, updateData);
+
+      const message = result.status === 'PENDING' 
+        ? 'Product updated and sent for re-approval'
+        : 'Product updated successfully';
+
+      res.status(200).json({
+        message,
+        data: result
+      });
+
+    } catch (error) {
+      next(error);
+    }
   }
-}
-
 
   async getProducts(request: Request, response: Response, next: NextFunction): Promise<void> {
     try {
@@ -230,8 +262,7 @@ async updateProduct(req: Request, res: Response, next: NextFunction): Promise<vo
     } catch (error) {
       next(error);
     }
-  }
-
+  };
 
   deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -382,28 +413,28 @@ async updateProduct(req: Request, res: Response, next: NextFunction): Promise<vo
   };
 
   async getNearbyProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const lat = parseFloat(req.query.lat as string);
-    const lng = parseFloat(req.query.lng as string);
-    const radius = req.query.radius ? parseFloat(req.query.radius as string) : 10;
+    try {
+      const lat = parseFloat(req.query.lat as string);
+      const lng = parseFloat(req.query.lng as string);
+      const radius = req.query.radius ? parseFloat(req.query.radius as string) : 10;
 
-    if (isNaN(lat) || isNaN(lng)) {
-      throw new AppError("Valid lat and lng query params are required", 400, {});
+      if (isNaN(lat) || isNaN(lng)) {
+        throw new AppError("Valid lat and lng query params are required", 400, {});
+      }
+
+      const userId = (req as any).user?.id;
+      const userRole = (req as any).user?.role;
+
+      const products = await this.productService.getNearbyProducts(lat, lng, radius, userId, userRole);
+
+      res.status(200).json({
+        message: "Nearby products fetched successfully",
+        data: products,
+        count: products.length
+      });
+
+    } catch (error) {
+      next(error);
     }
-
-    const userId = (req as any).user?.id;
-    const userRole = (req as any).user?.role;
-
-    const products = await this.productService.getNearbyProducts(lat, lng, radius, userId, userRole);
-
-    res.status(200).json({
-      message: "Nearby products fetched successfully",
-      data: products,
-      count: products.length
-    });
-
-  } catch (error) {
-    next(error);
   }
-}
 }

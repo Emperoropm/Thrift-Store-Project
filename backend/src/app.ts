@@ -11,7 +11,7 @@ import PaymentRouter from "./esewa/payment.routes";
 import { errorHandler } from "./middleware/errorhandler";
 import ratingRoutes from "./ratings/rating.route";
 import ChatRouter from "./chat/chat.routes";
-
+import PhoneRouter from "./phone/phoneRoutes.routes";
 const app = express();
 
 // Middleware
@@ -30,6 +30,8 @@ app.use("/api/category",CategoryRouter);
 app.use("/api/payment/simple", PaymentRouter);
 app.use("/api/ratings", ratingRoutes);
 app.use('/api/chat', ChatRouter);
+app.use('/api/phone', PhoneRouter);
+
 // Serve static files from frontend directory
 app.use(express.static(path.join(__dirname, "../../frontend")));
 
