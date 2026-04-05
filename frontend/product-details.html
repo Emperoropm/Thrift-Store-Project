@@ -770,11 +770,13 @@ function displayProductDetails(product) {
 
     // Hide chat button if this is the logged-in user's own product
 const chatBtn = document.getElementById('chat-seller-btn');
+const buyBtn = document.getElementById('buy-now-btn');
 const loggedInUser = localStorage.getItem('user');
 if (loggedInUser) {
     const loggedInData = JSON.parse(loggedInUser);
     if (loggedInData.id === parseInt(currentSellerId)) {
         chatBtn.classList.add('hidden');
+buyBtn.classList.add('hidden');
     }
 }
     

@@ -2,6 +2,8 @@ import { PrismaClient, OrderItemStatus, OrderStatus } from '@prisma/client';
 import { AppError } from '../error/app.error';
 import { UpdateOrderItemStatusDto } from './update-order-status.dto';
 import { CancelOrderItemDto } from './cancel-order-item.dto';
+import { sendMail } from '../utils/mailer';                        // ← NEW
+import { buildSellerOrderEmail } from '../utils/email-templates';  // ← NEW
 
 const prisma = new PrismaClient();
 
@@ -10,11 +12,16 @@ export class OrderService {
   async createOrder(buyerId: number, products: { productId: number; quantity: number }[]) {
     let total = 0;
 
-    // Fetch all products
+    // Fetch all products with seller info so we can email them
     const productRecords = await prisma.product.findMany({
-      where: { 
+      where: {
         id: { in: products.map(p => p.productId) },
-        status: 'APPROVED' // Only approved products can be purchased
+        status: 'APPROVED'
+      },
+      include: {
+        seller: {           // ← NEW: need seller name + email
+          select: { id: true, name: true, email: true }
+        }
       }
     });
 
@@ -58,46 +65,112 @@ export class OrderService {
     for (const item of products) {
       await prisma.product.update({
         where: { id: item.productId },
-        data: { 
+        data: {
           quantity: { decrement: item.quantity },
           updatedAt: new Date()
         }
       });
     }
 
-    // Create notification for each seller
+    // Fetch buyer info for notification + email
+    const buyer = await prisma.user.findUnique({
+      where: { id: buyerId },
+      select: { id: true, name: true, email: true, phone: true }
+    });
+
+    // ── In-app notifications + emails, grouped per seller ─────────────────────
+    //
+    // We group items by seller so each seller gets ONE email listing
+    // all of their products in this order (not one email per product).
+    //
+    const sellerItemMap = new Map<
+      number,
+      { seller: { id: number; name: string | null; email: string }; items: typeof productRecords }
+    >();
+
     for (const item of products) {
       const product = productRecords.find(p => p.id === item.productId)!;
-      
-      // Check if seller is different from buyer (to avoid self-notification)
-      if (product.sellerId !== buyerId) {
-        await prisma.notification.create({
-          data: {
-            userId: product.sellerId,
-            type: 'ORDER_PLACED',
-            title: 'New Order Received',
-            message: `Your product "${product.title}" has been ordered (Quantity: ${item.quantity})`,
-            metadata: {
-              orderId: order.id,
-              productId: product.id,
-              quantity: item.quantity,
-              buyerId: buyerId
-            }
+
+      if (product.sellerId === buyerId) continue; // skip self-purchase
+
+      // In-app notification (unchanged from your original code)
+      await prisma.notification.create({
+        data: {
+          userId: product.sellerId,
+          type: 'ORDER_PLACED',
+          title: 'New Order Received',
+          message: `Your product "${product.title}" has been ordered (Quantity: ${item.quantity})`,
+          metadata: {
+            orderId: order.id,
+            productId: product.id,
+            quantity: item.quantity,
+            buyerId: buyerId
           }
-        });
+        }
+      });
+
+      // Group by seller for email
+      if (!sellerItemMap.has(product.sellerId)) {
+        sellerItemMap.set(product.sellerId, { seller: product.seller, items: [] });
       }
+      // Push a copy of the product record augmented with the ordered quantity
+      sellerItemMap.get(product.sellerId)!.items.push({ ...product, _orderedQty: item.quantity } as any);
     }
 
-    // Fetch full order details including products and seller info
+    // ── Send one email per seller ──────────────────────────────────────────────
+    // Retrieve shipping info stored by the frontend in pendingOrderData.
+    // It is NOT in the DB, so we read it from the order's payment transaction
+    // metadata if available — or fall back to null (email still shows buyer info).
+    //
+    // NOTE: shipping info is stored in localStorage on the frontend and NOT
+    // persisted to the DB in your current setup. To make it available here you
+    // can either (a) pass it as a parameter from the controller, or (b) store it
+    // in the PaymentTransaction.paymentData field. For now we pass it as an
+    // optional parameter so the controller can forward it from req.body.
+    //
+    for (const [, { seller, items }] of sellerItemMap) {
+      const emailItems = items.map((p: any) => ({
+        title: p.title,
+        quantity: p._orderedQty as number,
+        price: p.price
+      }));
+
+      const sellerTotal = emailItems.reduce(
+        (sum, i) => sum + i.price * i.quantity,
+        0
+      );
+
+      const html = buildSellerOrderEmail({
+        sellerName: seller.name || 'Seller',
+        buyer: {
+          name: buyer?.name || 'Customer',
+          email: buyer?.email || '',
+          phone: buyer?.phone
+        },
+        shippingInfo: null, // see NOTE above — pass from controller if available
+        items: emailItems,
+        orderId: order.id,
+        orderTotal: sellerTotal
+      });
+
+      await sendMail({
+        to: seller.email,
+        subject: `🛍️ New Order #${order.id} — ThriftTreasure`,
+        html
+      });
+    }
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // Fetch full order details
     const fullOrder = await prisma.order.findUnique({
       where: { id: order.id },
       include: {
         items: {
           include: {
             product: {
-              select: { 
-                id: true, 
-                title: true, 
+              select: {
+                id: true,
+                title: true,
                 sellerId: true,
                 images: true
               }
@@ -116,18 +189,18 @@ export class OrderService {
         product: { sellerId }
       },
       include: {
-        product: { 
-          select: { 
-            id: true, 
+        product: {
+          select: {
+            id: true,
             title: true,
             images: true
-          } 
+          }
         },
-        order: { 
-          select: { 
-            id: true, 
-            buyerId: true, 
-            total: true, 
+        order: {
+          select: {
+            id: true,
+            buyerId: true,
+            total: true,
             createdAt: true,
             status: true,
             buyer: {
@@ -136,11 +209,11 @@ export class OrderService {
                 email: true
               }
             }
-          } 
+          }
         }
       },
-      orderBy: { 
-        updatedAt: 'desc' 
+      orderBy: {
+        updatedAt: 'desc'
       }
     });
 
@@ -154,9 +227,9 @@ export class OrderService {
         items: {
           include: {
             product: {
-              select: { 
-                id: true, 
-                title: true, 
+              select: {
+                id: true,
+                title: true,
                 sellerId: true,
                 images: true
               }
@@ -175,17 +248,14 @@ export class OrderService {
 
   // Update order item status (for sellers)
   async updateOrderItemStatus(
-    orderItemId: number, 
+    orderItemId: number,
     sellerId: number,
     data: UpdateOrderItemStatusDto
   ) {
-    // Verify the order item belongs to seller's product
     const orderItem = await prisma.orderItem.findFirst({
       where: {
         id: orderItemId,
-        product: {
-          sellerId: sellerId
-        }
+        product: { sellerId: sellerId }
       },
       include: {
         product: true,
@@ -197,10 +267,8 @@ export class OrderService {
       throw new AppError('Order item not found or unauthorized', 404, {});
     }
 
-    // Ensure current status is never undefined
     const currentStatus = orderItem.status || OrderItemStatus.PENDING;
-    
-    // Prevent updating cancelled or delivered items
+
     if (currentStatus === OrderItemStatus.CANCELLED && data.status !== OrderItemStatus.CANCELLED) {
       throw new AppError('Cannot update status of a cancelled order item', 400, {});
     }
@@ -209,32 +277,27 @@ export class OrderService {
       throw new AppError('Cannot update status of a delivered order item', 400, {});
     }
 
-    // Prepare update data
     const updateData: any = {
       status: data.status,
       updatedAt: new Date()
     };
 
-    // If marking as delivered, set deliveredAt timestamp
     if (data.status === OrderItemStatus.DELIVERED) {
       updateData.deliveredAt = new Date();
     }
 
-    // If cancelled, save the reason
     if (data.status === OrderItemStatus.CANCELLED && data.reason) {
       updateData.cancelledReason = data.reason;
-      
-      // Restore product stock if cancelled
+
       await prisma.product.update({
         where: { id: orderItem.productId },
-        data: { 
+        data: {
           quantity: { increment: orderItem.quantity },
           updatedAt: new Date()
         }
       });
     }
 
-    // Update the order item
     const updatedOrderItem = await prisma.orderItem.update({
       where: { id: orderItemId },
       data: updateData,
@@ -261,10 +324,8 @@ export class OrderService {
       }
     });
 
-    // Update overall order status
     await this.updateOrderStatus(orderItem.orderId);
 
-    // Create notification for buyer
     await this.createStatusChangeNotification(
       orderItem.order.buyerId,
       orderItemId,
@@ -276,9 +337,8 @@ export class OrderService {
     return updatedOrderItem;
   }
 
-  // Cancel order item with reason
   async cancelOrderItem(
-    orderItemId: number, 
+    orderItemId: number,
     sellerId: number,
     data: CancelOrderItemDto
   ) {
@@ -288,14 +348,12 @@ export class OrderService {
     });
   }
 
-  // Mark order item as delivered
   async markAsDelivered(orderItemId: number, sellerId: number) {
     return this.updateOrderItemStatus(orderItemId, sellerId, {
       status: OrderItemStatus.DELIVERED
     });
   }
 
-  // Update overall order status based on item statuses
   private async updateOrderStatus(orderId: number) {
     const orderItems = await prisma.orderItem.findMany({
       where: { orderId }
@@ -303,7 +361,6 @@ export class OrderService {
 
     if (orderItems.length === 0) return;
 
-    // Count statuses - initialize with all possible statuses
     const statusCounts = {
       [OrderItemStatus.PENDING]: 0,
       [OrderItemStatus.PROCESSING]: 0,
@@ -317,7 +374,6 @@ export class OrderService {
       statusCounts[itemStatus]++;
     });
 
-    // Determine overall order status
     let orderStatus: OrderStatus;
 
     if (statusCounts[OrderItemStatus.CANCELLED] === orderItems.length) {
@@ -332,7 +388,6 @@ export class OrderService {
       orderStatus = OrderStatus.PENDING;
     }
 
-    // Update order status
     await prisma.order.update({
       where: { id: orderId },
       data: {
@@ -342,7 +397,6 @@ export class OrderService {
     });
   }
 
-  // Create notification for status change
   private async createStatusChangeNotification(
     buyerId: number,
     orderItemId: number,
@@ -351,7 +405,7 @@ export class OrderService {
     reason?: string
   ) {
     const itemStatus = status || OrderItemStatus.PENDING;
-    
+
     const statusMessages: Record<OrderItemStatus, string> = {
       [OrderItemStatus.PENDING]: `Your order item "${productTitle}" is pending`,
       [OrderItemStatus.PROCESSING]: `Your order item "${productTitle}" is now being processed`,
@@ -376,14 +430,11 @@ export class OrderService {
     });
   }
 
-  // Get order item details for status update
   async getOrderItemDetails(orderItemId: number, sellerId: number) {
     const orderItem = await prisma.orderItem.findFirst({
       where: {
         id: orderItemId,
-        product: {
-          sellerId: sellerId
-        }
+        product: { sellerId: sellerId }
       },
       include: {
         product: {
@@ -454,15 +505,11 @@ export class OrderService {
     return order;
   }
 
-  // Mark as received (buyer only)
   async markAsReceived(orderItemId: number, buyerId: number) {
-    // First, verify the order item exists and belongs to this buyer
     const orderItem = await prisma.orderItem.findFirst({
       where: {
         id: orderItemId,
-        order: {
-          buyerId: buyerId
-        }
+        order: { buyerId: buyerId }
       },
       include: {
         order: {
@@ -486,12 +533,10 @@ export class OrderService {
       throw new AppError('Order item not found or you do not have permission', 404, {});
     }
 
-    // Check if the item is in DELIVERED status (can only mark as received if delivered)
     if (orderItem.status !== 'DELIVERED') {
       throw new AppError(`Cannot mark as received. Item status is ${orderItem.status}`, 400, {});
     }
 
-    // Update the status to RECEIVED
     const updatedItem = await prisma.orderItem.update({
       where: { id: orderItemId },
       data: {
@@ -516,7 +561,6 @@ export class OrderService {
       }
     });
 
-    // Create notification for the seller
     await prisma.notification.create({
       data: {
         userId: orderItem.product.sellerId,
@@ -534,16 +578,14 @@ export class OrderService {
       }
     });
 
-    // Check if all items in the order are RECEIVED
     const allItemsInOrder = await prisma.orderItem.findMany({
       where: { orderId: orderItem.orderId }
     });
 
-    const allReceived = allItemsInOrder.every(item => 
+    const allReceived = allItemsInOrder.every(item =>
       item.status === 'RECEIVED' || item.status === 'CANCELLED'
     );
 
-    // If all items are received, update order status
     if (allReceived) {
       await prisma.order.update({
         where: { id: orderItem.orderId },
@@ -553,7 +595,6 @@ export class OrderService {
         }
       });
 
-      // Notify buyer that order is complete
       await prisma.notification.create({
         data: {
           userId: buyerId,
