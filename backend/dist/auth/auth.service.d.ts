@@ -12,5 +12,6 @@ export declare class AuthService {
     getAllUsers(): Promise<UserResponse[]>;
     getUserById(id: number): Promise<UserResponse>;
     deleteUser(id: number): Promise<UserResponse>;
+    updateUserProfile(id: number, data: Partial<AuthModel>): Promise<UserResponse>;
 }
 //# sourceMappingURL=auth.service.d.ts.map

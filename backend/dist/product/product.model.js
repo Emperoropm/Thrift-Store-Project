@@ -9,8 +9,27 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProductModel = void 0;
+exports.ProductModel = exports.LocationModel = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
+class LocationModel {
+    address;
+    lat;
+    lng;
+}
+exports.LocationModel = LocationModel;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], LocationModel.prototype, "address", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], LocationModel.prototype, "lat", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], LocationModel.prototype, "lng", void 0);
 class ProductModel {
     id;
     title;
@@ -18,12 +37,22 @@ class ProductModel {
     price;
     quantity;
     imageUrl;
+    // NEW: Multiple images support
+    images;
+    // NEW: Purchase date
+    purchaseDate;
+    // NEW: Gender
+    gender; // MEN, WOMEN, UNISEX, KIDS
+    // NEW: Refundable
+    refundable;
+    // NEW: Location
+    location;
     categoryId;
     sellerId;
     createdAt;
-    status; // Add this
+    status;
     rejectionReason;
-    constructor(title, price, quantity, sellerId, description, imageUrl, categoryId, id, createdAt, status, rejectionReason) {
+    constructor(title, price, quantity, sellerId, description, imageUrl, categoryId, id, createdAt, status, rejectionReason, images, purchaseDate, gender, refundable, location) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -35,14 +64,18 @@ class ProductModel {
         this.createdAt = createdAt;
         this.status = status;
         this.rejectionReason = rejectionReason;
+        this.images = images;
+        this.purchaseDate = purchaseDate;
+        this.gender = gender;
+        this.refundable = refundable;
+        this.location = location;
     }
 }
 exports.ProductModel = ProductModel;
 __decorate([
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.IsPositive)(),
-    (0, class_validator_1.IsOptional)() // Because id is auto-generated (SERIAL)
-    ,
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], ProductModel.prototype, "id", void 0);
 __decorate([
@@ -51,6 +84,7 @@ __decorate([
 ], ProductModel.prototype, "title", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], ProductModel.prototype, "description", void 0);
 __decorate([
@@ -64,9 +98,38 @@ __decorate([
     __metadata("design:type", Number)
 ], ProductModel.prototype, "quantity", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUrl)(),
     __metadata("design:type", String)
 ], ProductModel.prototype, "imageUrl", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsUrl)({}, { each: true }),
+    __metadata("design:type", Array)
+], ProductModel.prototype, "images", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], ProductModel.prototype, "purchaseDate", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ProductModel.prototype, "gender", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], ProductModel.prototype, "refundable", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsObject)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => LocationModel),
+    __metadata("design:type", LocationModel)
+], ProductModel.prototype, "location", void 0);
 __decorate([
     (0, class_validator_1.IsInt)(),
     __metadata("design:type", Number)

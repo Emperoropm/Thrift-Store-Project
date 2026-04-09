@@ -19,13 +19,16 @@ class AuthModel {
     role;
     dailyProductCount;
     lastProductDate;
+    // 👇 UPDATED: Remove URL validation, just validate it's a string
+    photo;
     createdAt;
     updatedAt;
-    constructor(name, email, password, role) {
+    constructor(name, email, password, role, photo) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.role = role || "USER";
+        this.photo = photo || null;
     }
 }
 exports.AuthModel = AuthModel;
@@ -44,8 +47,7 @@ __decorate([
     __metadata("design:type", String)
 ], AuthModel.prototype, "email", void 0);
 __decorate([
-    (0, class_validator_1.IsOptional)() // Make password optional since we don't always return it
-    ,
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MinLength)(4, { message: "Must be minimum 4 character" }),
     __metadata("design:type", String)
@@ -66,6 +68,11 @@ __decorate([
     (0, class_validator_1.IsDate)(),
     __metadata("design:type", Object)
 ], AuthModel.prototype, "lastProductDate", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], AuthModel.prototype, "photo", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDate)(),

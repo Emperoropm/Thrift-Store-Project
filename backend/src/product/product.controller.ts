@@ -48,7 +48,7 @@ export class ProductController {
         throw new AppError(
           "Phone number verification required to add products. Please verify your phone number first.",
           403,
-          { requiresVerification: true }
+          { requiresVerification: "true" }
         );
       }
 
@@ -122,7 +122,7 @@ export class ProductController {
         throw new AppError(
           "Phone number verification required to update products. Please verify your phone number first.",
           403,
-          { requiresVerification: true }
+          { requiresVerification: "true" }
         );
       }
 

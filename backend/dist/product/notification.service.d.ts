@@ -3,8 +3,8 @@ export declare class NotificationService {
     static notifyProductApproved(productId: number, adminId: number): Promise<void>;
     static notifyProductRejected(productId: number, adminId: number, reason: string): Promise<void>;
     static getUserNotifications(userId: number): Promise<{
-        message: string;
         id: number;
+        message: string;
         createdAt: Date;
         title: string;
         type: import(".prisma/client").$Enums.NotificationType;
@@ -13,8 +13,8 @@ export declare class NotificationService {
         userId: number;
     }[]>;
     static markAsRead(notificationId: number): Promise<{
-        message: string;
         id: number;
+        message: string;
         createdAt: Date;
         title: string;
         type: import(".prisma/client").$Enums.NotificationType;

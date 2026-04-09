@@ -36,7 +36,7 @@ export class RatingService {
         sellerId,
         score,
         comment: comment ?? null,
-        orderId
+        orderId :orderId!
       }
     });
 

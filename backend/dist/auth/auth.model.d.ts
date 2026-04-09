@@ -7,15 +7,17 @@ export declare class AuthModel {
     role?: string;
     dailyProductCount?: number;
     lastProductDate?: Date | null;
+    photo?: string | null;
     createdAt?: Date;
     updatedAt?: Date;
-    constructor(name?: string, email?: string, password?: string, role?: string);
+    constructor(name?: string, email?: string, password?: string, role?: string, photo?: string);
 }
 export interface UserResponse {
     id: number;
     name: string | null;
     email: string;
     role: Role;
+    photo: string | null;
     dailyProductCount: number;
     lastProductDate: Date | null;
     createdAt: Date;

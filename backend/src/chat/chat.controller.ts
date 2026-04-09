@@ -20,7 +20,7 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      throw new AppError('User not authenticated', 401);
+      throw new AppError('User not authenticated', 401,{});
     }
 
     const conversations = await prisma.conversation.findMany({
@@ -132,7 +132,7 @@ export const createConversation = async (req: AuthRequest, res: Response) => {
     const { otherUserId } = req.body;
 
     if (!userId) {
-      throw new AppError('User not authenticated', 401);
+      throw new AppError('User not authenticated', 401,{});
     }
 
     if (userId === otherUserId) {
@@ -232,13 +232,13 @@ export const getConversationMessages = async (req: AuthRequest, res: Response) =
     const { conversationId } = req.params;
 
     if (!userId) {
-      throw new AppError('User not authenticated', 401);
+      throw new AppError('User not authenticated', 401,{});
     }
 
     // Verify user is part of this conversation
     const conversation = await prisma.conversation.findFirst({
       where: {
-        id: parseInt(conversationId),
+        id: parseInt(conversationId!),
         OR: [
           { user1Id: userId },
           { user2Id: userId }
@@ -255,7 +255,7 @@ export const getConversationMessages = async (req: AuthRequest, res: Response) =
 
     const messages = await prisma.message.findMany({
       where: {
-        conversationId: parseInt(conversationId)
+        conversationId: parseInt(conversationId!)
       },
       include: {
         sender: {
@@ -291,7 +291,7 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
     const { conversationId, content } = req.body;
 
     if (!senderId) {
-      throw new AppError('User not authenticated', 401);
+      throw new AppError('User not authenticated', 401,{});
     }
 
     if (!content || !content.trim()) {
@@ -380,12 +380,12 @@ export const markConversationAsRead = async (req: AuthRequest, res: Response) =>
     const { conversationId } = req.params;
 
     if (!userId) {
-      throw new AppError('User not authenticated', 401);
+      throw new AppError('User not authenticated', 401,{});
     }
 
     await prisma.message.updateMany({
       where: {
-        conversationId: parseInt(conversationId),
+        conversationId: parseInt(conversationId!),
         senderId: { not: userId },
         read: false
       },
@@ -414,12 +414,12 @@ export const markMessageAsRead = async (req: AuthRequest, res: Response) => {
     const { messageId } = req.params;
 
     if (!userId) {
-      throw new AppError('User not authenticated', 401);
+      throw new AppError('User not authenticated', 401,{});
     }
 
     await prisma.message.update({
       where: {
-        id: parseInt(messageId)
+        id: parseInt(messageId!)
       },
       data: {
         read: true

@@ -31,6 +31,7 @@ class AuthService {
                 email: auth.email,
                 password: hashpassword,
                 role: auth.role,
+                photo: auth.photo || null, // 👈 ADD THIS - handle photo
                 dailyProductCount: 0,
                 lastProductDate: null
             },
@@ -39,13 +40,14 @@ class AuthService {
                 name: true,
                 email: true,
                 role: true,
+                photo: true, // 👈 ADD THIS
                 dailyProductCount: true,
                 lastProductDate: true,
                 createdAt: true,
                 updatedAt: true
             }
         });
-        // Generate token with 'id' instead of 'sellerId'
+        // Generate token
         const token = (0, jwt_1.generateToken)({
             id: result.id,
             email: result.email,
@@ -81,6 +83,7 @@ class AuthService {
                 name: true,
                 email: true,
                 role: true,
+                photo: true, // 👈 ADD THIS
                 dailyProductCount: true,
                 lastProductDate: true,
                 createdAt: true,
@@ -90,7 +93,7 @@ class AuthService {
         if (!user) {
             throw new app_error_1.AppError("User not found", 404, {});
         }
-        // Generate token with 'id' instead of 'sellerId'
+        // Generate token
         const token = (0, jwt_1.generateToken)({
             id: user.id,
             email: user.email,
@@ -109,6 +112,7 @@ class AuthService {
                 name: true,
                 email: true,
                 role: true,
+                photo: true, // 👈 ADD THIS
                 dailyProductCount: true,
                 lastProductDate: true,
                 createdAt: true,
@@ -125,6 +129,7 @@ class AuthService {
                 name: true,
                 email: true,
                 role: true,
+                photo: true, // 👈 ADD THIS
                 dailyProductCount: true,
                 lastProductDate: true,
                 createdAt: true,
@@ -140,6 +145,11 @@ class AuthService {
     }
     async deleteUser(id) {
         try {
+            // First get the user to get photo path
+            const user = await prisma.user.findUnique({
+                where: { id },
+                select: { photo: true }
+            });
             // Check if user exists
             const userExists = await prisma.user.findUnique({
                 where: { id }
@@ -148,19 +158,36 @@ class AuthService {
                 throw new app_error_1.AppError("User not found", 404, {});
             }
             // Delete the user
-            return await prisma.user.delete({
+            const deletedUser = await prisma.user.delete({
                 where: { id },
                 select: {
                     id: true,
                     name: true,
                     email: true,
                     role: true,
+                    photo: true, // 👈 ADD THIS
                     dailyProductCount: true,
                     lastProductDate: true,
                     createdAt: true,
                     updatedAt: true
                 }
             });
+            // Optionally delete the photo file from local storage
+            if (user?.photo) {
+                try {
+                    const fs = require('fs');
+                    const path = require('path');
+                    const photoPath = path.join(__dirname, '../../public', user.photo);
+                    if (fs.existsSync(photoPath)) {
+                        fs.unlinkSync(photoPath);
+                    }
+                }
+                catch (fileErr) {
+                    console.error("Error deleting user photo file:", fileErr);
+                    // Don't throw error for file deletion failure
+                }
+            }
+            return deletedUser;
         }
         catch (err) {
             if (err.code === 'P2003') {
@@ -172,6 +199,38 @@ class AuthService {
                 message: err.message
             });
         }
+    }
+    // 👇 ADD THIS: Method to update user profile (including photo)
+    async updateUserProfile(id, data) {
+        const updateData = {};
+        if (data.name !== undefined)
+            updateData.name = data.name;
+        if (data.email !== undefined)
+            updateData.email = data.email;
+        if (data.photo !== undefined)
+            updateData.photo = data.photo;
+        if (data.role !== undefined)
+            updateData.role = data.role;
+        // If password is being updated, hash it
+        if (data.password) {
+            updateData.password = await bcrypt_1.default.hash(data.password, 10);
+        }
+        const updatedUser = await prisma.user.update({
+            where: { id },
+            data: updateData,
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                photo: true,
+                dailyProductCount: true,
+                lastProductDate: true,
+                createdAt: true,
+                updatedAt: true
+            }
+        });
+        return updatedUser;
     }
 }
 exports.AuthService = AuthService;

@@ -44,17 +44,27 @@ class ProductService {
                 });
             }
         }
-        // Create product
+        // Create product with new fields
         const result = await prisma.product.create({
             data: {
                 title: product.title,
                 description: product.description ?? null,
                 price: product.price,
                 quantity: product.quantity,
-                imageUrl: product.imageUrl ?? null,
+                images: product.images ?? [],
+                purchaseDate: product.purchaseDate ? new Date(product.purchaseDate) : null,
+                gender: product.gender ?? null,
+                refundable: product.refundable ?? true,
+                location: product.location ?? null,
                 categoryId: product.categoryId ?? null,
                 sellerId: sellerId,
                 status: 'PENDING'
+            },
+            include: {
+                category: true,
+                seller: {
+                    select: { id: true, name: true, email: true }
+                }
             }
         });
         // Update daily counter
@@ -130,7 +140,8 @@ class ProductService {
                 seller: {
                     select: { id: true, name: true, email: true }
                 }
-            }
+            },
+            orderBy: { createdAt: 'desc' }
         });
     };
     updateProduct = async (id, sellerId, userRole, productData) => {
@@ -144,8 +155,8 @@ class ProductService {
         if (userRole !== 'ADMIN' && existingProduct.sellerId !== sellerId) {
             throw new app_error_1.AppError("You are not authorized to update this product", 403, {});
         }
-        // If product is approved and seller is editing, change status to PENDING
         const updateData = {};
+        // Basic fields
         if (productData.title !== undefined)
             updateData.title = productData.title;
         if (productData.description !== undefined)
@@ -158,6 +169,30 @@ class ProductService {
             updateData.imageUrl = productData.imageUrl;
         if (productData.categoryId !== undefined)
             updateData.categoryId = productData.categoryId;
+        // New fields
+        if (productData.purchaseDate !== undefined) {
+            updateData.purchaseDate = productData.purchaseDate ? new Date(productData.purchaseDate) : null;
+        }
+        if (productData.gender !== undefined)
+            updateData.gender = productData.gender;
+        if (productData.refundable !== undefined)
+            updateData.refundable = productData.refundable;
+        if (productData.location !== undefined)
+            updateData.location = productData.location;
+        // Handle images array - full replacement
+        if (productData.images !== undefined) {
+            updateData.images = productData.images;
+        }
+        // Handle adding new images
+        else if (productData.newImages && productData.newImages.length > 0) {
+            const currentImages = existingProduct.images || [];
+            updateData.images = [...currentImages, ...productData.newImages];
+        }
+        // Handle deleting images
+        if (productData.imagesToDelete && productData.imagesToDelete.length > 0) {
+            const currentImages = updateData.images !== undefined ? updateData.images : (existingProduct.images || []);
+            updateData.images = currentImages.filter((img) => !productData.imagesToDelete.includes(img));
+        }
         // Auto-change status for approved products edited by sellers
         if (existingProduct.status === 'APPROVED' && userRole === 'USER') {
             updateData.status = 'PENDING';
@@ -166,7 +201,13 @@ class ProductService {
         }
         const result = await prisma.product.update({
             where: { id },
-            data: updateData
+            data: updateData,
+            include: {
+                category: true,
+                seller: {
+                    select: { id: true, name: true, email: true }
+                }
+            }
         });
         return result;
     };
@@ -201,6 +242,22 @@ class ProductService {
             orderBy: { createdAt: 'desc' }
         });
     };
+    // Get products by any seller ID (public endpoint)
+    async getProductsByAnySellerId(sellerId, includeAll = false) {
+        const whereClause = { sellerId };
+        // If not including all, only show approved products with quantity > 0
+        if (!includeAll) {
+            whereClause.status = 'APPROVED';
+            whereClause.quantity = { gt: 0 };
+        }
+        return prisma.product.findMany({
+            where: whereClause,
+            include: {
+                category: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
     // ========== ADMIN METHODS ==========
     async getPendingProducts() {
         return prisma.product.findMany({
@@ -256,6 +313,58 @@ class ProductService {
             where: { id },
             data: updateData
         });
+    }
+    async getNearbyProducts(userLat, userLng, radiusKm = 10, userId, userRole) {
+        // Reuse same visibility logic as getProducts
+        let whereClause = {};
+        if (userRole === 'ADMIN') {
+            whereClause = {};
+        }
+        else if (userId && userRole === 'USER') {
+            whereClause = {
+                OR: [
+                    { sellerId: userId },
+                    { status: 'APPROVED', quantity: { gt: 0 } }
+                ]
+            };
+        }
+        else {
+            whereClause = { status: 'APPROVED', quantity: { gt: 0 } };
+        }
+        // Only fetch products that have location data
+        whereClause.location = { not: null };
+        const products = await prisma.product.findMany({
+            where: whereClause,
+            include: {
+                category: true,
+                seller: { select: { id: true, name: true, email: true } }
+            }
+        });
+        // Apply Haversine formula and filter by radius
+        const nearbyProducts = products
+            .map(product => {
+            const loc = product.location;
+            if (!loc?.lat || !loc?.lng)
+                return null;
+            const distance = this.haversine(userLat, userLng, loc.lat, loc.lng);
+            return { ...product, distance: parseFloat(distance.toFixed(2)) };
+        })
+            .filter((p) => p !== null && p.distance <= radiusKm)
+            .sort((a, b) => a.distance - b.distance); // closest first
+        return nearbyProducts;
+    }
+    haversine(lat1, lng1, lat2, lng2) {
+        const R = 6371; // Earth radius in km
+        const dLat = this.toRad(lat2 - lat1);
+        const dLng = this.toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+    toRad(deg) {
+        return deg * (Math.PI / 180);
     }
 }
 exports.ProductService = ProductService;

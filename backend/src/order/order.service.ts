@@ -145,7 +145,7 @@ export class OrderService {
         buyer: {
           name: buyer?.name || 'Customer',
           email: buyer?.email || '',
-          phone: buyer?.phone
+          phone: buyer?.phone ?? null
         },
         shippingInfo: null, // see NOTE above — pass from controller if available
         items: emailItems,
@@ -366,7 +366,8 @@ export class OrderService {
       [OrderItemStatus.PROCESSING]: 0,
       [OrderItemStatus.SHIPPED]: 0,
       [OrderItemStatus.DELIVERED]: 0,
-      [OrderItemStatus.CANCELLED]: 0
+      [OrderItemStatus.CANCELLED]: 0,
+        RECEIVED: 0,
     };
 
     orderItems.forEach(item => {
@@ -412,6 +413,8 @@ export class OrderService {
       [OrderItemStatus.SHIPPED]: `Your order item "${productTitle}" has been shipped`,
       [OrderItemStatus.DELIVERED]: `Your order item "${productTitle}" has been delivered`,
       [OrderItemStatus.CANCELLED]: `Your order item "${productTitle}" has been cancelled${reason ? `: ${reason}` : ''}`
+    ,
+    RECEIVED: "Item received", 
     };
 
     await prisma.notification.create({
