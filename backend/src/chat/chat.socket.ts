@@ -116,7 +116,10 @@ export const chatSocket = (server: any) => {
         });
 
         // Emit to conversation room
-        io.to(`chat-${conversationId}`).emit("newMessage", message);
+        io.to(`chat-${conversationId}`).emit("newMessage", {
+  conversationId,
+  message
+});
 
         const otherUserId = conversation.user1Id === senderId 
           ? conversation.user2Id 
@@ -126,12 +129,9 @@ export const chatSocket = (server: any) => {
         
         // Emit to other user's personal room
         io.to(`user-${otherUserId}`).emit("newMessageNotification", {
-          conversationId,
-          message: {
-            ...message,
-            conversationId: conversationId
-          }
-        });
+  conversationId,
+  message
+});
 
       } catch (error) {
         console.error("Error sending message:", error);

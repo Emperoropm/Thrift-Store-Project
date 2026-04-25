@@ -559,10 +559,13 @@
                     <option value="">Select Category</option>
                 </select>
             </div>
-            <div>
-                <label class="block text-gray-700 mb-2">Purchase Date *</label>
-                <input type="date" id="product-purchase-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
-            </div>
+          <div>
+    <label class="block text-gray-700 mb-2">Purchase Date *</label>
+    <input type="date" id="product-purchase-date" 
+           class="w-full px-4 py-2 border border-gray-300 rounded-lg" 
+           required
+           max="">
+</div>
             <div>
                 <label class="block text-gray-700 mb-2">Gender *</label>
                 <select id="product-gender" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
@@ -1020,6 +1023,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load user profile with photo
     loadUserProfile();
     
+   const today = new Date().toISOString().split('T')[0];
+
+    document.getElementById('product-purchase-date').max = today;
+    document.getElementById('edit-purchase-date').max = today;
+
+    document.getElementById('product-purchase-date').addEventListener('input', function() {
+        if (this.value > today) {
+            this.value = today;
+        }
+    });
+
+    document.getElementById('edit-purchase-date').addEventListener('input', function() {
+        if (this.value > today) {
+            this.value = today;
+        }
+    });
+
+
     // Set initial click handler for photo container
     const photoContainer = document.getElementById('user-photo-container');
     if (photoContainer) {
@@ -1092,6 +1113,8 @@ document.addEventListener('visibilitychange', function() {
     }
 });
 
+
+
      function checkAuth() {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
@@ -1132,6 +1155,8 @@ function showAddProductForm() {
             // Show the add product form
             document.getElementById('add-product-form').classList.remove('hidden');
             
+              document.getElementById('product-purchase-date').max = new Date().toISOString().split('T')[0];
+
             // Ensure categories are loaded
             if (!allCategories || allCategories.length === 0) {
                 loadCategoriesForDropdown();
@@ -2811,7 +2836,7 @@ async function compressImage(base64String, maxWidth = 800, maxHeight = 800, qual
     });
 }
 
-async function addNewProduct(event) {
+async function submitProductToAPI(event) {
     event.preventDefault();
     
     const title = document.getElementById('product-title').value;
@@ -2842,6 +2867,38 @@ async function addNewProduct(event) {
         alert('Please select a valid location from the map');
         return;
     }
+
+    // Validation
+if (!title || !price || !quantity || !purchaseDate || !gender || !location) {
+    alert('Please fill in all required fields');
+    return;
+}
+
+// ADD THIS - replace your existing date validation in addNewProduct
+const selectedDate = new Date(purchaseDate);
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+if (!purchaseDate) {
+    alert('Please select a purchase date');
+    return;
+}
+
+if (isNaN(selectedDate.getTime())) {
+    alert('Please enter a valid date');
+    return;
+}
+
+if (selectedDate > today) {
+    alert('Purchase date cannot be in the future');
+    return;
+}
+
+const minDate = new Date('2000-01-01');
+if (selectedDate < minDate) {
+    alert('Purchase date cannot be before year 2000');
+    return;
+}
     
     // Show loading indicator
     const submitBtn = event.submitter;
@@ -2892,7 +2949,7 @@ async function addNewProduct(event) {
         console.log('Server response:', result);
         
         if (response.ok) {
-            alert('Product added successfully!');
+            alert('Product added successfully! Your product will be listed after admin approves');
             hideAddProductForm();
             selectedImageFiles = [];
             document.getElementById('add-image-preview').innerHTML = '';
@@ -2910,6 +2967,179 @@ async function addNewProduct(event) {
         if (typeof feather !== 'undefined') feather.replace();
     }
 }
+
+async function checkSecondHand(title, description, imageFiles) {
+    const token = localStorage.getItem('token');
+
+    // Build message content
+    const content = [];
+
+    // Add images (up to 3) as base64 for AI vision analysis
+    for (let i = 0; i < Math.min(imageFiles.length, 3); i++) {
+        const base64 = await new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result.split(',')[1]);
+            reader.readAsDataURL(imageFiles[i]);
+        });
+        content.push({
+            type: 'image',
+            source: { type: 'base64', media_type: imageFiles[i].type, data: base64 }
+        });
+    }
+
+    content.push({
+        type: 'text',
+        text: `You are a quality checker for a thrift store marketplace. Analyze this product listing and determine if it is genuinely second-hand/used.
+
+Title: "${title}"
+Description: "${description}"
+Purchase date provided: Yes
+
+${imageFiles.length > 0 ? 'Analyze the uploaded images for signs of wear, use, or damage.' : 'No images provided yet — analyze text only.'}
+
+Respond ONLY with a valid JSON object (no markdown):
+{
+  "score": <0-100, where 100 = definitely second-hand>,
+  "verdict": "<PASS|WARN|FAIL>",
+  "summary": "<1 sentence explanation>",
+  "recommendation": "<2-3 sentences for the seller>",
+  "signals": [
+    { "label": "<signal>", "value": "<finding>", "positive": <true|false> }
+  ]
+}
+
+PASS = clearly used/second-hand (score >= 65)
+WARN = ambiguous, needs admin review (score 35-64)  
+FAIL = appears new or suspicious (score < 35)`
+    });
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1000,
+            messages: [{ role: 'user', content }]
+        })
+    });
+
+    const data = await response.json();
+    const raw = data.content?.find(b => b.type === 'text')?.text || '';
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('AI analysis failed');
+    return JSON.parse(jsonMatch[0]);
+}
+
+
+
+function showDetectionResult(result, onProceed) {
+    const score = Math.round(Math.max(0, Math.min(100, result.score)));
+    const verdict = result.verdict;
+    
+    const cfg = {
+        PASS: { bg: '#EAF3DE', border: '#639922', color: '#27500A', icon: '✓', label: 'Listing approved' },
+        WARN: { bg: '#FAEEDA', border: '#EF9F27', color: '#633806', icon: '!', label: 'Needs review' },
+        FAIL: { bg: '#FCEBEB', border: '#E24B4A', color: '#791F1F', icon: '✕', label: 'Listing flagged' }
+    }[verdict] || { bg: '#FAEEDA', border: '#EF9F27', color: '#633806', icon: '!', label: 'Needs review' };
+
+    // Remove previous result if any
+    const existing = document.getElementById('detection-result-box');
+    if (existing) existing.remove();
+
+    const box = document.createElement('div');
+    box.id = 'detection-result-box';
+    box.style.cssText = `border: 1.5px solid ${cfg.border}; background: ${cfg.bg}; border-radius: 10px; padding: 16px; margin-top: 16px;`;
+    
+    const signalsHTML = (result.signals || []).map(sig => `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:${sig.positive ? 'rgba(99,153,34,0.12)' : 'rgba(226,75,74,0.10)'}; margin-bottom:4px;">
+            <span style="color:${sig.positive ? '#3B6D11' : '#A32D2D'};font-weight:600;font-size:13px;">${sig.positive ? '✓' : '✕'}</span>
+            <span style="font-size:13px;color:${cfg.color};"><strong>${sig.label}:</strong> ${sig.value}</span>
+        </div>
+    `).join('');
+
+    box.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="width:26px;height:26px;border-radius:50%;background:${cfg.border};color:white;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;">${cfg.icon}</span>
+                <span style="font-size:15px;font-weight:600;color:${cfg.color};">${cfg.label}</span>
+            </div>
+            <span style="font-size:22px;font-weight:600;color:${cfg.color};">${score}%</span>
+        </div>
+        <div style="height:6px;background:rgba(0,0,0,0.1);border-radius:3px;margin-bottom:10px;">
+            <div style="width:${score}%;height:100%;background:${cfg.border};border-radius:3px;transition:width 0.5s;"></div>
+        </div>
+        <p style="font-size:13px;color:${cfg.color};margin:0 0 10px;">${result.summary || ''}</p>
+        <div style="margin-bottom:12px;">${signalsHTML}</div>
+        <p style="font-size:13px;color:${cfg.color};margin:0 0 14px;font-style:italic;">${result.recommendation || ''}</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${verdict !== 'FAIL' ? `<button type="button" onclick="${onProceed}" style="padding:8px 16px;background:#185FA5;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;">
+                ${verdict === 'WARN' ? 'Submit anyway (admin will review)' : 'Proceed to submit'}
+            </button>` : ''}
+            <button type="button" onclick="document.getElementById('detection-result-box').remove()" style="padding:8px 16px;background:transparent;color:${cfg.color};border:1px solid ${cfg.border};border-radius:8px;font-size:14px;cursor:pointer;">
+                Edit listing
+            </button>
+        </div>
+    `;
+
+    // Insert after the description textarea
+    const descEl = document.getElementById('product-description');
+    descEl.closest('.mt-4').after(box);
+}
+
+
+async function addNewProduct(event) {
+    event.preventDefault();
+
+    const title = document.getElementById('product-title').value;
+    const description = document.getElementById('product-description').value;
+
+    // If detection hasn't been run yet, run it first
+    if (!event.target.dataset.detectionPassed) {
+        if (selectedImageFiles.length === 0 && !title) {
+            alert('Please fill in at least a title and upload images');
+            return;
+        }
+
+        const submitBtn = event.submitter;
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span> Checking listing...</span>';
+        submitBtn.disabled = true;
+
+        try {
+            const result = await checkSecondHand(title, description, selectedImageFiles);
+            
+            if (result.verdict === 'FAIL') {
+                // Block submission, show result
+                showDetectionResult(result, '');
+            } else if (result.verdict === 'WARN') {
+                // Warn but allow
+                showDetectionResult(result, `document.getElementById('new-product-form').dataset.detectionPassed='true'; document.getElementById('new-product-form').requestSubmit()`);
+            } else {
+                // PASS — set flag and auto-continue
+                event.target.dataset.detectionPassed = 'true';
+                // ... fall through to the rest of addNewProduct below
+                await submitProductToAPI(event); // move your API call to a separate function
+                return;
+            }
+        } catch (err) {
+            console.warn('Detection failed, allowing submission:', err);
+            // Graceful fallback — don't block if AI is down
+            event.target.dataset.detectionPassed = 'true';
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+        return;
+    }
+
+    // Detection already passed — proceed with normal submission
+    event.target.dataset.detectionPassed = '';
+    await submitProductToAPI(event);
+}
+
+
+
 
 async function updateProduct(event) {
     event.preventDefault();

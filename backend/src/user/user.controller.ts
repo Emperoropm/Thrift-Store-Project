@@ -106,7 +106,7 @@ uploadPhoto = async (req: Request, res: Response, next: NextFunction) => {
   // Add to UserController class
 getSellerPhoto = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const sellerId = parseInt(req.params.sellerId!);
+        const sellerId = parseInt(req.params.sellerId as string);
         
         if (isNaN(sellerId)) {
             throw new AppError("Invalid seller ID", 400, {});
@@ -129,7 +129,7 @@ getSellerPhoto = async (req: Request, res: Response, next: NextFunction) => {
 // Add to UserController class
 getSellerProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const sellerId = parseInt(req.params.sellerId!);
+        const sellerId = parseInt(req.params.sellerId as string);
         
         if (isNaN(sellerId)) {
             throw new AppError("Invalid seller ID", 400, {});
@@ -156,7 +156,7 @@ getSellerProfile = async (req: Request, res: Response, next: NextFunction) => {
 
 getSellerProducts = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const sellerId = parseInt(req.params.sellerId!);
+    const sellerId = parseInt(req.params.sellerId as string);
     
     if (isNaN(sellerId)) {
       throw new AppError("Invalid seller ID", 400, {});

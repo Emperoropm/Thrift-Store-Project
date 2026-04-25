@@ -41,18 +41,20 @@ export class OrderController {
     return orders.map(order => this.transformOrder(order));
   }
 
-  private parseId(id: string | undefined, fieldName: string): number {
-    if (!id) {
-      throw new AppError(`${fieldName} is required`, 400, {});
-    }
-    
-    const parsedId = parseInt(id);
-    if (isNaN(parsedId)) {
-      throw new AppError(`Invalid ${fieldName}`, 400, {});
-    }
-    
-    return parsedId;
+private parseId(id: string | string[] | undefined, fieldName: string): number {
+  if (id === undefined) {
+    throw new AppError(`${fieldName} is required`, 400, {});
   }
+
+  const str = Array.isArray(id) ? id[0] : id;
+  const parsedId = parseInt(str ?? '', 10);
+
+  if (isNaN(parsedId)) {
+    throw new AppError(`Invalid ${fieldName}`, 400, {});
+  }
+
+  return parsedId;
+}
 
   // Buy products
   buyProducts = async (req: Request, res: Response, next: NextFunction) => {

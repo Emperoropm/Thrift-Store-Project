@@ -78,6 +78,7 @@ async getSellerProfile(sellerId: number) {
             name: true,
             email: true,
             photo: true,
+            phone:true,
             createdAt: true,
             role: true
         }

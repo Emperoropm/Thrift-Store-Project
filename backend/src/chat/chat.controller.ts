@@ -4,6 +4,10 @@ import { AppError } from '../error/app.error';
 
 const prisma = new PrismaClient();
 
+const toInt = (val: string | string[] | undefined): number => {
+  if (val === undefined) return NaN;
+  return parseInt((val as string), 10);
+};
 // Extend Request type to include user
 interface AuthRequest extends Request {
   user?: {
@@ -20,7 +24,7 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      throw new AppError('User not authenticated', 401,{});
+      throw new AppError('User not authenticated', 401, {});
     }
 
     const conversations = await prisma.conversation.findMany({
@@ -76,9 +80,6 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
     // Get unread counts for each conversation
     const conversationsWithDetails = await Promise.all(
       conversations.map(async (conv) => {
-        // Count unread messages where:
-        // 1. Message is not from current user
-        // 2. Message is not read
         const unreadCount = await prisma.message.count({
           where: {
             conversationId: conv.id,
@@ -87,9 +88,8 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
           }
         });
 
-        console.log(`Conversation ${conv.id} unread count: ${unreadCount}`); // Debug log
+        console.log(`Conversation ${conv.id} unread count: ${unreadCount}`);
 
-        // Get last message
         const lastMessage = conv.messages[0] || null;
 
         return {
@@ -98,7 +98,7 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
           updatedAt: conv.updatedAt,
           otherUser: conv.user1Id === userId ? conv.user2 : conv.user1,
           lastMessage,
-          unreadCount: unreadCount // Make sure this is included
+          unreadCount
         };
       })
     );
@@ -123,8 +123,6 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
   }
 };
 
-
-
 // Create a new conversation
 export const createConversation = async (req: AuthRequest, res: Response) => {
   try {
@@ -132,7 +130,7 @@ export const createConversation = async (req: AuthRequest, res: Response) => {
     const { otherUserId } = req.body;
 
     if (!userId) {
-      throw new AppError('User not authenticated', 401,{});
+      throw new AppError('User not authenticated', 401, {});
     }
 
     if (userId === otherUserId) {
@@ -232,13 +230,13 @@ export const getConversationMessages = async (req: AuthRequest, res: Response) =
     const { conversationId } = req.params;
 
     if (!userId) {
-      throw new AppError('User not authenticated', 401,{});
+      throw new AppError('User not authenticated', 401, {});
     }
 
     // Verify user is part of this conversation
     const conversation = await prisma.conversation.findFirst({
       where: {
-        id: parseInt(conversationId!),
+        id: toInt(conversationId),      // ✅ Fixed
         OR: [
           { user1Id: userId },
           { user2Id: userId }
@@ -255,7 +253,7 @@ export const getConversationMessages = async (req: AuthRequest, res: Response) =
 
     const messages = await prisma.message.findMany({
       where: {
-        conversationId: parseInt(conversationId!)
+        conversationId: toInt(conversationId)  // ✅ Fixed
       },
       include: {
         sender: {
@@ -291,7 +289,7 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
     const { conversationId, content } = req.body;
 
     if (!senderId) {
-      throw new AppError('User not authenticated', 401,{});
+      throw new AppError('User not authenticated', 401, {});
     }
 
     if (!content || !content.trim()) {
@@ -337,24 +335,21 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    // Update conversation's updatedAt to move it to the top of the list
+    // Update conversation's updatedAt
     await prisma.conversation.update({
       where: { id: conversationId },
       data: { updatedAt: new Date() }
     });
 
     // Emit socket event for real-time delivery
-    // You'll need to access the io instance - you might want to export it from your socket file
-    const io = req.app.get('io'); // Make sure to set io in app
+    const io = req.app.get('io');
     if (io) {
-      // Emit to conversation room
       io.to(`chat-${conversationId}`).emit('newMessage', message);
 
-      // Notify the other user
-      const otherUserId = conversation.user1Id === senderId 
-        ? conversation.user2Id 
+      const otherUserId = conversation.user1Id === senderId
+        ? conversation.user2Id
         : conversation.user1Id;
-      
+
       io.to(`user-${otherUserId}`).emit('newMessageNotification', {
         conversationId,
         message
@@ -373,6 +368,7 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
     });
   }
 };
+
 // Mark conversation as read
 export const markConversationAsRead = async (req: AuthRequest, res: Response) => {
   try {
@@ -380,12 +376,12 @@ export const markConversationAsRead = async (req: AuthRequest, res: Response) =>
     const { conversationId } = req.params;
 
     if (!userId) {
-      throw new AppError('User not authenticated', 401,{});
+      throw new AppError('User not authenticated', 401, {});
     }
 
     await prisma.message.updateMany({
       where: {
-        conversationId: parseInt(conversationId!),
+        conversationId: toInt(conversationId),  // ✅ Fixed
         senderId: { not: userId },
         read: false
       },
@@ -414,12 +410,12 @@ export const markMessageAsRead = async (req: AuthRequest, res: Response) => {
     const { messageId } = req.params;
 
     if (!userId) {
-      throw new AppError('User not authenticated', 401,{});
+      throw new AppError('User not authenticated', 401, {});
     }
 
     await prisma.message.update({
       where: {
-        id: parseInt(messageId!)
+        id: toInt(messageId)  // ✅ Fixed
       },
       data: {
         read: true

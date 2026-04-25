@@ -317,7 +317,7 @@ export class ProductController {
   // Public endpoint to get products by seller ID
   getProductsBySellerIdPublic = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const sellerId = parseInt(req.params.sellerId!);
+     const sellerId = parseInt(req.params.sellerId as string);
       
       if (isNaN(sellerId)) {
         throw new AppError("Invalid seller ID", 400, {});
