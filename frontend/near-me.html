@@ -6,6 +6,7 @@
     <title>Items Near Me | Thrift Treasure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap');
 
@@ -50,6 +51,50 @@
             box-shadow: 0 20px 30px -8px rgba(0,0,0,0.12);
         }
 
+        /* Mobile: compact 2-column grid */
+        @media (max-width: 767px) {
+            #products-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+            }
+            #products-grid .product-card .h-52 {
+                height: 120px;
+            }
+            #products-grid .product-card .p-4 {
+                padding: 8px !important;
+            }
+            #products-grid .product-card h3 {
+                font-size: 0.75rem !important;
+                margin-bottom: 2px !important;
+            }
+            #products-grid .product-card p.line-clamp-2 {
+                display: none !important;
+            }
+            #products-grid .product-card .text-sm {
+                font-size: 0.65rem !important;
+            }
+            #products-grid .product-card .text-xs {
+                font-size: 0.58rem !important;
+            }
+            #products-grid .product-card .mb-3 {
+                margin-bottom: 4px !important;
+            }
+            #products-grid .product-card .mb-4 {
+                margin-bottom: 4px !important;
+            }
+            #products-grid .product-card .price-tag {
+                padding: 3px 7px !important;
+                font-size: 0.7rem !important;
+            }
+            #products-grid .product-card button {
+                padding: 5px 8px !important;
+                font-size: 0.65rem !important;
+            }
+            /* Hide address row on mobile */
+            #products-grid .product-card .gap-1.text-xs.text-gray-400.mb-3 {
+                display: none !important;
+            }
+        }
         .price-tag {
             background: linear-gradient(135deg, #e9c46a 0%, #f4a261 100%);
         }
@@ -85,6 +130,22 @@
             0%   { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
             70%  { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
             100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+        }
+
+        .search-suggestion-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            color: #1f2937;
+            transition: background 0.15s;
+        }
+        .search-suggestion-item:hover { background: #f9fafb; }
+        .search-highlight {
+            background: #fef3c7;
+            color: #92400e;
+            font-weight: 600;
+            padding: 0 2px;
+            border-radius: 3px;
         }
 
         /* Footer */
@@ -160,12 +221,41 @@
         </p>
 
         <!-- Radius selector -->
-        <div class="flex flex-wrap justify-center gap-3" id="radius-controls">
+        <div class="flex flex-wrap justify-center gap-3 mb-8" id="radius-controls">
             <button class="radius-btn" data-km="5"  onclick="setRadius(5)">5 km</button>
             <button class="radius-btn active" data-km="10" onclick="setRadius(10)">10 km</button>
             <button class="radius-btn" data-km="25" onclick="setRadius(25)">25 km</button>
             <button class="radius-btn" data-km="50" onclick="setRadius(50)">50 km</button>
             <button class="radius-btn" data-km="100" onclick="setRadius(100)">100 km</button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="max-w-2xl mx-auto" id="search-section" style="display:none;">
+            <div class="relative flex gap-2">
+                <div class="relative flex-1">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i data-feather="search" class="w-5 h-5 text-gray-400"></i>
+                    </div>
+                    <input type="text"
+                           id="search-input"
+                           placeholder="Search nearby products..."
+                           class="w-full pl-12 pr-10 py-3 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-400 shadow-lg"
+                           oninput="handleSearchInput()"
+                           onkeydown="if(event.key==='Enter') performSearch()">
+                    <button onclick="clearSearch()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600">
+                        <i data-feather="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <button onclick="performSearch()"
+                        class="px-5 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl shadow-lg transition font-semibold flex items-center gap-2">
+                    <i data-feather="search" class="w-4 h-4"></i>
+                    Search
+                </button>
+            </div>
+            <!-- Search suggestions -->
+            <div id="search-suggestions" class="hidden absolute z-50 bg-white rounded-xl shadow-xl mt-1 max-h-64 overflow-y-auto" style="width: calc(100% - 90px); left: 50%; transform: translateX(-50%);"></div>
+            <!-- Search result info -->
+            <p id="search-info" class="text-white/80 text-sm mt-2 text-center hidden"></p>
         </div>
     </div>
 </section>
@@ -236,7 +326,12 @@
     <div class="container mx-auto px-4 py-10">
         <div class="grid md:grid-cols-3 gap-8">
             <div>
-                <h3 class="heading-font text-xl font-bold mb-3">Thrift Treasure</h3>
+                                   <a href="index.html" class="flex items-center space-x-2 mb-8">
+    <img src="assets/images/logo.png" alt="Logo" class="w-20 h-20 object-contain">
+    <h1 class="heading-font text-2xl font-bold">
+        Thrift<span class="text-green-300">Store</span>
+    </h1>
+</a>
                 <p class="text-gray-300 text-sm">Sustainable fashion for conscious shoppers.</p>
             </div>
             <div>
@@ -271,7 +366,10 @@
 const API_URL = 'http://localhost:3000/api';
 let userCoords  = null;
 let currentRadius = 10;
-
+let allNearbyProducts = [];
+let fuse = null;
+let searchDebounce = null;
+let currentSearchTerm = '';
 
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
@@ -437,6 +535,11 @@ function setRadius(km) {
     document.querySelectorAll('.radius-btn').forEach(b => {
         b.classList.toggle('active', parseInt(b.dataset.km) === km);
     });
+    // Reset search when radius changes
+    document.getElementById('search-input') && (document.getElementById('search-input').value = '');
+    currentSearchTerm = '';
+    const searchSection = document.getElementById('search-section');
+    if (searchSection) searchSection.style.display = 'none';
     if (userCoords) fetchNearby(userCoords.lat, userCoords.lng, km);
 }
 
@@ -480,7 +583,15 @@ async function fetchNearby(lat, lng, radius) {
         if (!res.ok) throw new Error('API error');
 
         const result   = await res.json();
-        const products = result.data || [];
+        let products = result.data || [];
+
+        // Filter out the seller's own products
+        let userData = {};
+        try { userData = JSON.parse(localStorage.getItem('user') || '{}'); } catch(e) {}
+        products = products.filter(product => {
+            const sellerId = product.seller?.id || product.sellerId;
+            return !(userData.id && sellerId && String(userData.id) === String(sellerId));
+        });
 
         // Update stats bar
         const statsBar  = document.getElementById('stats-bar');
@@ -527,6 +638,40 @@ async function renderProducts(products) {
     const grid = document.getElementById('products-grid');
     grid.innerHTML = '';
 
+    // Filter out the seller's own products
+    let userData = {};
+    try { userData = JSON.parse(localStorage.getItem('user') || '{}'); } catch(e) {}
+
+    const filtered = products.filter(product => {
+        const sellerId = product.seller?.id || product.sellerId;
+        return !(userData.id && sellerId && String(userData.id) === String(sellerId));
+    });
+
+    if (filtered.length === 0) { showState('empty'); return; }
+
+    // Store all products and init fuse search
+    allNearbyProducts = filtered;
+    fuse = new Fuse(filtered, {
+        keys: [{ name: 'title', weight: 1.0 }, { name: 'description', weight: 0.4 }],
+        threshold: 0.35,
+        includeScore: true,
+        minMatchCharLength: 2,
+        shouldSort: true
+    });
+
+    // Show search bar
+    const searchSection = document.getElementById('search-section');
+    if (searchSection) searchSection.style.display = 'block';
+    if (typeof feather !== 'undefined') feather.replace();
+
+    await renderGrid(filtered);
+    showState('results');
+}
+
+async function renderGrid(products) {
+    const grid = document.getElementById('products-grid');
+    grid.innerHTML = '';
+
     for (const product of products) {
         const card = await buildCard(product);
         grid.appendChild(card);
@@ -534,12 +679,23 @@ async function renderProducts(products) {
     if (typeof feather !== 'undefined') feather.replace();
 }
 
+
 async function buildCard(product) {
     const div = document.createElement('div');
     div.className = 'product-card cursor-pointer';
     div.onclick = e => { if (!e.target.closest('button')) goToDetails(product); };
 
-    const price      = product.price ? `Rs.${parseFloat(product.price).toFixed(2)}` : 'Rs.0.00';
+    // Check if current user is the seller
+    let isOwnProduct = false;
+    try {
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const sellerId = product.seller?.id || product.sellerId;
+        isOwnProduct = userData.id && sellerId && String(userData.id) === String(sellerId);
+    } catch(e) {}
+
+    const price      = (product.price !== undefined && product.price !== null && product.price !== '')
+        ? `Rs.${parseFloat(product.price).toFixed(2)}`
+        : 'Price not set';
     const sellerName = product.seller?.name || 'Unknown Seller';
     const firstImage = (product.images || [])[0] || product.imageUrl || null;
     const isInStock  = (product.quantity || 0) > 0;
@@ -568,7 +724,6 @@ async function buildCard(product) {
                     ? `<img src="${firstImage}" alt="${product.title}" class="w-full h-full object-cover">`
                     : `<i data-feather="image" class="w-14 h-14 text-gray-300"></i>`}
             </div>
-            <!-- Distance badge -->
             <span class="absolute top-3 left-3 bg-green-600 text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow flex items-center gap-1">
                 <i data-feather="map-pin" class="w-3 h-3"></i>${distance}
             </span>
@@ -581,37 +736,126 @@ async function buildCard(product) {
             <h3 class="font-bold text-base mb-1 truncate">${product.title || 'Unnamed Product'}</h3>
             <p class="text-gray-500 text-sm mb-3 line-clamp-2">${product.description || 'No description'}</p>
 
-            <!-- Tags -->
             <div class="flex flex-wrap gap-1 mb-3">
                 ${genderTag}${refundTag}
             </div>
 
-            <!-- Address -->
             ${address ? `
             <div class="flex items-center gap-1 text-xs text-gray-400 mb-3">
                 <i data-feather="map-pin" class="w-3 h-3 text-green-500 flex-shrink-0"></i>
                 <span class="truncate">${address}</span>
             </div>` : ''}
 
-            <!-- Seller + stock -->
             <div class="flex items-center justify-between text-sm mb-4">
                 <span class="text-gray-500">by <span class="font-medium text-gray-700">${sellerName}</span></span>
                 <span class="text-xs text-gray-400">Stock: ${product.quantity}</span>
             </div>
 
-            <!-- Price + CTA -->
             <div class="flex items-center justify-between">
-                <span class="price-tag px-3 py-1.5 rounded-lg font-bold text-gray-900 text-sm">${price}</span>
-                <button
-                    onclick="event.stopPropagation(); buyNow('${product.id}', ${product.price}, '${(product.title||'').replace(/'/g,"\\'")}')"
-                    class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition font-medium ${!isInStock ? 'opacity-50 cursor-not-allowed' : ''}"
-                    ${!isInStock ? 'disabled' : ''}>
-                    ${!isInStock ? 'Out of Stock' : 'Buy Now'}
-                </button>
+                <span class="price-tag px-3 py-1.5 rounded-lg font-bold text-sm" style="color: #1a1a1a !important;">${price}</span>
+                ${isOwnProduct
+                    ? `<span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm rounded-lg border border-gray-200 italic">Your listing</span>`
+                    : `<button
+                        onclick="event.stopPropagation(); buyNow('${product.id}', ${product.price}, '${(product.title||'').replace(/'/g,"\\'")}')"
+                        class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition font-medium ${!isInStock ? 'opacity-50 cursor-not-allowed' : ''}"
+                        ${!isInStock ? 'disabled' : ''}>
+                        ${!isInStock ? 'Out of Stock' : 'Buy Now'}
+                    </button>`
+                }
             </div>
         </div>
     `;
     return div;
+}
+
+function handleSearchInput() {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+        const term = document.getElementById('search-input').value.trim();
+        if (term.length >= 2) {
+            showSuggestions(term);
+        } else {
+            document.getElementById('search-suggestions').classList.add('hidden');
+        }
+    }, 300);
+}
+
+function showSuggestions(term) {
+    if (!fuse) return;
+    const results = fuse.search(term, { limit: 5 });
+    const box = document.getElementById('search-suggestions');
+
+    if (results.length === 0) { box.classList.add('hidden'); return; }
+
+    box.innerHTML = results.map(r => `
+        <div class="search-suggestion-item" onclick="selectSuggestion('${r.item.title.replace(/'/g, "\\'")}')">
+            <div class="font-medium text-sm">${highlightMatch(r.item.title, term)}</div>
+            <div class="text-xs text-gray-400">Rs.${r.item.price} • ${r.item.quantity > 0 ? 'In Stock' : 'Out of Stock'}</div>
+        </div>
+    `).join('');
+    box.classList.remove('hidden');
+}
+
+function highlightMatch(text, term) {
+    const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(regex, '<span class="search-highlight">$1</span>');
+}
+
+function selectSuggestion(title) {
+    document.getElementById('search-input').value = title;
+    document.getElementById('search-suggestions').classList.add('hidden');
+    currentSearchTerm = title;
+    applySearch();
+}
+
+function performSearch() {
+    currentSearchTerm = document.getElementById('search-input').value.trim();
+    document.getElementById('search-suggestions').classList.add('hidden');
+    applySearch();
+}
+
+function applySearch() {
+    const infoEl = document.getElementById('search-info');
+
+    if (!currentSearchTerm) {
+        renderGrid(allNearbyProducts);
+        if (infoEl) infoEl.classList.add('hidden');
+        return;
+    }
+
+    if (!fuse) return;
+    const results = fuse.search(currentSearchTerm).map(r => r.item);
+
+    if (infoEl) {
+        infoEl.textContent = results.length > 0
+            ? `Found ${results.length} result${results.length !== 1 ? 's' : ''} for "${currentSearchTerm}"`
+            : `No results found for "${currentSearchTerm}"`;
+        infoEl.classList.remove('hidden');
+    }
+
+    renderGrid(results.length > 0 ? results : []);
+
+    if (results.length === 0) {
+        const grid = document.getElementById('products-grid');
+        grid.innerHTML = `
+            <div class="col-span-full text-center py-12">
+                <i data-feather="search" class="w-12 h-12 mx-auto text-gray-300 mb-3"></i>
+                <p class="text-gray-500 font-medium">No products found for "<strong>${currentSearchTerm}</strong>"</p>
+                <button onclick="clearSearch()" class="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">
+                    Clear Search
+                </button>
+            </div>`;
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+}
+
+function clearSearch() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-suggestions').classList.add('hidden');
+    const infoEl = document.getElementById('search-info');
+    if (infoEl) infoEl.classList.add('hidden');
+    currentSearchTerm = '';
+    renderGrid(allNearbyProducts);
 }
 
 // ── Navigation helpers ───────────────────────────────────────

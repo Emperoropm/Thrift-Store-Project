@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register | Thrift Treasure</title>
+    <title>Register | Thrift Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <style>
@@ -526,10 +526,7 @@
             <div class="register-right">
                 <div class="max-w-md mx-auto">
                     <div class="text-center mb-8 md:hidden">
-                        <a href="index.html" class="flex items-center space-x-2 justify-center mb-6">
-                            <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full"></div>
-                            <h1 class="heading-font text-2xl font-bold text-gray-800">Thrift<span class="text-green-600">Treasure</span></h1>
-                        </a>
+                        
                         <h2 class="heading-font text-2xl font-bold text-gray-800 mb-2">Create Account</h2>
                         <p class="text-gray-600">Join our sustainable fashion community</p>
                     </div>
@@ -569,12 +566,16 @@
                             <label for="email" class="floating-label"></label>
                         </div>
                         
-                        <div class="input-group">
-    <i data-feather="lock" class="input-icon w-5 h-5"></i>
-    <input type="password" id="password" class="form-input" placeholder=" "  
-           oninput="checkPasswordStrength(this.value)">
-    <label for="password" class="floating-label"></label>
-</div>
+                       <div class="input-group">
+                            <i data-feather="lock" class="input-icon w-5 h-5"></i>
+                            <input type="password" id="password" class="form-input" placeholder=" "
+                                   oninput="checkPasswordStrength(this.value)" style="padding-right: 48px;">
+                            <label for="password" class="floating-label"></label>
+                            <button type="button" onclick="togglePassword('password', 'eye-password')"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                <i data-feather="eye" id="eye-password" class="w-5 h-5"></i>
+                            </button>
+                        </div>
     <!-- Password strength indicator -->
     <div id="password-strength" class="password-strength"></div>
     
@@ -606,12 +607,15 @@
                         
                         <div class="input-group">
                             <i data-feather="lock" class="input-icon w-5 h-5"></i>
-                            <input type="password" id="confirm-password" class="form-input" placeholder=" " 
-                                   oninput="checkPasswordMatch()">
+                            <input type="password" id="confirm-password" class="form-input" placeholder=" "
+                                   oninput="checkPasswordMatch()" style="padding-right: 48px;">
                             <label for="confirm-password" class="floating-label">Confirm Password</label>
+                            <button type="button" onclick="togglePassword('confirm-password', 'eye-confirm')"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                <i data-feather="eye" id="eye-confirm" class="w-5 h-5"></i>
+                            </button>
                             <div id="password-match" class="text-sm mt-1"></div>
                         </div>
-                        
                        
                         
                         <div class="flex items-center mb-6">
@@ -1129,6 +1133,19 @@ function animateRadioButtons(requirements) {
             registerLoading.classList.add('hidden');
         }
     }
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.setAttribute('data-feather', 'eye-off');
+        } else {
+            input.type = 'password';
+            icon.setAttribute('data-feather', 'eye');
+        }
+        feather.replace();
+    }
+    window.togglePassword = togglePassword;
     
     // Make functions available globally
     window.register = register;

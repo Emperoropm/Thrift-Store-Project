@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Thrift Treasure</title>
+    <title>Login | Thrift Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <style>
@@ -266,10 +266,7 @@
             <div class="login-right">
                 <div class="max-w-md mx-auto">
                     <div class="text-center mb-8 md:hidden">
-                        <a href="index.html" class="flex items-center space-x-2 justify-center mb-6">
-                            <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full"></div>
-                            <h1 class="heading-font text-2xl font-bold text-gray-800">Thrift<span class="text-green-600">Treasure</span></h1>
-                        </a>
+                       
                         <h2 class="heading-font text-2xl font-bold text-gray-800 mb-2">Welcome Back</h2>
                         <p class="text-gray-600">Sign in to your account</p>
                     </div>
@@ -302,8 +299,12 @@
                         
                         <div class="input-group">
                             <i data-feather="lock" class="input-icon w-5 h-5"></i>
-                            <input type="password" id="password" class="form-input" placeholder=" ">
+                            <input type="password" id="password" class="form-input" placeholder=" " style="padding-right: 48px;">
                             <label for="password" class="floating-label"></label>
+                            <button type="button" onclick="togglePassword('password', 'eye-login')"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                <i data-feather="eye" id="eye-login" class="w-5 h-5"></i>
+                            </button>
                         </div>
                         
                         <div class="flex items-center justify-between mb-6">
@@ -617,6 +618,20 @@ async function login(event) {
             alert('Social login coming soon! For now, please use email login.');
         });
     });
+
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.setAttribute('data-feather', 'eye-off');
+        } else {
+            input.type = 'password';
+            icon.setAttribute('data-feather', 'eye');
+        }
+        feather.replace();
+    }
+    window.togglePassword = togglePassword;
     
     // Make login function globally available
     window.login = login;

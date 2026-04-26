@@ -98,6 +98,45 @@
 .match-badge {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
+
+/* Mobile: compact similar cards */
+        @media (max-width: 640px) {
+            .similar-card .h-48 {
+                height: 120px;
+            }
+            .similar-card .p-4 {
+                padding: 8px !important;
+            }
+            .similar-card h3 {
+                font-size: 0.75rem !important;
+                margin-bottom: 2px !important;
+            }
+            .similar-card p.line-clamp-2 {
+                display: none !important;
+            }
+            .similar-card .text-sm {
+                font-size: 0.65rem !important;
+            }
+            .similar-card .text-xs {
+                font-size: 0.58rem !important;
+            }
+            .similar-card .mb-3 {
+                margin-bottom: 4px !important;
+            }
+            .similar-card .price-tag {
+                padding: 3px 7px !important;
+                font-size: 0.7rem !important;
+            }
+            .similar-card button {
+                padding: 5px 8px !important;
+                font-size: 0.65rem !important;
+            }
+            /* Make match badge smaller */
+            .similar-card .match-badge {
+                font-size: 0.55rem !important;
+                padding: 2px 5px !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -150,9 +189,15 @@
     </div>
 </nav>
 
-    <!-- Product Details Section -->
+<!-- Product Details Section -->
     <section class="py-12">
         <div class="container mx-auto px-4">
+            <!-- Back Button -->
+            <button onclick="history.back()" 
+                class="flex items-center gap-2 text-gray-600 hover:text-green-600 mb-6 font-medium transition group">
+                <i data-feather="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+                Back
+            </button>
             <!-- Loading State -->
             <div id="loading" class="flex justify-center items-center py-12">
                 <div class="loader"></div>
@@ -161,7 +206,7 @@
 
             <!-- Product Details Container -->
             <div id="product-details" class="hidden">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Product Image Gallery -->
                     <div class="bg-white rounded-lg shadow-lg p-4">
                         <!-- Main Image -->
@@ -239,7 +284,7 @@
                         <!-- Seller Information with Rating and Photo -->
                         <div id="seller-container" class="mb-6 p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition">
                             <h3 class="text-lg font-semibold mb-3">Seller Information</h3>
-                            <div class="flex items-center justify-between">
+                           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-green-200 flex-shrink-0">
                                         <img id="seller-photo" src="" alt="Seller" class="w-full h-full object-cover hidden">
@@ -249,11 +294,11 @@
                                     </div>
                                     <div>
                                         <p id="seller-name" class="font-medium text-gray-800 hover:text-green-600"></p>
-                                        <p id="seller-email" class="text-sm text-gray-500"></p>
+                                        <p id="seller-email" class="text-sm text-gray-500 break-all"></p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <div class="flex items-center" id="seller-rating-stars"></div>
+                                <div class="sm:text-right">
+                                    <div class="flex items-center flex-wrap gap-0.5" id="seller-rating-stars"></div>
                                     <p id="seller-rating-text" class="text-sm text-gray-600 mt-1"></p>
                                 </div>
                             </div>
@@ -309,7 +354,7 @@
     </div>
 
     <!-- Grid -->
-    <div id="similar-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+   <div id="similar-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 hidden"></div>
 
     <!-- Empty -->
     <div id="similar-empty" class="text-center py-8 hidden">

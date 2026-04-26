@@ -261,6 +261,43 @@
     color: #10b981;
     font-weight: 500;
 }
+
+/* Mobile: compact 2-column product grid */
+        @media (max-width: 767px) {
+            #products-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+            }
+            #products-grid .product-card .h-48 {
+                height: 120px;
+            }
+            #products-grid .product-card .p-4 {
+                padding: 8px !important;
+            }
+            #products-grid .product-card h3.font-bold {
+                font-size: 0.75rem !important;
+                margin-bottom: 2px !important;
+            }
+            #products-grid .product-card p.line-clamp-2 {
+                display: none !important;
+            }
+            #products-grid .product-card .text-sm {
+                font-size: 0.65rem !important;
+            }
+            #products-grid .product-card .text-xs {
+                font-size: 0.58rem !important;
+            }
+            #products-grid .product-card .mb-3 {
+                margin-bottom: 4px !important;
+            }
+            #products-grid .product-card .text-xl {
+                font-size: 0.9rem !important;
+            }
+            #products-grid .product-card .flex.space-x-2 button {
+                padding: 5px 6px !important;
+                font-size: 0.65rem !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -381,25 +418,30 @@
         <!-- Dashboard Tabs -->
        <!-- Dashboard Tabs -->
 <!-- Dashboard Tabs -->
-<div class="mb-6 overflow-x-auto">
-    <div class="flex space-x-2 bg-gray-100 p-1 rounded-lg inline-flex min-w-max">
-        <button id="products-tab" class="tab active" onclick="showTab('products')">
-            <i data-feather="package" class="w-4 h-4 mr-2 inline"></i>
-            My Products
+<div class="mb-6">
+    <div class="flex flex-wrap gap-2 bg-gray-100 p-1 rounded-lg">
+        <button id="products-tab" class="tab active flex-1 min-w-0 justify-center" onclick="showTab('products')">
+            <i data-feather="package" class="w-4 h-4 mr-1 flex-shrink-0"></i>
+            <span class="truncate">Products</span>
         </button>
-        <button id="seller-orders-tab" class="tab" onclick="showTab('seller-orders')">
-            <i data-feather="shopping-bag" class="w-4 h-4 mr-2 inline"></i>
-            My Products Orders
+        <button id="seller-orders-tab" class="tab flex-1 min-w-0 justify-center relative" onclick="showTab('seller-orders')">
+            <i data-feather="shopping-bag" class="w-4 h-4 mr-1 flex-shrink-0"></i>
+            <span class="truncate hidden sm:inline">Products Orders</span>
+            <span class="truncate sm:hidden">Orders</span>
+            <span id="seller-orders-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">!</span>
         </button>
-        <button id="buyer-orders-tab" class="tab" onclick="showTab('buyer-orders')">
-            <i data-feather="shopping-cart" class="w-4 h-4 mr-2 inline"></i>
-            My Orders
+        <button id="buyer-orders-tab" class="tab flex-1 min-w-0 justify-center relative" onclick="showTab('buyer-orders')">
+            <i data-feather="shopping-cart" class="w-4 h-4 mr-1 flex-shrink-0"></i>
+            <span class="truncate hidden sm:inline">My Orders</span>
+            <span class="truncate sm:hidden">Bought</span>
+            <span id="buyer-orders-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">!</span>
         </button>
+        <a href="my-ratings.html" class="tab flex-1 min-w-0 justify-center relative bg-purple-100 text-purple-700 hover:bg-purple-200">
+            <i data-feather="star" class="w-4 h-4 mr-1 flex-shrink-0"></i>
+            <span class="truncate">Ratings</span>
+            <span id="ratings-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">!</span>
+        </a>
     </div>
-    <a href="my-ratings.html" class="mt-2 inline-flex items-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-        <i data-feather="star" class="w-4 h-4 mr-2"></i>
-        My Ratings
-    </a>
 </div>
         
 <input type="hidden" id="rating-order-id">
@@ -1110,9 +1152,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Initial fetch of unread count
         setTimeout(fetchUnreadCount, 1000);
+        setTimeout(checkNotificationBadges, 1500);
         
         // Fetch unread count periodically (every 30 seconds)
         setInterval(fetchUnreadCount, 30000);
+        setInterval(checkNotificationBadges, 60000);
     }
 });
 
@@ -1250,40 +1294,51 @@ function updateAuthUI(userData) {
 }
         
         // Show tab function
-        // Update show tab function
-function showTab(tabName) {
+ function showTab(tabName) {
     currentTab = tabName;
     
-    // Update tab buttons
     document.getElementById('products-tab').classList.remove('active');
     document.getElementById('seller-orders-tab').classList.remove('active');
     document.getElementById('buyer-orders-tab').classList.remove('active');
     
-    // Hide all sections
     document.getElementById('products-section').classList.add('hidden');
     document.getElementById('orders-section').classList.add('hidden');
     document.getElementById('buyer-orders-section').classList.add('hidden');
     
-    // Show selected section
     switch(tabName) {
         case 'products':
             document.getElementById('products-tab').classList.add('active');
             document.getElementById('products-section').classList.remove('hidden');
-            // Load products if not already loaded
             loadSellerProducts();
             break;
-            
+
         case 'seller-orders':
             document.getElementById('seller-orders-tab').classList.add('active');
             document.getElementById('orders-section').classList.remove('hidden');
-            // Load seller orders
+            document.getElementById('seller-orders-badge').classList.add('hidden');
+            // Save current count as "seen" so badge won't reappear for same count
+            fetch(`${API_URL}/orders/seller/orders`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            }).then(r => r.json()).then(result => {
+                const orders = result.data || result || [];
+                const count = orders.filter(o => o.status === 'PENDING' || o.status === 'PROCESSING').length;
+                localStorage.setItem('seller_orders_seen_count', count.toString());
+            }).catch(() => {});
             loadSellerOrders();
             break;
-            
+
         case 'buyer-orders':
             document.getElementById('buyer-orders-tab').classList.add('active');
             document.getElementById('buyer-orders-section').classList.remove('hidden');
-            // Load buyer orders
+            document.getElementById('buyer-orders-badge').classList.add('hidden');
+            // Save current count as "seen"
+            fetch(`${API_URL}/orders/my-orders`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            }).then(r => r.json()).then(result => {
+                const orders = result.data || result || [];
+                const count = orders.filter(o => o.status === 'PROCESSING' || o.status === 'DELIVERED').length;
+                localStorage.setItem('buyer_orders_seen_count', count.toString());
+            }).catch(() => {});
             loadBuyerOrders();
             break;
     }
@@ -1369,6 +1424,100 @@ function showTab(tabName) {
             }
         }
         
+
+async function checkNotificationBadges() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        // Check seller orders - only badge if there are NEW ones since last viewed
+        const sellerRes = await fetch(`${API_URL}/orders/seller/orders`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (sellerRes.ok) {
+            const sellerResult = await sellerRes.json();
+            const sellerOrders = sellerResult.data || sellerResult || [];
+            const newSellerOrders = sellerOrders.filter(o =>
+                o.status === 'PENDING' || o.status === 'PROCESSING'
+            );
+
+            const sellerBadge = document.getElementById('seller-orders-badge');
+            if (sellerBadge) {
+                // Don't show badge if user already viewed this tab
+                if (newSellerOrders.length > 0 && currentTab !== 'seller-orders') {
+                    const lastSeenCount = parseInt(localStorage.getItem('seller_orders_seen_count') || '0');
+                    if (newSellerOrders.length !== lastSeenCount) {
+                        sellerBadge.textContent = newSellerOrders.length > 9 ? '9+' : newSellerOrders.length;
+                        sellerBadge.classList.remove('hidden');
+                    } else {
+                        sellerBadge.classList.add('hidden');
+                    }
+                } else {
+                    sellerBadge.classList.add('hidden');
+                }
+            }
+        }
+    } catch(e) { console.error('Seller orders badge error:', e); }
+
+    try {
+        // Check buyer orders
+        const buyerRes = await fetch(`${API_URL}/orders/my-orders`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (buyerRes.ok) {
+            const buyerResult = await buyerRes.json();
+            const buyerOrders = buyerResult.data || buyerResult || [];
+            const newBuyerOrders = buyerOrders.filter(o =>
+                o.status === 'PROCESSING' || o.status === 'DELIVERED'
+            );
+
+            const buyerBadge = document.getElementById('buyer-orders-badge');
+            if (buyerBadge) {
+                if (newBuyerOrders.length > 0 && currentTab !== 'buyer-orders') {
+                    const lastSeenCount = parseInt(localStorage.getItem('buyer_orders_seen_count') || '0');
+                    if (newBuyerOrders.length !== lastSeenCount) {
+                        buyerBadge.textContent = newBuyerOrders.length > 9 ? '9+' : newBuyerOrders.length;
+                        buyerBadge.classList.remove('hidden');
+                    } else {
+                        buyerBadge.classList.add('hidden');
+                    }
+                } else {
+                    buyerBadge.classList.add('hidden');
+                }
+            }
+        }
+    } catch(e) { console.error('Buyer orders badge error:', e); }
+
+    try {
+        // Check ratings
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.id) {
+            const ratingsRes = await fetch(`${API_URL}/ratings/seller/${user.id}`);
+            if (ratingsRes.ok) {
+                const ratingsResult = await ratingsRes.json();
+                const ratings = ratingsResult.data?.ratings || [];
+                const recentRatings = ratings.filter(r => {
+                    const ratingDate = new Date(r.createdAt);
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    return ratingDate > weekAgo;
+                });
+
+                const ratingsBadge = document.getElementById('ratings-badge');
+                if (ratingsBadge) {
+                    const lastSeenCount = parseInt(localStorage.getItem('ratings_seen_count') || '0');
+                    if (recentRatings.length > 0 && recentRatings.length !== lastSeenCount) {
+                        ratingsBadge.textContent = recentRatings.length > 9 ? '9+' : recentRatings.length;
+                        ratingsBadge.classList.remove('hidden');
+                    } else {
+                        ratingsBadge.classList.add('hidden');
+                    }
+                }
+            }
+        }
+    } catch(e) { console.error('Ratings badge error:', e); }
+}
+
         // Load seller orders
         async function loadSellerOrders() {
             const ordersLoadingEl = document.getElementById('orders-loading');
@@ -1789,9 +1938,10 @@ function createSellerProductCard(product) {
             </div>
             
             <div class="flex space-x-2">
+                ${(product.quantity || 0) > 0 ? `
                 <button onclick="showEditModal(${product.id})" class="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-sm">
                     Edit
-                </button>
+                </button>` : ''}
                 <button onclick="deleteProduct(${product.id})" class="flex-1 px-3 py-2 border border-red-300 text-red-600 rounded hover:bg-red-50 text-sm">
                     Delete
                 </button>
