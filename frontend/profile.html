@@ -265,17 +265,39 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="bg-white shadow-md">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex justify-between items-center">
             <a href="index.html">
                 <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
             </a>
-            
-            <div id="auth-container">
-                <!-- Will be filled by JavaScript -->
+
+            <!-- Desktop Auth -->
+            <div id="auth-container" class="hidden md:block"></div>
+
+            <!-- Mobile right side -->
+            <div class="flex items-center gap-3 md:hidden">
+                <button onclick="goToInbox()" class="relative text-gray-600 hover:text-green-600">
+                    <i data-feather="message-circle" class="w-6 h-6"></i>
+                    <span id="mobile-chat-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 items-center justify-center hidden flex">0</span>
+                </button>
+                <button id="hamburger-btn" onclick="toggleMobileMenu()"
+                    class="text-gray-700 hover:text-green-600 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
             </div>
         </div>
-    </nav>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden mt-3 pb-3 border-t border-gray-100">
+            <div id="mobile-auth-container" class="pt-3"></div>
+        </div>
+    </div>
+</nav>
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
@@ -292,79 +314,75 @@
             </div>
         </div>
         
-        <!-- User Info - Updated with Photo Upload -->
-<div class="bg-white rounded-xl shadow p-6 mb-8">
-    <div class="flex items-center space-x-4">
-        <!-- User Photo with Upload -->
-      <!-- User Photo with Upload and View -->
-<div class="relative group">
-    <div id="user-photo-container" class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-green-200 cursor-pointer" onclick="viewProfilePhoto()">
-        <img id="user-photo" src="" alt="Profile" class="w-full h-full object-cover hidden">
-        <svg id="user-photo-placeholder" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-        </svg>
-    </div>
-    
-    <!-- Photo Upload Button (Hover) - Now separate from click -->
-    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-        <div class="bg-black bg-opacity-50 rounded-full p-2 cursor-pointer pointer-events-auto" onclick="event.stopPropagation(); document.getElementById('photo-upload').click()">
-            <i data-feather="camera" class="w-5 h-5 text-white"></i>
+   <!-- User Info - Responsive -->
+<div class="bg-white rounded-xl shadow p-4 md:p-6 mb-8">
+    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+        
+        <!-- Photo -->
+        <div class="relative group flex-shrink-0">
+            <div id="user-photo-container" class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center overflow-hidden border-2 border-green-200 cursor-pointer" onclick="viewProfilePhoto()">
+                <img id="user-photo" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                <svg id="user-photo-placeholder" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <div class="bg-black bg-opacity-50 rounded-full p-2 cursor-pointer pointer-events-auto" onclick="event.stopPropagation(); document.getElementById('photo-upload').click()">
+                    <i data-feather="camera" class="w-5 h-5 text-white"></i>
+                </div>
+            </div>
+            <input type="file" id="photo-upload" class="hidden" accept="image/*" onchange="uploadProfilePhoto(event)">
         </div>
-    </div>
-    
-    <!-- Hidden File Input -->
-    <input type="file" id="photo-upload" class="hidden" accept="image/*" onchange="uploadProfilePhoto(event)">
-</div>
 
-
-        <div class="flex-1">
-            <div class="flex items-center justify-between">
+        <!-- Info -->
+        <div class="flex-1 w-full text-center sm:text-left">
+            <!-- Name, Email, Buttons -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <div>
                     <h2 id="user-name" class="text-xl font-bold text-gray-800">Loading...</h2>
-                    <p id="user-email" class="text-gray-600">Loading...</p>
+                    <p id="user-email" class="text-gray-600 text-sm">Loading...</p>
                 </div>
-                
-                <!-- Photo Action Buttons -->
-                <div class="flex space-x-2">
-                    <button onclick="document.getElementById('photo-upload').click()" 
+                <div class="flex justify-center sm:justify-end gap-2 flex-wrap">
+                    <button onclick="document.getElementById('photo-upload').click()"
                             class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
                         <i data-feather="upload" class="w-4 h-4 mr-1"></i>
                         Upload Photo
                     </button>
-                    <button id="delete-photo-btn" onclick="deleteProfilePhoto()" 
+                    <button id="delete-photo-btn" onclick="deleteProfilePhoto()"
                             class="px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center hidden">
                         <i data-feather="trash-2" class="w-4 h-4 mr-1"></i>
                         Remove
                     </button>
                 </div>
             </div>
-            
-            <div class="flex space-x-6 mt-2">
-                <div class="text-center">
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
                     <div id="total-products" class="text-2xl font-bold text-green-600">0</div>
-                    <div class="text-sm text-gray-500">Products</div>
+                    <div class="text-xs text-gray-500 mt-1">Products</div>
                 </div>
-                <div class="text-center">
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
                     <div id="available-products" class="text-2xl font-bold text-blue-600">0</div>
-                    <div class="text-sm text-gray-500">Available</div>
+                    <div class="text-xs text-gray-500 mt-1">Available</div>
                 </div>
-                <div class="text-center">
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
                     <div id="total-orders" class="text-2xl font-bold text-purple-600">0</div>
-                    <div class="text-sm text-gray-500">Orders</div>
+                    <div class="text-xs text-gray-500 mt-1">Orders</div>
                 </div>
-                <div class="text-center">
+                <div class="bg-gray-50 rounded-lg p-3 text-center">
                     <div id="total-revenue" class="text-2xl font-bold text-orange-600">Rs. 0</div>
-                    <div class="text-sm text-gray-500">Revenue</div>
+                    <div class="text-xs text-gray-500 mt-1">Revenue</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-        
         <!-- Dashboard Tabs -->
        <!-- Dashboard Tabs -->
-<div class="mb-6">
-    <div class="flex space-x-2 bg-gray-100 p-1 rounded-lg inline-flex">
+<!-- Dashboard Tabs -->
+<div class="mb-6 overflow-x-auto">
+    <div class="flex space-x-2 bg-gray-100 p-1 rounded-lg inline-flex min-w-max">
         <button id="products-tab" class="tab active" onclick="showTab('products')">
             <i data-feather="package" class="w-4 h-4 mr-2 inline"></i>
             My Products
@@ -378,11 +396,10 @@
             My Orders
         </button>
     </div>
-    <!-- Add this in your user info section or as a new tab -->
-<a href="my-ratings.html" class="px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-    <i data-feather="star" class="w-4 h-4 mr-2 inline"></i>
-    My Ratings
-</a>
+    <a href="my-ratings.html" class="mt-2 inline-flex items-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+        <i data-feather="star" class="w-4 h-4 mr-2"></i>
+        My Ratings
+    </a>
 </div>
         
 <input type="hidden" id="rating-order-id">
@@ -1114,6 +1131,18 @@ document.addEventListener('visibilitychange', function() {
 });
 
 
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    menu.classList.toggle('hidden');
+}
+
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('mobile-menu');
+    const btn  = document.getElementById('hamburger-btn');
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.add('hidden');
+    }
+});
 
      function checkAuth() {
     const token = localStorage.getItem('token');
@@ -1173,50 +1202,47 @@ function showAddProductForm() {
 function updateAuthUI(userData) {
     const user = localStorage.getItem('user');
     const authContainer = document.getElementById('auth-container');
-    
-    if (user && authContainer) {
+    const mobileContainer = document.getElementById('mobile-auth-container');
+
+    if (user) {
         try {
             const userData = JSON.parse(user);
-            let adminLink = '';
-            let chatLink = '';
-            
-            // Add Chat link for all logged-in users
-            chatLink = `
-                <a href="chat-inbox.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium flex items-center relative">
-                    <i data-feather="message-circle" class="w-4 h-4 mr-1"></i>
-                    Chat
-                    <span id="nav-unread-badge" class="ml-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
-                </a>
-            `;
-            
-            // Add Admin link if user is ADMIN
-            if (userData.role === 'ADMIN') {
-                adminLink = `
-                    <a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">
-                        Admin
+            const adminLink = userData.role === 'ADMIN'
+                ? `<a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">Admin</a>`
+                : '';
+            const mobileAdminLink = userData.role === 'ADMIN'
+                ? `<a href="admin.html" class="block px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg font-medium">Admin</a>`
+                : '';
+
+            if (authContainer) {
+                authContainer.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <span class="font-medium text-gray-700">${userData.name || 'User'}</span>
+                        <a href="index.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">Shop</a>
+                        <a href="chat-inbox.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium flex items-center relative">
+                            <i data-feather="message-circle" class="w-4 h-4 mr-1"></i>
+                            Chat
+                            <span id="nav-unread-badge" class="ml-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center hidden">0</span>
+                        </a>
+                        ${adminLink}
+                        <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">Logout</button>
+                    </div>`;
+            }
+
+            if (mobileContainer) {
+                mobileContainer.innerHTML = `
+                    <p class="px-3 py-1 text-sm text-gray-500 font-medium">Hi, ${userData.name || 'User'}</p>
+                    <a href="index.html" class="block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium">Shop</a>
+                    <a href="chat-inbox.html" class="flex items-center px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium">
+                        <i data-feather="message-circle" class="w-4 h-4 mr-2"></i> Chat
                     </a>
+                    ${mobileAdminLink}
+                    <button onclick="logout()" class="w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg font-medium">Logout</button>
                 `;
             }
-            
-            authContainer.innerHTML = `
-                <div class="flex items-center space-x-4">
-                    <span class="font-medium text-gray-700">${userData.name || 'User'}</span>
-                    <a href="index.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
-                        Shop
-                    </a>
-                    ${chatLink}
-                    ${adminLink}
-                    <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
-                        Logout
-                    </button>
-                </div>
-            `;
-            
-            // Fetch unread messages count after adding the badge element
-            setTimeout(() => {
-                fetchUnreadCount();
-            }, 100);
-            
+
+            setTimeout(() => { fetchUnreadCount(); }, 100);
+
         } catch(e) {
             console.error('Error parsing user data:', e);
         }

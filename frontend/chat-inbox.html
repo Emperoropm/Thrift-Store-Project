@@ -127,17 +127,35 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="bg-white shadow-md">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+   <nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex justify-between items-center">
             <a href="index.html">
                 <img src="./assets/images/logo.png" alt="ThriftTreasure Logo" width="100" height="100">
             </a>
-            
-            <div id="auth-container">
-                <!-- Will be filled by JavaScript -->
+
+            <!-- Desktop Auth -->
+            <div id="auth-container" class="hidden md:block"></div>
+
+            <!-- Mobile right side -->
+            <div class="flex items-center gap-3 md:hidden">
+                <button id="hamburger-btn" onclick="toggleMobileMenu()"
+                    class="text-gray-700 hover:text-green-600 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
             </div>
         </div>
-    </nav>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden mt-3 pb-3 border-t border-gray-100">
+            <div id="mobile-auth-container" class="pt-3"></div>
+        </div>
+    </div>
+</nav>
 
     <!-- Main Chat Container -->
     <div class="container mx-auto px-4 py-4">
@@ -273,7 +291,18 @@
     });
 
 
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    menu.classList.toggle('hidden');
+}
 
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('mobile-menu');
+    const btn  = document.getElementById('hamburger-btn');
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.add('hidden');
+    }
+});
 
     // Check authentication
     function checkAuth() {
@@ -295,21 +324,42 @@
     }
 
     function updateAuthUI() {
-        const authContainer = document.getElementById('auth-container');
-        if (authContainer) {
-            authContainer.innerHTML = `
-                <div class="flex items-center space-x-4">
+    const authContainer = document.getElementById('auth-container');
+    const mobileContainer = document.getElementById('mobile-auth-container');
+
+    const adminLink = currentUser.role === 'ADMIN'
+        ? `<a href="admin.html" class="px-3 py-2 text-red-600 hover:text-red-800 font-medium">Admin</a>`
+        : '';
+    const mobileAdminLink = currentUser.role === 'ADMIN'
+        ? `<a href="admin.html" class="block px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg font-medium">Admin</a>`
+        : '';
+
+    if (authContainer) {
+        authContainer.innerHTML = `
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
                     <span class="font-medium text-gray-700">${currentUser.name || 'User'}</span>
-                    <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">
-                        Profile
-                    </a>
-                    <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">
-                        Logout
-                    </button>
                 </div>
-            `;
-        }
+                ${adminLink}
+                <a href="profile.html" class="px-3 py-2 text-gray-600 hover:text-green-600 font-medium">Profile</a>
+                <button onclick="logout()" class="px-3 py-2 text-gray-600 hover:text-gray-900 font-medium">Logout</button>
+            </div>`;
     }
+
+    if (mobileContainer) {
+        mobileContainer.innerHTML = `
+            <p class="px-3 py-1 text-sm text-gray-500 font-medium">Hi, ${currentUser.name || 'User'}</p>
+            ${mobileAdminLink}
+            <a href="profile.html" class="block px-3 py-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium">Profile</a>
+            <button onclick="logout()" class="w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg font-medium">Logout</button>
+        `;
+    }
+}
 
     function logout() {
         if (socket) {
