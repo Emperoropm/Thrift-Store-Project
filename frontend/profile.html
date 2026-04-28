@@ -368,7 +368,7 @@
                     <i data-feather="camera" class="w-5 h-5 text-white"></i>
                 </div>
             </div>
-            <input type="file" id="photo-upload" class="hidden" accept="image/*" onchange="uploadProfilePhoto(event)">
+            <input type="file" id="photo-upload" class="hidden" accept="image/*" capture onchange="uploadProfilePhoto(event)">
         </div>
 
         <!-- Info -->
@@ -662,7 +662,7 @@
     <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-green-500 transition" 
          id="image-upload-area" 
          onclick="document.getElementById('product-images').click()">
-        <input type="file" id="product-images" class="hidden" accept="image/jpeg,image/png,image/jpg,image/gif" multiple onchange="previewImages(this.files, 'add')">
+        <input type="file" id="product-images" class="hidden" accept="image/*" multiple onchange="previewImages(this.files, 'add')">
         <i data-feather="upload-cloud" class="w-10 h-10 mx-auto text-gray-400 mb-2"></i>
         <p class="text-gray-500">Click or drag images here to upload</p>
         <p class="text-xs text-gray-400 mt-1">You can select multiple images (Max 5, JPG/PNG/GIF only)</p>
@@ -755,7 +755,7 @@
 <div class="mt-4">
     <label class="block text-gray-700 mb-2">Product Images</label>
     <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-green-500 transition" id="edit-image-upload-area">
-        <input type="file" id="edit-product-images" class="hidden" accept="image/jpeg,image/png,image/jpg,image/gif" multiple onchange="previewEditImages(this.files)">
+        <input type="file" id="edit-product-images" class="hidden"accept="image/*" multiple onchange="previewEditImages(this.files)">
         <i data-feather="upload-cloud" class="w-10 h-10 mx-auto text-gray-400 mb-2"></i>
         <p class="text-gray-500">Click or drag images here to add more (Max 5 total)</p>
         <p class="text-xs text-gray-400 mt-1">You can select multiple images (JPG/PNG/GIF only)</p>
@@ -3265,55 +3265,8 @@ function showDetectionResult(result, onProceed) {
 
 async function addNewProduct(event) {
     event.preventDefault();
-
-    const title = document.getElementById('product-title').value;
-    const description = document.getElementById('product-description').value;
-
-    // If detection hasn't been run yet, run it first
-    if (!event.target.dataset.detectionPassed) {
-        if (selectedImageFiles.length === 0 && !title) {
-            alert('Please fill in at least a title and upload images');
-            return;
-        }
-
-        const submitBtn = event.submitter;
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span> Checking listing...</span>';
-        submitBtn.disabled = true;
-
-        try {
-            const result = await checkSecondHand(title, description, selectedImageFiles);
-            
-            if (result.verdict === 'FAIL') {
-                // Block submission, show result
-                showDetectionResult(result, '');
-            } else if (result.verdict === 'WARN') {
-                // Warn but allow
-                showDetectionResult(result, `document.getElementById('new-product-form').dataset.detectionPassed='true'; document.getElementById('new-product-form').requestSubmit()`);
-            } else {
-                // PASS — set flag and auto-continue
-                event.target.dataset.detectionPassed = 'true';
-                // ... fall through to the rest of addNewProduct below
-                await submitProductToAPI(event); // move your API call to a separate function
-                return;
-            }
-        } catch (err) {
-            console.warn('Detection failed, allowing submission:', err);
-            // Graceful fallback — don't block if AI is down
-            event.target.dataset.detectionPassed = 'true';
-        } finally {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-            if (typeof feather !== 'undefined') feather.replace();
-        }
-        return;
-    }
-
-    // Detection already passed — proceed with normal submission
-    event.target.dataset.detectionPassed = '';
     await submitProductToAPI(event);
 }
-
 
 
 
@@ -3467,10 +3420,10 @@ async function uploadProfilePhoto(event) {
     if (!file) return;
     
     // Validate file type
-    if (!file.type.match(/image\/(jpg|jpeg|png|gif)/)) {
-        alert('Please select a valid image file (JPG, JPEG, PNG, GIF)');
-        return;
-    }
+ if (!file.type.match(/image\/.*/)) {
+    alert('Please select a valid image file');
+    return;
+}
     
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
